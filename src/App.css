@@ -167,14 +167,23 @@ body {
 }
 
 /* Branding */
+/* App Branding on Role Selection */
 .app-branding {
   text-align: center;
-  padding: 40px 20px;
+  padding: 60px 20px 30px;
 }
 
 .app-logo {
-  font-size: 64px;
-  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.app-logo img {
+  max-width: 200px;
+  height: auto;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
 
 .app-name {
