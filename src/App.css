@@ -30,23 +30,15 @@ body {
 
 .loading-content {
   text-align: center;
-  color: white;
   animation: scaleIn 0.6s ease-out;
 }
 
-.loading-logo {
-  font-size: 80px;
-  margin-bottom: 20px;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-.loading-app-name {
-  font-size: 36px;
-  font-weight: 700;
-  margin: 0 0 30px;
-  letter-spacing: 1px;
-  color: white;
-  animation: fadeIn 0.8s ease-in 0.3s both;
+.loading-logo-image {
+  width: 200px;
+  height: auto;
+  margin-bottom: 30px;
+  animation: fadeInScale 1s ease-out;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
 }
 
 .loading-spinner {
@@ -66,8 +58,8 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -75,32 +67,35 @@ body {
   animation: fadeIn 0.2s ease-in;
 }
 
-.transition-content {
-  text-align: center;
-  animation: scaleIn 0.3s ease-out;
-}
-
 .transition-spinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid rgba(255, 255, 255, 0.2);
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 15px;
-}
-
-.transition-text {
-  color: white;
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
+  animation: spin 0.7s linear infinite;
 }
 
 /* Spinner Animation */
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Fade In Scale Animation for Logo */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -119,7 +114,7 @@ body {
 /* Scale In Animation */
 @keyframes scaleIn {
   from {
-    transform: scale(0.9);
+    transform: scale(0.95);
     opacity: 0;
   }
   to {
@@ -854,25 +849,23 @@ button:disabled {
 
 /* Smooth transitions */
 .fade-in {
-  animation: slideInFromRight 0.5s ease-out;
+  animation: slideInFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
   }
 }
 
-/* Slide in from right animation */
+/* Slide in from right animation - Smooth and smart */
 @keyframes slideInFromRight {
   from {
     opacity: 0;
-    transform: translateX(40px);
+    transform: translateX(30px);
   }
   to {
     opacity: 1;
@@ -882,13 +875,13 @@ button:disabled {
 
 /* Page transition effects */
 .app-container > div {
-  animation: slideInFromRight 0.5s ease-out;
+  animation: slideInFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideIn {
   from {
     opacity: 0;
-    transform: translateX(40px);
+    transform: translateX(30px);
   }
   to {
     opacity: 1;
@@ -905,14 +898,14 @@ button:disabled {
 .job-list,
 .job-detail,
 .form-container {
-  animation: slideInFromRight 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: slideInFromRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Smooth easing for professional feel */
+/* Smooth easing for professional feel - Using iOS-style ease out */
 @keyframes slideInFromRight {
   0% {
     opacity: 0;
-    transform: translateX(50px);
+    transform: translateX(30px);
   }
   100% {
     opacity: 1;
@@ -920,13 +913,20 @@ button:disabled {
   }
 }
 
-/* Add subtle exit animation on overlay appearance */
+/* Smooth rendering */
 .app-container {
   position: relative;
   overflow-x: hidden;
 }
 
-/* Ensure smooth rendering */
-.app-container > * {
+/* Hardware acceleration for smooth 60fps */
+.app-container > *,
+.fade-in,
+.role-selector,
+.dashboard,
+.job-detail,
+.form-container {
   will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
 }
