@@ -3,12 +3,13 @@ import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY_HERE",
-  authDomain: "YOUR_AUTH_DOMAIN_HERE",
-  projectId: "YOUR_PROJECT_ID_HERE",
-  storageBucket: "YOUR_STORAGE_BUCKET_HERE",
-  messagingSenderId: "YOUR_SENDER_ID_HERE",
-  appId: "YOUR_APP_ID_HERE",
+  apiKey: "AIzaSyB5WBBBPwYnpRMSGO-b35BJwlt0nGvhukw",
+  authDomain: "hotelkeep-hotelmaintenanceapp.firebaseapp.com",
+  projectId: "hotelkeep-hotelmaintenanceapp",
+  storageBucket: "hotelkeep-hotelmaintenanceapp.firebasestorage.app",
+  messagingSenderId: "391774453754",
+  appId: "1:391774453754:web:1dc905aaa3e315ecccae43",
+  measurementId: "G-CD7CE6BWK8"
 };
 
 const app = initializeApp(firebaseConfig);
