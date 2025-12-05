@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './jobsService.js'
+import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
 
 //Data
 const initialRooms = [
