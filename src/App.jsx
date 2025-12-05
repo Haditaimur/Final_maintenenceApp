@@ -420,8 +420,8 @@ function HotelMaintenanceApp() {
 
   return (
     <div className="app-container">
-      {/* Initial Loading Screen */}
-      {isInitializing && (
+      {/* Initial Loading Screen - FULL SCREEN ONLY */}
+      {isInitializing ? (
         <div className="loading-screen">
           <div className="loading-content">
             <img 
@@ -432,27 +432,27 @@ function HotelMaintenanceApp() {
             <div className="loading-spinner"></div>
           </div>
         </div>
-      )}
+      ) : (
+        <>
+          {/* Page Transition Overlay */}
+          {isTransitioning && (
+            <div className="transition-overlay">
+              <div className="transition-spinner"></div>
+            </div>
+          )}
 
-      {/* Page Transition Overlay */}
-      {isTransitioning && (
-        <div className="transition-overlay">
-          <div className="transition-spinner"></div>
-        </div>
-      )}
+          {enlargedPhoto && (
+            <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
+              <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
+                ×
+              </button>
+              <img src={enlargedPhoto} alt="Enlarged" />
+            </div>
+          )}
 
-      {enlargedPhoto && (
-        <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
-          <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
-            ×
-          </button>
-          <img src={enlargedPhoto} alt="Enlarged" />
-        </div>
-      )}
+          {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
 
-      {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
-
-      {currentView === 'dashboard' && (
+          {currentView === 'dashboard' && (
         <Dashboard
           role={userRole}
           jobs={jobs}
@@ -545,6 +545,8 @@ function HotelMaintenanceApp() {
           goToDashboard={goToDashboard}
         />
       )}
+        </>
+      )}
     </div>
   )
 }
@@ -556,20 +558,12 @@ function RoleSelector({ onSelectRole }) {
     <div className="fade-in">
       <div className="app-branding">
         <div className="app-logo">
-          {/* Replace the src below with your logo URL */}
           <img 
-            src="/logo.png" 
-            alt="Hotel Logo" 
-            style={{ width: '80px', height: '80px', objectFit: 'contain' }}
-            onError={(e) => {
-              // Fallback to emoji if image fails to load
-              e.target.style.display = 'none'
-              e.target.parentElement.innerHTML = '🏨'
-            }}
+            src="/hotelkeep-logo.png" 
+            alt="HotelKeep" 
+            style={{ width: '120px', height: 'auto', objectFit: 'contain' }}
           />
         </div>
-        <h1 className="app-name">HotelKeep</h1>
-        <p className="app-tagline">Professional Maintenance Management</p>
       </div>
       <div className="role-selector">
         <h2>Select Your Role</h2>
