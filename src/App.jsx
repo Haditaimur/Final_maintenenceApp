@@ -179,6 +179,11 @@ function HotelMaintenanceApp() {
     storage.get('managerCodeHash', hashCode('1234')),
   )
   const [showUserMenu, setShowUserMenu] = useState(false)
+  
+  // Loading states
+  const [isInitializing, setIsInitializing] = useState(true)
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
 
   useEffect(() => {
@@ -192,10 +197,14 @@ function HotelMaintenanceApp() {
   // Real-time subscription to jobs from Firebase
   useEffect(() => {
     console.log('Setting up Firebase subscription for hotel:', hotelId)
+    setIsLoadingJobs(true)
     
     const unsubscribe = subscribeToJobs(hotelId, (newJobs) => {
       console.log('Received jobs from Firebase:', newJobs.length, newJobs)
       setJobs(newJobs)
+      setIsLoadingJobs(false)
+      setIsInitializing(false)
+    })
     })
 
     return () => {
@@ -240,56 +249,70 @@ function HotelMaintenanceApp() {
     }
   }
 
+  // Smooth transition wrapper for page changes
+  const transitionToView = (newView, callback) => {
+    setIsTransitioning(true)
+    setTimeout(() => {
+      if (callback) callback()
+      setCurrentView(newView)
+      setIsTransitioning(false)
+    }, 150)
+  }
+
   const logout = () => {
-    setUserRole(null)
-    setCurrentView('role-select')
-    setSelectedCategory(null)
-    setSelectedJob(null)
-    setSelectedFloor(null)
-    setSelectedRoom(null)
-    setIsEditing(false)
+    transitionToView('role-select', () => {
+      setUserRole(null)
+      setSelectedCategory(null)
+      setSelectedJob(null)
+      setSelectedFloor(null)
+      setSelectedRoom(null)
+      setIsEditing(false)
+    })
   }
 
   const goToDashboard = () => {
-    setCurrentView('dashboard')
-    setSelectedCategory(null)
-    setSelectedJob(null)
-    setSelectedFloor(null)
-    setSelectedRoom(null)
+    transitionToView('dashboard', () => {
+      setSelectedCategory(null)
+      setSelectedJob(null)
+      setSelectedFloor(null)
+      setSelectedRoom(null)
+    })
   }
 
   const viewCategory = (category) => {
-    setSelectedCategory(category)
-    if (category === 'Urgent') {
-      setCurrentView('urgent-list')
-    } else {
-      setCurrentView('floor-list')
-    }
+    transitionToView(category === 'Urgent' ? 'urgent-list' : 'floor-list', () => {
+      setSelectedCategory(category)
+    })
   }
 
   const viewFloorRooms = (floor) => {
-    setSelectedFloor(floor)
-    setCurrentView('room-list')
+    transitionToView('room-list', () => {
+      setSelectedFloor(floor)
+    })
   }
 
   const viewRoomJobs = (room) => {
-    setSelectedRoom(room)
-    setCurrentView('job-list')
+    transitionToView('job-list', () => {
+      setSelectedRoom(room)
+    })
   }
 
   const viewJobDetail = (job) => {
-    setSelectedJob(job)
-    setCurrentView('job-detail')
-    setIsEditing(false)
+    transitionToView('job-detail', () => {
+      setSelectedJob(job)
+      setIsEditing(false)
+    })
   }
 
   const editJob = () => {
-    setIsEditing(true)
-    setCurrentView('edit-job')
+    transitionToView('edit-job', () => {
+      setIsEditing(true)
+    })
   }
 
   const addNewJob = () => {
-    setCurrentView('add-job')
+    transitionToView('add-job')
+  }
   }
 
   const createJob = async (jobData) => {
@@ -387,6 +410,24 @@ function HotelMaintenanceApp() {
 
   return (
     <div className="app-container">
+      {/* Initial Loading Screen */}
+      {isInitializing && (
+        <div className="loading-screen">
+          <div className="loading-content">
+            <div className="loading-spinner"></div>
+            <h2>HotelKeep</h2>
+            <p>Loading your maintenance system...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Page Transition Overlay */}
+      {isTransitioning && (
+        <div className="transition-overlay">
+          <div className="transition-spinner"></div>
+        </div>
+      )}
+
       {enlargedPhoto && (
         <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
           <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
@@ -501,7 +542,19 @@ function RoleSelector({ onSelectRole }) {
   return (
     <div className="fade-in">
       <div className="app-branding">
-        <div className="app-logo">🏨</div>
+        <div className="app-logo">
+          {/* Replace the src below with your logo URL */}
+          <img 
+            src="/logo.png" 
+            alt="Hotel Logo" 
+            style={{ width: '80px', height: '80px', objectFit: 'contain' }}
+            onError={(e) => {
+              // Fallback to emoji if image fails to load
+              e.target.style.display = 'none'
+              e.target.parentElement.innerHTML = '🏨'
+            }}
+          />
+        </div>
         <h1 className="app-name">HotelKeep</h1>
         <p className="app-tagline">Professional Maintenance Management</p>
       </div>
@@ -1033,28 +1086,50 @@ function JobDetail({
 }) {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleMarkAsDone = () => {
-    onUpdateJob(job.id, { status: 'Done' })
+  const handleMarkAsDone = async () => {
+    setIsUpdating(true)
+    try {
+      await onUpdateJob(job.id, { status: 'Done' })
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
-  const handleReopenAsOriginal = () => {
-    const originalStatus = job.original_status || 'To Do'
-    onUpdateJob(job.id, { status: originalStatus })
+  const handleReopenAsOriginal = async () => {
+    setIsUpdating(true)
+    try {
+      const originalStatus = job.original_status || 'To Do'
+      await onUpdateJob(job.id, { status: originalStatus })
+    } finally {
+      setIsUpdating(false)
+    }
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this job?')) {
-      onDeleteJob(job.id)
+      setIsDeleting(true)
+      try {
+        await onDeleteJob(job.id)
+      } catch (error) {
+        setIsDeleting(false)
+      }
     }
   }
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0]
     if (file) {
+      setIsUpdating(true)
       const reader = new FileReader()
-      reader.onload = (event) => {
-        onUpdateJob(job.id, { photo: event.target.result })
+      reader.onload = async (event) => {
+        try {
+          await onUpdateJob(job.id, { photo: event.target.result })
+        } finally {
+          setIsUpdating(false)
+        }
       }
       reader.readAsDataURL(file)
     }
@@ -1141,25 +1216,44 @@ function JobDetail({
         </div>
 
         <div className="detail-actions">
-          <button className="edit-button" onClick={onEditJob}>
+          <button 
+            className="edit-button" 
+            onClick={onEditJob}
+            disabled={isUpdating || isDeleting}
+          >
             ✏️ Edit Job
           </button>
 
           {job.status !== 'Done' && (
-            <button className="action-btn primary" onClick={handleMarkAsDone}>
-              ✓ Mark as Done
+            <button 
+              className="action-btn primary" 
+              onClick={handleMarkAsDone}
+              disabled={isUpdating || isDeleting}
+              style={{ opacity: isUpdating ? 0.6 : 1 }}
+            >
+              {isUpdating ? '⏳ Updating...' : '✓ Mark as Done'}
             </button>
           )}
 
           {job.status === 'Done' && role === 'manager' && (
-            <button className="action-btn secondary" onClick={handleReopenAsOriginal}>
-              ↺ Reopen as {job.original_status || 'To Do'}
+            <button 
+              className="action-btn secondary" 
+              onClick={handleReopenAsOriginal}
+              disabled={isUpdating || isDeleting}
+              style={{ opacity: isUpdating ? 0.6 : 1 }}
+            >
+              {isUpdating ? '⏳ Reopening...' : `↺ Reopen as ${job.original_status || 'To Do'}`}
             </button>
           )}
 
           {role === 'manager' && (
-            <button className="action-btn danger" onClick={handleDelete}>
-              🗑 Delete Job
+            <button 
+              className="action-btn danger" 
+              onClick={handleDelete}
+              disabled={isUpdating || isDeleting}
+              style={{ opacity: isDeleting ? 0.6 : 1 }}
+            >
+              {isDeleting ? '⏳ Deleting...' : '🗑 Delete Job'}
             </button>
           )}
         </div>
@@ -1183,6 +1277,7 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
   const [detectedFloor, setDetectedFloor] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const detectFloor = (roomNum) => {
     if (!roomNum) return ''
@@ -1216,8 +1311,11 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (isSubmitting) return
+    
     if (!formData.title || !formData.description) {
       window.alert('Please fill in all required fields')
       return
@@ -1246,10 +1344,18 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
 
     const finalStatus = formData.jobType === 'other' ? 'Other' : formData.priority
 
-    onSubmit({
-      ...formData,
-      status: finalStatus,
-    })
+    setIsSubmitting(true)
+    
+    try {
+      await onSubmit({
+        ...formData,
+        status: finalStatus,
+      })
+    } catch (error) {
+      console.error('Error creating job:', error)
+      window.alert('Failed to create job. Please try again.')
+      setIsSubmitting(false)
+    }
   }
 
   const handleFileUpload = (e) => {
@@ -1411,8 +1517,13 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
             />
           </div>
 
-          <button type="submit" className="form-submit">
-            Create Job
+          <button 
+            type="submit" 
+            className="form-submit"
+            disabled={isSubmitting}
+            style={{ opacity: isSubmitting ? 0.6 : 1 }}
+          >
+            {isSubmitting ? '⏳ Creating Job...' : 'Create Job'}
           </button>
         </form>
       </div>
