@@ -199,11 +199,21 @@ function HotelMaintenanceApp() {
     console.log('Setting up Firebase subscription for hotel:', hotelId)
     setIsLoadingJobs(true)
     
+    const startTime = Date.now()
+    const minLoadingTime = 1200 // Minimum 1.2 seconds for professional feel
+    
     const unsubscribe = subscribeToJobs(hotelId, (newJobs) => {
       console.log('Received jobs from Firebase:', newJobs.length, newJobs)
       setJobs(newJobs)
       setIsLoadingJobs(false)
-      setIsInitializing(false)
+      
+      // Ensure loading screen shows for minimum time
+      const elapsedTime = Date.now() - startTime
+      const remainingTime = Math.max(0, minLoadingTime - elapsedTime)
+      
+      setTimeout(() => {
+        setIsInitializing(false)
+      }, remainingTime)
     })
 
     return () => {
@@ -254,8 +264,10 @@ function HotelMaintenanceApp() {
     setTimeout(() => {
       if (callback) callback()
       setCurrentView(newView)
-      setIsTransitioning(false)
-    }, 150)
+      setTimeout(() => {
+        setIsTransitioning(false)
+      }, 100) // Extra 100ms for smooth fade out
+    }, 300) // Increased to 300ms for better feel
   }
 
   const logout = () => {
@@ -1090,7 +1102,11 @@ function JobDetail({
   const handleMarkAsDone = async () => {
     setIsUpdating(true)
     try {
-      await onUpdateJob(job.id, { status: 'Done' })
+      // Add minimum delay for processing feel
+      await Promise.all([
+        onUpdateJob(job.id, { status: 'Done' }),
+        new Promise(resolve => setTimeout(resolve, 600))
+      ])
     } finally {
       setIsUpdating(false)
     }
@@ -1100,7 +1116,11 @@ function JobDetail({
     setIsUpdating(true)
     try {
       const originalStatus = job.original_status || 'To Do'
-      await onUpdateJob(job.id, { status: originalStatus })
+      // Add minimum delay for processing feel
+      await Promise.all([
+        onUpdateJob(job.id, { status: originalStatus }),
+        new Promise(resolve => setTimeout(resolve, 600))
+      ])
     } finally {
       setIsUpdating(false)
     }
@@ -1110,7 +1130,11 @@ function JobDetail({
     if (window.confirm('Are you sure you want to delete this job?')) {
       setIsDeleting(true)
       try {
-        await onDeleteJob(job.id)
+        // Add minimum delay for processing feel
+        await Promise.all([
+          onDeleteJob(job.id),
+          new Promise(resolve => setTimeout(resolve, 500))
+        ])
       } catch (error) {
         setIsDeleting(false)
       }
@@ -1124,7 +1148,11 @@ function JobDetail({
       const reader = new FileReader()
       reader.onload = async (event) => {
         try {
-          await onUpdateJob(job.id, { photo: event.target.result })
+          // Add minimum delay for processing feel
+          await Promise.all([
+            onUpdateJob(job.id, { photo: event.target.result }),
+            new Promise(resolve => setTimeout(resolve, 800))
+          ])
         } finally {
           setIsUpdating(false)
         }
@@ -1345,10 +1373,14 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
     setIsSubmitting(true)
     
     try {
-      await onSubmit({
-        ...formData,
-        status: finalStatus,
-      })
+      // Add minimum delay for processing feel
+      await Promise.all([
+        onSubmit({
+          ...formData,
+          status: finalStatus,
+        }),
+        new Promise(resolve => setTimeout(resolve, 700))
+      ])
     } catch (error) {
       console.error('Error creating job:', error)
       window.alert('Failed to create job. Please try again.')
@@ -1634,10 +1666,14 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     setIsSubmitting(true)
     
     try {
-      await onSubmit(job.id, {
-        ...formData,
-        status: finalStatus,
-      })
+      // Add minimum delay for processing feel
+      await Promise.all([
+        onSubmit(job.id, {
+          ...formData,
+          status: finalStatus,
+        }),
+        new Promise(resolve => setTimeout(resolve, 700))
+      ])
       
       console.log('Job updated successfully')
       
