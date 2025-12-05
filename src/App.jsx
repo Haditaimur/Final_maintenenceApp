@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
+import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './jobsService.js'
 
 //Data
 const initialRooms = [
@@ -1450,6 +1450,7 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
   const [detectedFloor, setDetectedFloor] = useState(currentRoom ? currentRoom.floor : '')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const detectFloor = (roomNum) => {
     if (!roomNum) return ''
@@ -1483,8 +1484,11 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     })
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (isSubmitting) return // Prevent double submission
+    
     if (!formData.title || !formData.description) {
       window.alert('Please fill in all required fields')
       return
@@ -1518,10 +1522,23 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
       finalStatus = formData.jobType === 'other' ? 'Other' : formData.priority
     }
 
-    onSubmit(job.id, {
-      ...formData,
-      status: finalStatus,
-    })
+    setIsSubmitting(true)
+    
+    try {
+      await onSubmit(job.id, {
+        ...formData,
+        status: finalStatus,
+      })
+      
+      console.log('Job updated successfully')
+      
+      // Navigate back to job detail after successful update
+      onBack()
+    } catch (error) {
+      console.error('Error updating job:', error)
+      window.alert('Failed to update job. Please try again.')
+      setIsSubmitting(false)
+    }
   }
 
   const handleFileUpload = (e) => {
@@ -1692,8 +1709,13 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
             />
           </div>
 
-          <button type="submit" className="form-submit">
-            Update Job
+          <button 
+            type="submit" 
+            className="form-submit"
+            disabled={isSubmitting}
+            style={{ opacity: isSubmitting ? 0.6 : 1 }}
+          >
+            {isSubmitting ? 'Updating...' : 'Update Job'}
           </button>
         </form>
       </div>
