@@ -312,7 +312,6 @@ function HotelMaintenanceApp() {
   const addNewJob = () => {
     transitionToView('add-job')
   }
-  }
 
   const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
