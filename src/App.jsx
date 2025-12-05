@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
+import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './jobsService.js'
 
 //Data
 const initialRooms = [
@@ -191,11 +191,17 @@ function HotelMaintenanceApp() {
 
   // Real-time subscription to jobs from Firebase
   useEffect(() => {
+    console.log('Setting up Firebase subscription for hotel:', hotelId)
+    
     const unsubscribe = subscribeToJobs(hotelId, (newJobs) => {
+      console.log('Received jobs from Firebase:', newJobs.length, newJobs)
       setJobs(newJobs)
     })
 
-    return () => unsubscribe()
+    return () => {
+      console.log('Cleaning up Firebase subscription')
+      unsubscribe()
+    }
   }, [hotelId])
 
 
