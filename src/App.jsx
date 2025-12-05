@@ -286,7 +286,7 @@ function HotelMaintenanceApp() {
     setCurrentView('add-job')
   }
 
-const createJob = async (jobData) => {
+  const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
       window.alert('Job must have a title and description')
       return
@@ -475,7 +475,7 @@ const createJob = async (jobData) => {
               setCurrentView('job-list')
             }
           }}
-          onUpdateJob={updateJob}
+          onUpdateJob={updateJobData}
           onDeleteJob={deleteJob}
           onEditJob={editJob}
           onEnlargePhoto={setEnlargedPhoto}
