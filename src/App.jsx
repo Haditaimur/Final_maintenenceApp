@@ -309,23 +309,7 @@ function HotelMaintenanceApp() {
     }
   }
 
-    if (jobData.status !== 'Other' && !jobData.room_id) {
-      window.alert('Room-based jobs must have a valid room')
-      return
-    }
-
-    const newJob = {
-      ...jobData,
-      id: jobs.length > 0 ? Math.max(...jobs.map((j) => j.id)) + 1 : 1,
-      original_status: jobData.status,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    setJobs([...jobs, newJob])
-    goToDashboard()
-  }
-
-   const updateJobData = async (jobId, updates) => {
+  const updateJobData = async (jobId, updates) => {
     if (updates.title !== undefined && !updates.title.trim()) {
       window.alert('Job title cannot be empty')
       return
