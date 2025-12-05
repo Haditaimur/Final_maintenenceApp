@@ -205,7 +205,6 @@ function HotelMaintenanceApp() {
       setIsLoadingJobs(false)
       setIsInitializing(false)
     })
-    })
 
     return () => {
       console.log('Cleaning up Firebase subscription')
