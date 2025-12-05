@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './jobsService'
 
 //Data
 const initialRooms = [
@@ -163,7 +164,11 @@ function HotelMaintenanceApp() {
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
   const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
-  const [jobs, setJobs] = useState(() => storage.get('jobs', initialJobs))
+
+  // Jobs now come from Firebase, not localStorage
+  const [jobs, setJobs] = useState([])
+  const hotelId = 'athena' // you can change this later if needed
+
   const [selectedCategory, setSelectedCategory] = useState(null)
   const [selectedJob, setSelectedJob] = useState(null)
   const [selectedFloor, setSelectedFloor] = useState(null)
@@ -175,17 +180,24 @@ function HotelMaintenanceApp() {
   )
   const [showUserMenu, setShowUserMenu] = useState(false)
 
+
   useEffect(() => {
     storage.set('rooms', rooms)
   }, [rooms])
 
   useEffect(() => {
-    storage.set('jobs', jobs)
-  }, [jobs])
-
-  useEffect(() => {
     storage.set('managerCodeHash', managerCode)
   }, [managerCode])
+
+  // Real-time subscription to jobs from Firebase
+  useEffect(() => {
+    const unsubscribe = subscribeToJobs(hotelId, (newJobs) => {
+      setJobs(newJobs)
+    })
+
+    return () => unsubscribe()
+  }, [hotelId])
+
 
   const selectRole = (role) => {
     if (role === 'manager') {
@@ -274,11 +286,28 @@ function HotelMaintenanceApp() {
     setCurrentView('add-job')
   }
 
-  const createJob = (jobData) => {
+const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
       window.alert('Job must have a title and description')
       return
     }
+
+    if (jobData.status !== 'Other' && !jobData.room_id) {
+      window.alert('Room-based jobs must have a valid room')
+      return
+    }
+
+    try {
+      await createJobInDb({
+        ...jobData,
+        hotelId,
+      })
+      goToDashboard()
+    } catch (err) {
+      console.error('Error creating job in Firebase:', err)
+      window.alert('Could not create job. Please try again.')
+    }
+  }
 
     if (jobData.status !== 'Other' && !jobData.room_id) {
       window.alert('Room-based jobs must have a valid room')
@@ -296,7 +325,7 @@ function HotelMaintenanceApp() {
     goToDashboard()
   }
 
-  const updateJobData = (jobId, updates) => {
+   const updateJobData = async (jobId, updates) => {
     if (updates.title !== undefined && !updates.title.trim()) {
       window.alert('Job title cannot be empty')
       return
@@ -307,49 +336,42 @@ function HotelMaintenanceApp() {
       return
     }
 
-    setJobs(
-      jobs.map((job) =>
-        job.id === jobId
-          ? { ...job, ...updates, updated_at: new Date().toISOString() }
-          : job,
-      ),
-    )
-    const updatedJob = jobs.find((j) => j.id === jobId)
-    if (updatedJob) {
-      setSelectedJob({ ...updatedJob, ...updates, updated_at: new Date().toISOString() })
-    }
-    setIsEditing(false)
-    setCurrentView('job-detail')
-  }
+    const existingJob = jobs.find((j) => j.id === jobId)
+    if (!existingJob) return
 
-  const updateJob = (jobId, updates) => {
-    setJobs(
-      jobs.map((job) => {
-        if (job.id === jobId) {
-          const newUpdates = { ...updates, updated_at: new Date().toISOString() }
-          if (updates.status === 'Done' && job.status !== 'Done') {
-            newUpdates.original_status = job.status === 'Other' ? 'Other' : job.status
-          }
-          return { ...job, ...newUpdates }
-        }
-        return job
-      }),
-    )
-    if (updates.status) {
-      const job = jobs.find((j) => j.id === jobId)
-      const newUpdates = { ...updates, updated_at: new Date().toISOString() }
-      if (updates.status === 'Done' && job.status !== 'Done') {
-        newUpdates.original_status = job.status === 'Other' ? 'Other' : job.status
+    const newUpdates = { ...updates }
+
+    if (updates.status === 'Done' && existingJob.status !== 'Done') {
+      newUpdates.original_status =
+        existingJob.status === 'Other' ? 'Other' : existingJob.status
+    }
+
+    try {
+      await updateJobInDb(jobId, newUpdates)
+
+      // keep detail view responsive while Firestore syncs
+      if (selectedJob && selectedJob.id === jobId) {
+        setSelectedJob({ ...selectedJob, ...newUpdates })
       }
-      setSelectedJob({ ...selectedJob, ...newUpdates })
+    } catch (err) {
+      console.error('Error updating job in Firebase:', err)
+      window.alert('Could not update job. Please try again.')
     }
   }
 
-  const deleteJob = (jobId) => {
+
+  const deleteJob = async (jobId) => {
     if (!window.confirm('Are you sure you want to delete this job?')) return
-    setJobs(jobs.filter((job) => job.id !== jobId))
-    goToDashboard()
+
+    try {
+      await deleteJobInDb(jobId)
+      goToDashboard()
+    } catch (err) {
+      console.error('Error deleting job in Firebase:', err)
+      window.alert('Could not delete job. Please try again.')
+    }
   }
+
 
   const getJobsForCategory = (status) => {
     if (status === 'To Do') {
