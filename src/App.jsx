@@ -266,8 +266,8 @@ function HotelMaintenanceApp() {
       setCurrentView(newView)
       setTimeout(() => {
         setIsTransitioning(false)
-      }, 100) // Extra 100ms for smooth fade out
-    }, 300) // Increased to 300ms for better feel
+      }, 200) // Increased fade out time for smoother transition
+    }, 500) // Increased to 500ms for more deliberate feel
   }
 
   const logout = () => {
@@ -424,9 +424,9 @@ function HotelMaintenanceApp() {
       {isInitializing && (
         <div className="loading-screen">
           <div className="loading-content">
+            <div className="loading-logo">🏨</div>
+            <h1 className="loading-app-name">HotelKeep</h1>
             <div className="loading-spinner"></div>
-            <h2>HotelKeep</h2>
-            <p>Loading your maintenance system...</p>
           </div>
         </div>
       )}
@@ -434,7 +434,10 @@ function HotelMaintenanceApp() {
       {/* Page Transition Overlay */}
       {isTransitioning && (
         <div className="transition-overlay">
-          <div className="transition-spinner"></div>
+          <div className="transition-content">
+            <div className="transition-spinner"></div>
+            <div className="transition-text">Loading...</div>
+          </div>
         </div>
       )}
 
