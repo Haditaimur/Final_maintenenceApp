@@ -384,14 +384,14 @@ function HotelMaintenanceApp() {
 
 
   const deleteJob = async (jobId) => {
-    if (!window.confirm('Are you sure you want to delete this job?')) return
-
+    // Confirm is already done in JobDetail component
     try {
       await deleteJobInDb(jobId)
       goToDashboard()
     } catch (err) {
       console.error('Error deleting job in Firebase:', err)
       window.alert('Could not delete job. Please try again.')
+      throw err // Re-throw so JobDetail can handle it
     }
   }
 
@@ -434,27 +434,28 @@ function HotelMaintenanceApp() {
         </div>
       )}
 
-      {/* Main App Container */}
-      <div className="app-container">
-        {/* Page Transition Overlay */}
-        {isTransitioning && (
-          <div className="transition-overlay">
-            <div className="transition-spinner"></div>
-          </div>
-        )}
+      {/* Main App Container - Only show after initialization */}
+      {!isInitializing && (
+        <div className="app-container">
+          {/* Page Transition Overlay */}
+          {isTransitioning && (
+            <div className="transition-overlay">
+              <div className="transition-spinner"></div>
+            </div>
+          )}
 
-        {enlargedPhoto && (
-          <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
-            <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
-              ×
-            </button>
-            <img src={enlargedPhoto} alt="Enlarged" />
-          </div>
-        )}
+          {enlargedPhoto && (
+            <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
+              <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
+                ×
+              </button>
+              <img src={enlargedPhoto} alt="Enlarged" />
+            </div>
+          )}
 
-        {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
+          {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
 
-        {currentView === 'dashboard' && (
+          {currentView === 'dashboard' && (
         <Dashboard
           role={userRole}
           jobs={jobs}
@@ -548,7 +549,8 @@ function HotelMaintenanceApp() {
           goToDashboard={goToDashboard}
         />
       )}
-      </div>
+        </div>
+      )}
     </>
   )
 }
@@ -617,7 +619,6 @@ function Dashboard({
                 onClick={() => setShowUserMenu(!showUserMenu)}
               >
                 ⚙️
-                <span style={{ fontSize: '0.6rem' }}>▼</span>
               </button>
               {showUserMenu && (
                 <div className="user-menu-dropdown">
@@ -648,7 +649,7 @@ function Dashboard({
         </div>
       </div>
 
-      <div className="dashboard fade-in">
+      <div className="dashboard-content">
         <div className="dashboard-grid">
           <div className="category-card urgent" onClick={() => onViewCategory('Urgent')}>
             <div className="category-header">
@@ -682,6 +683,9 @@ function Dashboard({
             <div className="category-count">{doneCount}</div>
             <div className="category-subtitle">Completed tasks</div>
           </div>
+        </div>
+      </div>
+
         </div>
       </div>
 
@@ -1127,18 +1131,23 @@ function JobDetail({
   }
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this job?')) {
-      setIsDeleting(true)
-      try {
-        // Add minimum delay for processing feel
-        await Promise.all([
-          onDeleteJob(job.id),
-          new Promise(resolve => setTimeout(resolve, 500))
-        ])
-      } catch (error) {
-        setIsDeleting(false)
-      }
+    // Only one confirm needed - remove the second one from deleteJob function
+    if (!window.confirm('Are you sure you want to delete this job?')) {
+      return // User cancelled - don't proceed
     }
+    
+    setIsDeleting(true)
+    try {
+      // Add minimum delay for processing feel
+      await Promise.all([
+        onDeleteJob(job.id),
+        new Promise(resolve => setTimeout(resolve, 500))
+      ])
+    } catch (error) {
+      console.error('Delete error:', error)
+      setIsDeleting(false)
+    }
+    // Note: don't set false here - component will unmount after delete
   }
 
   const handleFileUpload = (e) => {
