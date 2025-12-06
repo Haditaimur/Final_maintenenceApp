@@ -188,24 +188,26 @@ body {
 /* App Branding on Role Selection */
 .app-branding {
   text-align: center;
-  padding: 40px 20px 40px;
+  padding: 60px 20px 40px;
 }
 
 .app-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .app-logo-image {
-  width: 200px;
+  width: 180px;
+  max-width: 90%;
   height: auto;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
 
 .app-logo img {
-  width: 200px;
+  width: 180px;
+  max-width: 90%;
   height: auto;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
 }
@@ -218,10 +220,10 @@ body {
 }
 
 .app-tagline {
-  font-size: 15px;
+  font-size: 14px;
   color: #86868b;
-  margin-bottom: 50px;
-  font-weight: 500;
+  margin-bottom: 40px;
+  font-weight: 400;
 }
 
 /* Role Selector */
@@ -974,4 +976,6 @@ button:disabled {
 .role-selector-page {
   animation: slideInFromRight 0.6s cubic-bezier(0.23, 1, 0.32, 1);
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: hidden;
 }
