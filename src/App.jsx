@@ -266,8 +266,8 @@ function HotelMaintenanceApp() {
       setCurrentView(newView)
       setTimeout(() => {
         setIsTransitioning(false)
-      }, 400) // Smooth fade out
-    }, 350) // Reduced from 500ms for snappier feel
+      }, 600) // Longer fade out so you can see it
+    }, 800) // Much longer delay so overlay is very visible
   }
 
   const logout = () => {
