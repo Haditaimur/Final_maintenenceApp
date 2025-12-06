@@ -429,7 +429,6 @@ function HotelMaintenanceApp() {
               alt="HotelKeep" 
               className="loading-logo-image"
             />
-            <p className="loading-tagline">Professional Maintenance Management</p>
             <div className="loading-spinner"></div>
           </div>
         </div>
@@ -562,9 +561,10 @@ function RoleSelector({ onSelectRole }) {
           <img 
             src="/hotelkeep-logo.png" 
             alt="HotelKeep" 
-            style={{ width: '120px', height: 'auto', objectFit: 'contain' }}
+            style={{ width: '150px', height: 'auto', objectFit: 'contain' }}
           />
         </div>
+        <p className="app-tagline">Professional Maintenance Management</p>
       </div>
       <div className="role-selector">
         <h2>Select Your Role</h2>
