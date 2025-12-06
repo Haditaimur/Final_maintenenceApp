@@ -419,9 +419,9 @@ function HotelMaintenanceApp() {
   }
 
   return (
-    <div className="app-container">
-      {/* Initial Loading Screen - FULL SCREEN ONLY */}
-      {isInitializing ? (
+    <>
+      {/* Initial Loading Screen - OUTSIDE app-container for true full screen */}
+      {isInitializing && (
         <div className="loading-screen">
           <div className="loading-content">
             <img 
@@ -432,27 +432,29 @@ function HotelMaintenanceApp() {
             <div className="loading-spinner"></div>
           </div>
         </div>
-      ) : (
-        <>
-          {/* Page Transition Overlay */}
-          {isTransitioning && (
-            <div className="transition-overlay">
-              <div className="transition-spinner"></div>
-            </div>
-          )}
+      )}
 
-          {enlargedPhoto && (
-            <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
-              <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
-                ×
-              </button>
-              <img src={enlargedPhoto} alt="Enlarged" />
-            </div>
-          )}
+      {/* Main App Container */}
+      <div className="app-container">
+        {/* Page Transition Overlay */}
+        {isTransitioning && (
+          <div className="transition-overlay">
+            <div className="transition-spinner"></div>
+          </div>
+        )}
 
-          {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
+        {enlargedPhoto && (
+          <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
+            <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
+              ×
+            </button>
+            <img src={enlargedPhoto} alt="Enlarged" />
+          </div>
+        )}
 
-          {currentView === 'dashboard' && (
+        {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
+
+        {currentView === 'dashboard' && (
         <Dashboard
           role={userRole}
           jobs={jobs}
@@ -489,7 +491,7 @@ function HotelMaintenanceApp() {
           category={selectedCategory}
           jobs={jobs}
           rooms={rooms}
-          onBack={() => setCurrentView('floor-list')}
+          onBack={() => transitionToView('floor-list', () => setSelectedFloor(null))}
           onViewRoom={viewRoomJobs}
           onViewJob={viewJobDetail}
           goToDashboard={goToDashboard}
@@ -513,11 +515,12 @@ function HotelMaintenanceApp() {
           room={getRoomById(selectedJob.room_id)}
           role={userRole}
           onBack={() => {
-            if (selectedCategory === 'Urgent') {
-              setCurrentView('urgent-list')
-            } else {
-              setCurrentView('job-list')
-            }
+            transitionToView(
+              selectedCategory === 'Urgent' ? 'urgent-list' : 'job-list',
+              () => {
+                setSelectedJob(null)
+              }
+            )
           }}
           onUpdateJob={updateJobData}
           onDeleteJob={deleteJob}
@@ -540,14 +543,13 @@ function HotelMaintenanceApp() {
         <EditJobForm
           job={selectedJob}
           rooms={rooms}
-          onBack={() => setCurrentView('job-detail')}
+          onBack={() => transitionToView('job-detail')}
           onSubmit={updateJobData}
           goToDashboard={goToDashboard}
         />
       )}
-        </>
-      )}
-    </div>
+      </div>
+    </>
   )
 }
 
@@ -561,7 +563,7 @@ function RoleSelector({ onSelectRole }) {
           <img 
             src="/hotelkeep-logo.png" 
             alt="HotelKeep" 
-            style={{ width: '250px', height: 'auto', objectFit: 'contain' }}
+            style={{ width: '150px', height: 'auto', objectFit: 'contain' }}
           />
         </div>
         <p className="app-tagline">Professional Maintenance Management</p>
