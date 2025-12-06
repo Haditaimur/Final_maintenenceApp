@@ -720,7 +720,7 @@ function Dashboard({
 
 function UrgentJobsList({ jobs, onBack, onViewJob }) {
   return (
-    <>
+    <div className="urgent-list">
       <div className="app-header">
         <button className="back-button" onClick={onBack}>
           ← Back
@@ -730,7 +730,7 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
         </h1>
       </div>
 
-      <div className="urgent-list fade-in">
+      <div className="job-grid">
         {jobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🎉</div>
@@ -762,7 +762,7 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
           </div>
         )}
       </div>
-    </>
+    </div>
   )
 }
 
