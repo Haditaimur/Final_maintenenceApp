@@ -561,7 +561,7 @@ function RoleSelector({ onSelectRole }) {
           <img 
             src="/hotelkeep-logo.png" 
             alt="HotelKeep" 
-            style={{ width: '150px', height: 'auto', objectFit: 'contain' }}
+            style={{ width: '250px', height: 'auto', objectFit: 'contain' }}
           />
         </div>
         <p className="app-tagline">Professional Maintenance Management</p>
