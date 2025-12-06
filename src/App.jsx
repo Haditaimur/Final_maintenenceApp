@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
+import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './jobsService.js'
 
 //Data
 const initialRooms = [
@@ -628,46 +628,47 @@ function Dashboard({
   return (
     <div className="dashboard">
       <div className="app-header">
-        <div className="header-content">
-          <h1 className="app-title" onClick={() => setShowUserMenu(false)}>
-            HotelKeep
-          </h1>
-          <div className="header-right">
-            <span className={`role-badge ${role}`}>
-              {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
-            </span>
-            <div className="user-menu-container">
-              <button
-                className="user-menu-button"
-                onClick={() => setShowUserMenu(!showUserMenu)}
-              >
-                ⚙️
-              </button>
-              {showUserMenu && (
-                <div className="user-menu-dropdown">
-                  {role === 'manager' && (
-                    <button
-                      className="user-menu-item"
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        onChangeCode()
-                      }}
-                    >
-                      🔒 Change Security Code
-                    </button>
-                  )}
+        <button className="back-button invisible" disabled>
+          ← Back
+        </button>
+        <h1 className="app-title">
+          HotelKeep
+        </h1>
+        <div className="header-actions">
+          <span className={`role-badge ${role}`}>
+            {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
+          </span>
+          <div className="user-menu-container">
+            <button
+              className="user-menu-button"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+            >
+              ⚙️
+            </button>
+            {showUserMenu && (
+              <div className="user-menu-dropdown">
+                {role === 'manager' && (
                   <button
-                    className="user-menu-item danger"
+                    className="user-menu-item"
                     onClick={() => {
                       setShowUserMenu(false)
-                      onLogout()
+                      onChangeCode()
                     }}
                   >
-                    🚪 Logout
+                    🔒 Change Security Code
                   </button>
-                </div>
-              )}
-            </div>
+                )}
+                <button
+                  className="user-menu-item danger"
+                  onClick={() => {
+                    setShowUserMenu(false)
+                    onLogout()
+                  }}
+                >
+                  🚪 Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
