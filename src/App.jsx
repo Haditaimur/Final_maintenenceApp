@@ -266,8 +266,8 @@ function HotelMaintenanceApp() {
       setCurrentView(newView)
       setTimeout(() => {
         setIsTransitioning(false)
-      }, 200) // Fade out time
-    }, 400) // Increased to 400ms to see the slide better
+      }, 250) // Fade out time
+    }, 500) // Increased to 500ms to allow slide animation to be visible
   }
 
   const logout = () => {
@@ -556,7 +556,7 @@ function HotelMaintenanceApp() {
 
 function RoleSelector({ onSelectRole }) {
   return (
-    <div className="fade-in">
+    <div className="role-selector-page">
       <div className="app-branding">
         <div className="app-logo">
           <img 
@@ -599,7 +599,7 @@ function Dashboard({
   const doneCount = jobs.filter((j) => j.status === 'Done').length
 
   return (
-    <>
+    <div className="dashboard">
       <div className="app-header">
         <div className="header-content">
           <h1 className="app-title" onClick={() => setShowUserMenu(false)}>
@@ -688,7 +688,7 @@ function Dashboard({
           +
         </button>
       )}
-    </>
+    </div>
   )
 }
 
