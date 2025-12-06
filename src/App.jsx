@@ -266,8 +266,8 @@ function HotelMaintenanceApp() {
       setCurrentView(newView)
       setTimeout(() => {
         setIsTransitioning(false)
-      }, 150) // Quick fade out for snappy feel
-    }, 300) // Reduced to 300ms for smarter, faster feel
+      }, 200) // Fade out time
+    }, 400) // Increased to 400ms to see the slide better
   }
 
   const logout = () => {
@@ -429,6 +429,7 @@ function HotelMaintenanceApp() {
               alt="HotelKeep" 
               className="loading-logo-image"
             />
+            <p className="loading-tagline">Professional Maintenance Management</p>
             <div className="loading-spinner"></div>
           </div>
         </div>
