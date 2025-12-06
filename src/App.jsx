@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
+import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './jobsService.js'
 
 //Data
 const initialRooms = [
@@ -266,8 +266,8 @@ function HotelMaintenanceApp() {
       setCurrentView(newView)
       setTimeout(() => {
         setIsTransitioning(false)
-      }, 250) // Fade out time
-    }, 500) // Increased to 500ms to allow slide animation to be visible
+      }, 400) // Smooth fade out
+    }, 350) // Reduced from 500ms for snappier feel
   }
 
   const logout = () => {
