@@ -5,6 +5,13 @@
   box-sizing: border-box;
 }
 
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -13,33 +20,44 @@ body {
   color: #1d1d1f;
 }
 
+#root {
+  width: 100%;
+  height: 100%;
+}
+
 /* Loading Screen - INITIAL APP LOAD */
 .loading-screen {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
   width: 100vw;
   height: 100vh;
+  margin: 0;
+  padding: 0;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 9999;
+  overflow: hidden;
 }
 
 .loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  padding: 40px 20px;
+  padding: 20px;
 }
 
 .loading-logo-image {
   width: 220px;
-  max-width: 80%;
+  max-width: 80vw;
   height: auto;
   display: block;
-  margin: 0 auto 30px auto;
+  margin: 0 auto 40px auto;
   filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
 }
 
@@ -892,8 +910,10 @@ button:disabled {
   transform-origin: right center;
 }
 
-/* Smooth rendering */
+/* App Container */
 .app-container {
+  width: 100%;
+  height: 100%;
   min-height: 100vh;
   background: #f5f5f7;
   position: relative;
@@ -903,7 +923,7 @@ button:disabled {
 
 /* Make sure loading screen is NOT affected by any animations */
 .loading-screen {
-  animation: fadeIn 0.5s ease-in !important;
+  animation: none !important;
   transform: none !important;
 }
 
