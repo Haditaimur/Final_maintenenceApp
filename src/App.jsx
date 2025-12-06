@@ -422,12 +422,29 @@ function HotelMaintenanceApp() {
     <>
       {/* Initial Loading Screen - OUTSIDE app-container for true full screen */}
       {isInitializing && (
-        <div className="loading-screen">
-          <div className="loading-content">
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{ textAlign: 'center' }}>
             <img 
               src="/hotelkeep-logo.png" 
               alt="HotelKeep" 
-              className="loading-logo-image"
+              style={{
+                width: '200px',
+                height: 'auto',
+                display: 'block',
+                margin: '0 auto 30px',
+                filter: 'drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3))'
+              }}
             />
             <div className="loading-spinner"></div>
           </div>
@@ -565,7 +582,13 @@ function RoleSelector({ onSelectRole }) {
           <img 
             src="/hotelkeep-logo.png" 
             alt="HotelKeep" 
-            className="app-logo-image"
+            style={{
+              width: '160px',
+              maxWidth: '80%',
+              height: 'auto',
+              display: 'block',
+              margin: '0 auto'
+            }}
           />
         </div>
         <p className="app-tagline">Professional Maintenance Management</p>
