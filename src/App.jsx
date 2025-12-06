@@ -686,9 +686,6 @@ function Dashboard({
         </div>
       </div>
 
-        </div>
-      </div>
-
       {(role === 'manager' || role === 'handyman') && (
         <button className="add-job-button" onClick={onAddJob}>
           +
