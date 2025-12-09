@@ -155,8 +155,9 @@ body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   justify-self: end;
+  margin-left: auto;
 }
 
 .header-spacer {
@@ -316,6 +317,8 @@ body {
   font-weight: 500;
   background: #f0f0f0;
   color: #1d1d1f;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .role-badge.manager {
@@ -338,12 +341,15 @@ body {
   border-radius: 50%;
   width: 40px;
   height: 40px;
+  min-width: 40px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   font-size: 20px;
   transition: all 0.2s;
+  flex-shrink: 0;
 }
 
 .user-menu-button:hover {
