@@ -636,22 +636,18 @@ function Dashboard({
   return (
     <div className="dashboard">
       <div className="app-header">
-        <button className="back-button invisible" disabled>
-          ← Back
-        </button>
-        <h1 className="app-title">
-          HotelKeep
-        </h1>
-        <div className="header-actions">
-          <span className={`role-badge ${role}`}>
-            {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
-          </span>
+        <div className="header-left"></div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right">
           <div className="user-menu-container">
             <button
-              className="user-menu-button"
+              className="role-dropdown-button"
               onClick={() => setShowUserMenu(!showUserMenu)}
             >
-              ⚙️
+              <span className="role-name">
+                {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
+              </span>
+              <span className="dropdown-arrow">▼</span>
             </button>
             {showUserMenu && (
               <div className="user-menu-dropdown">
