@@ -1,53 +1,127 @@
 import { useState, useEffect, useRef } from 'react'
 import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
 
-//Data
+// ============================================================================
+// REUSABLE HEADER COMPONENT
+// ============================================================================
+
+function AppHeader({ 
+  showBackButton = false, 
+  onBack = null, 
+  role = null, 
+  showUserMenu = false,
+  setShowUserMenu = null,
+  onChangeCode = null,
+  onLogout = null,
+  goToDashboard = null
+}) {
+  return (
+    <div className="app-header">
+      <div className="header-left">
+        {showBackButton && onBack && (
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        )}
+        <img 
+          src="/hotelkeep-logo.png" 
+          alt="HotelKeep" 
+          className="header-logo"
+          onClick={goToDashboard}
+        />
+      </div>
+      
+      <div className="header-center"></div>
+      
+      <div className="header-right">
+        {role && (
+          <div className="user-menu-container">
+            <button
+              className="role-dropdown-button"
+              onClick={() => setShowUserMenu && setShowUserMenu(!showUserMenu)}
+            >
+              <span className="role-name">
+                {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
+              </span>
+              <span className="dropdown-arrow">▼</span>
+            </button>
+            {showUserMenu && (
+              <div className="user-menu-dropdown">
+                {role === 'manager' && onChangeCode && (
+                  <button className="user-menu-item" onClick={() => {
+                    setShowUserMenu(false)
+                    onChangeCode()
+                  }}>
+                    🔒 Change Security Code
+                  </button>
+                )}
+                {onLogout && (
+                  <button className="user-menu-item danger" onClick={() => {
+                    setShowUserMenu(false)
+                    onLogout()
+                  }}>
+                    🚪 Logout
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================================
+// DATA
+// ============================================================================
+
 const initialRooms = [
-            // Basement
-            { id: 1, room_number: "51", notes: "Triple Room", floor: "Basement" },
-            { id: 2, room_number: "52", notes: "Triple Room", floor: "Basement" },
-            { id: 3, room_number: "53", notes: "Twin Room", floor: "Basement" },
-            { id: 4, room_number: "54", notes: "Triple Room", floor: "Basement" },
-            // Ground Floor
-            { id: 5, room_number: "1", notes: "Single Room", floor: "Ground Floor" },
-            { id: 6, room_number: "2", notes: "Family Room", floor: "Ground Floor" },
-            { id: 7, room_number: "3", notes: "Double Room", floor: "Ground Floor" },
-            { id: 8, room_number: "4", notes: "Double Room", floor: "Ground Floor" },
-            { id: 9, room_number: "5", notes: "Twin Room", floor: "Ground Floor" },
-            { id: 10, room_number: "6", notes: "Triple Room", floor: "Ground Floor" },
-            { id: 11, room_number: "7", notes: "Family Room", floor: "Ground Floor" },
-            // First Floor
-            { id: 12, room_number: "8", notes: "Twin Room", floor: "First Floor" },
-            { id: 13, room_number: "2b", notes: "Twin Room", floor: "First Floor" },
-            { id: 14, room_number: "11", notes: "Quad Room", floor: "First Floor" },
-            { id: 15, room_number: "12", notes: "Quad Room", floor: "First Floor" },
-            { id: 16, room_number: "13", notes: "Quad Room", floor: "First Floor" },
-            { id: 17, room_number: "14", notes: "Family Room", floor: "First Floor" },
-            { id: 18, room_number: "15", notes: "Double Room", floor: "First Floor" },
-            { id: 19, room_number: "16", notes: "Double Room", floor: "First Floor" },
-            // Second Floor
-            { id: 20, room_number: "9", notes: "Single Room", floor: "Second Floor" },
-            { id: 21, room_number: "5b", notes: "Single Room", floor: "Second Floor" },
-            { id: 22, room_number: "21", notes: "Family Room", floor: "Second Floor" },
-            { id: 23, room_number: "22", notes: "Family Room", floor: "Second Floor" },
-            { id: 24, room_number: "23", notes: "Family Room", floor: "Second Floor" },
-            { id: 25, room_number: "24", notes: "Family Room", floor: "Second Floor" },
-            { id: 26, room_number: "25", notes: "Double Room", floor: "Second Floor" },
-            { id: 27, room_number: "26", notes: "Double Room", floor: "Second Floor" },
-            // Third Floor
-            { id: 28, room_number: "31", notes: "Quad Room", floor: "Third Floor" },
-            { id: 29, room_number: "32", notes: "Family Room", floor: "Third Floor" },
-            { id: 30, room_number: "33", notes: "Quad Room", floor: "Third Floor" },
-            { id: 31, room_number: "34", notes: "Triple Room", floor: "Third Floor" },
-            { id: 32, room_number: "35", notes: "Double Room", floor: "Third Floor" },
-            { id: 33, room_number: "36", notes: "Double Room", floor: "Third Floor" },
-            // Fourth Floor
-            { id: 34, room_number: "41", notes: "Quad Room", floor: "Fourth Floor" },
-            { id: 35, room_number: "42", notes: "Quad Room", floor: "Fourth Floor" },
-            { id: 36, room_number: "43", notes: "Quad Room", floor: "Fourth Floor" },
-            { id: 37, room_number: "44", notes: "Triple Room", floor: "Fourth Floor" },
-            { id: 38, room_number: "45", notes: "Single Room", floor: "Fourth Floor" },
-            { id: 39, room_number: "46", notes: "Single Room", floor: "Fourth Floor" },
+  // Basement
+  { id: 1, room_number: "51", notes: "Triple Room", floor: "Basement" },
+  { id: 2, room_number: "52", notes: "Triple Room", floor: "Basement" },
+  { id: 3, room_number: "53", notes: "Twin Room", floor: "Basement" },
+  { id: 4, room_number: "54", notes: "Triple Room", floor: "Basement" },
+  // Ground Floor
+  { id: 5, room_number: "1", notes: "Single Room", floor: "Ground Floor" },
+  { id: 6, room_number: "2", notes: "Family Room", floor: "Ground Floor" },
+  { id: 7, room_number: "3", notes: "Double Room", floor: "Ground Floor" },
+  { id: 8, room_number: "4", notes: "Double Room", floor: "Ground Floor" },
+  { id: 9, room_number: "5", notes: "Twin Room", floor: "Ground Floor" },
+  { id: 10, room_number: "6", notes: "Triple Room", floor: "Ground Floor" },
+  { id: 11, room_number: "7", notes: "Family Room", floor: "Ground Floor" },
+  // First Floor
+  { id: 12, room_number: "8", notes: "Twin Room", floor: "First Floor" },
+  { id: 13, room_number: "2b", notes: "Twin Room", floor: "First Floor" },
+  { id: 14, room_number: "11", notes: "Quad Room", floor: "First Floor" },
+  { id: 15, room_number: "12", notes: "Quad Room", floor: "First Floor" },
+  { id: 16, room_number: "13", notes: "Quad Room", floor: "First Floor" },
+  { id: 17, room_number: "14", notes: "Family Room", floor: "First Floor" },
+  { id: 18, room_number: "15", notes: "Double Room", floor: "First Floor" },
+  { id: 19, room_number: "16", notes: "Double Room", floor: "First Floor" },
+  // Second Floor
+  { id: 20, room_number: "9", notes: "Single Room", floor: "Second Floor" },
+  { id: 21, room_number: "5b", notes: "Single Room", floor: "Second Floor" },
+  { id: 22, room_number: "21", notes: "Family Room", floor: "Second Floor" },
+  { id: 23, room_number: "22", notes: "Family Room", floor: "Second Floor" },
+  { id: 24, room_number: "23", notes: "Family Room", floor: "Second Floor" },
+  { id: 25, room_number: "24", notes: "Family Room", floor: "Second Floor" },
+  { id: 26, room_number: "25", notes: "Double Room", floor: "Second Floor" },
+  { id: 27, room_number: "26", notes: "Double Room", floor: "Second Floor" },
+  // Third Floor
+  { id: 28, room_number: "31", notes: "Quad Room", floor: "Third Floor" },
+  { id: 29, room_number: "32", notes: "Family Room", floor: "Third Floor" },
+  { id: 30, room_number: "33", notes: "Quad Room", floor: "Third Floor" },
+  { id: 31, room_number: "34", notes: "Triple Room", floor: "Third Floor" },
+  { id: 32, room_number: "35", notes: "Double Room", floor: "Third Floor" },
+  { id: 33, room_number: "36", notes: "Double Room", floor: "Third Floor" },
+  // Fourth Floor
+  { id: 34, room_number: "41", notes: "Quad Room", floor: "Fourth Floor" },
+  { id: 35, room_number: "42", notes: "Quad Room", floor: "Fourth Floor" },
+  { id: 36, room_number: "43", notes: "Quad Room", floor: "Fourth Floor" },
+  { id: 37, room_number: "44", notes: "Triple Room", floor: "Fourth Floor" },
+  { id: 38, room_number: "45", notes: "Single Room", floor: "Fourth Floor" },
+  { id: 39, room_number: "46", notes: "Single Room", floor: "Fourth Floor" },
 ]
 
 const initialJobs = [
@@ -98,167 +172,55 @@ const initialJobs = [
   {
     id: 5,
     room_id: 28,
-    title: 'Window Handle Loose',
-    description: 'Window handle is wobbly and difficult to operate.',
-    photo: null,
-    status: 'To Do',
-    original_status: 'To Do',
-    created_at: new Date('2025-11-26T16:00:00').toISOString(),
-    updated_at: new Date('2025-11-26T16:00:00').toISOString(),
-  },
-  {
-    id: 6,
-    room_id: 35,
-    title: 'Curtain Rail Fixed',
-    description: 'Repaired and reinforced curtain rail bracket.',
+    title: 'Window Won\'t Close',
+    description: 'Bedroom window stuck halfway open.',
     photo: null,
     status: 'Done',
     original_status: 'To Do',
-    created_at: new Date('2025-11-25T10:00:00').toISOString(),
-    updated_at: new Date('2025-11-28T15:00:00').toISOString(),
-  },
+    created_at: new Date('2025-11-26T10:00:00').toISOString(),
+    updated_at: new Date('2025-11-27T16:00:00').toISOString(),
+  }
 ]
 
-// Storage helpers
-const storage = {
-  get: (key, defaultValue) => {
-    try {
-      const item = localStorage.getItem(key)
-      return item ? JSON.parse(item) : defaultValue
-    } catch {
-      return defaultValue
-    }
-  },
-  set: (key, value) => {
-    try {
-      localStorage.setItem(key, JSON.stringify(value))
-    } catch (e) {
-      console.error('Storage error:', e)
-    }
-  },
-}
+// ============================================================================
+// MAIN APP COMPONENT
+// ============================================================================
 
-// Simple hash function for manager code
-const hashCode = (str) => {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash
-  }
-  return hash.toString()
-}
-
-// Version control for data updates
-const APP_VERSION = '6.0'
-const currentVersion = storage.get('appVersion', '1.0')
-
-// Reset rooms if version changed
-if (currentVersion !== APP_VERSION) {
-  localStorage.removeItem('rooms')
-  storage.set('appVersion', APP_VERSION)
-}
-
-// Main App Component
 function HotelMaintenanceApp() {
+  // State
+  const [isInitializing, setIsInitializing] = useState(true)
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
-  const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
-
-  // Jobs now come from Firebase, not localStorage
-  const [jobs, setJobs] = useState([])
-  const hotelId = 'athena' // you can change this later if needed
-
+  const [managerCode, setManagerCode] = useState('1234')
+  const [jobs, setJobs] = useState(initialJobs)
+  const [rooms] = useState(initialRooms)
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [selectedJob, setSelectedJob] = useState(null)
   const [selectedFloor, setSelectedFloor] = useState(null)
   const [selectedRoom, setSelectedRoom] = useState(null)
-  const [isEditing, setIsEditing] = useState(false)
+  const [selectedJob, setSelectedJob] = useState(null)
   const [enlargedPhoto, setEnlargedPhoto] = useState(null)
-  const [managerCode, setManagerCode] = useState(() =>
-    storage.get('managerCodeHash', hashCode('1234')),
-  )
   const [showUserMenu, setShowUserMenu] = useState(false)
-  
-  // Loading states
-  const [isInitializing, setIsInitializing] = useState(true)
-  const [isLoadingJobs, setIsLoadingJobs] = useState(true)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
-
+  // Firebase sync
   useEffect(() => {
-    storage.set('rooms', rooms)
-  }, [rooms])
-
-  useEffect(() => {
-    storage.set('managerCodeHash', managerCode)
-  }, [managerCode])
-
-  // Real-time subscription to jobs from Firebase
-  useEffect(() => {
-    console.log('Setting up Firebase subscription for hotel:', hotelId)
-    setIsLoadingJobs(true)
-    
-    const startTime = Date.now()
-    const minLoadingTime = 1200 // Minimum 1.2 seconds for professional feel
-    
-    const unsubscribe = subscribeToJobs(hotelId, (newJobs) => {
-      console.log('Received jobs from Firebase:', newJobs.length, newJobs)
-      setJobs(newJobs)
-      setIsLoadingJobs(false)
-      
-      // Ensure loading screen shows for minimum time
-      const elapsedTime = Date.now() - startTime
-      const remainingTime = Math.max(0, minLoadingTime - elapsedTime)
-      
-      setTimeout(() => {
-        setIsInitializing(false)
-      }, remainingTime)
+    const unsubscribe = subscribeToJobs((firebaseJobs) => {
+      if (firebaseJobs.length > 0) {
+        setJobs(firebaseJobs)
+      }
     })
+    return () => unsubscribe()
+  }, [])
 
-    return () => {
-      console.log('Cleaning up Firebase subscription')
-      unsubscribe()
-    }
-  }, [hotelId])
+  // Loading screen
+  useEffect(() => {
+    const minLoadTime = setTimeout(() => {
+      setIsInitializing(false)
+    }, 1200)
+    return () => clearTimeout(minLoadTime)
+  }, [])
 
-
-  const selectRole = (role) => {
-    if (role === 'manager') {
-      const enteredCode = window.prompt('Enter manager security code:')
-      if (enteredCode && hashCode(enteredCode) === managerCode) {
-        setUserRole(role)
-        setCurrentView('dashboard')
-      } else if (enteredCode !== null) {
-        window.alert('Incorrect security code. Access denied.')
-      }
-    } else {
-      setUserRole(role)
-      setCurrentView('dashboard')
-    }
-  }
-
-  const changeManagerCode = () => {
-    const currentCode = window.prompt('Enter current security code:')
-    if (currentCode && hashCode(currentCode) === managerCode) {
-      const newCode = window.prompt('Enter new security code (4-8 digits recommended):')
-      if (newCode && newCode.length >= 4) {
-        const confirmCode = window.prompt('Confirm new security code:')
-        if (confirmCode === newCode) {
-          setManagerCode(hashCode(newCode))
-          window.alert('Security code updated successfully!')
-        } else {
-          window.alert('Codes do not match. Security code not changed.')
-        }
-      } else if (newCode !== null) {
-        window.alert('Security code must be at least 4 characters long.')
-      }
-    } else if (currentCode !== null) {
-      window.alert('Incorrect current code. Access denied.')
-    }
-  }
-
-  // Smooth transition wrapper for page changes
+  // Transition helper
   const transitionToView = (newView, callback) => {
     setIsTransitioning(true)
     setTimeout(() => {
@@ -270,35 +232,54 @@ function HotelMaintenanceApp() {
     }, 400)
   }
 
+  // Navigation
+  const selectRole = (role) => {
+    setUserRole(role)
+    transitionToView('dashboard')
+  }
+
   const logout = () => {
     transitionToView('role-select', () => {
       setUserRole(null)
       setSelectedCategory(null)
-      setSelectedJob(null)
       setSelectedFloor(null)
       setSelectedRoom(null)
-      setIsEditing(false)
+      setSelectedJob(null)
     })
+  }
+
+  const changeManagerCode = () => {
+    const newCode = prompt('Enter new security code (4 digits):')
+    if (newCode && /^\d{4}$/.test(newCode)) {
+      setManagerCode(newCode)
+      alert('Security code updated successfully!')
+    } else if (newCode) {
+      alert('Invalid code. Please enter 4 digits.')
+    }
   }
 
   const goToDashboard = () => {
     transitionToView('dashboard', () => {
       setSelectedCategory(null)
-      setSelectedJob(null)
       setSelectedFloor(null)
       setSelectedRoom(null)
+      setSelectedJob(null)
     })
   }
 
   const viewCategory = (category) => {
+    setSelectedCategory(category)
     transitionToView(category === 'Urgent' ? 'urgent-list' : 'floor-list', () => {
-      setSelectedCategory(category)
+      setSelectedFloor(null)
+      setSelectedRoom(null)
+      setSelectedJob(null)
     })
   }
 
   const viewFloorRooms = (floor) => {
     transitionToView('room-list', () => {
       setSelectedFloor(floor)
+      setSelectedRoom(null)
     })
   }
 
@@ -311,13 +292,6 @@ function HotelMaintenanceApp() {
   const viewJobDetail = (job) => {
     transitionToView('job-detail', () => {
       setSelectedJob(job)
-      setIsEditing(false)
-    })
-  }
-
-  const editJob = () => {
-    transitionToView('edit-job', () => {
-      setIsEditing(true)
     })
   }
 
@@ -325,102 +299,80 @@ function HotelMaintenanceApp() {
     transitionToView('add-job')
   }
 
+  const editJob = () => {
+    transitionToView('edit-job')
+  }
+
+  // Job operations
   const createJob = async (jobData) => {
-    if (!jobData.title || !jobData.description) {
-      window.alert('Job must have a title and description')
-      return
-    }
-
-    if (jobData.status !== 'Other' && !jobData.room_id) {
-      window.alert('Room-based jobs must have a valid room')
-      return
-    }
-
     try {
-      await createJobInDb({
+      const newJob = {
         ...jobData,
-        hotelId,
-      })
+        id: Date.now(),
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      await createJobInDb(newJob)
+      setJobs((prev) => [...prev, newJob])
       goToDashboard()
     } catch (err) {
-      console.error('Error creating job in Firebase:', err)
-      window.alert('Could not create job. Please try again.')
+      console.error('Error creating job:', err)
+      alert('Could not create job. Please try again.')
     }
   }
 
-  const updateJobData = async (jobId, updates) => {
-    if (updates.title !== undefined && !updates.title.trim()) {
-      window.alert('Job title cannot be empty')
-      return
-    }
-
-    if (updates.description !== undefined && !updates.description.trim()) {
-      window.alert('Job description cannot be empty')
-      return
-    }
-
-    const existingJob = jobs.find((j) => j.id === jobId)
-    if (!existingJob) return
-
-    const newUpdates = { ...updates }
-
-    if (updates.status === 'Done' && existingJob.status !== 'Done') {
-      newUpdates.original_status =
-        existingJob.status === 'Other' ? 'Other' : existingJob.status
-    }
-
+  const updateJobData = async (updatedJob) => {
     try {
-      await updateJobInDb(jobId, newUpdates)
-
-      // keep detail view responsive while Firestore syncs
-      if (selectedJob && selectedJob.id === jobId) {
-        setSelectedJob({ ...selectedJob, ...newUpdates })
+      const jobWithTimestamp = {
+        ...updatedJob,
+        updated_at: new Date().toISOString(),
       }
+      await updateJobInDb(jobWithTimestamp)
+      setJobs((prev) => prev.map((j) => (j.id === updatedJob.id ? jobWithTimestamp : j)))
+      setSelectedJob(jobWithTimestamp)
+      transitionToView('job-detail')
     } catch (err) {
-      console.error('Error updating job in Firebase:', err)
-      window.alert('Could not update job. Please try again.')
+      console.error('Error updating job:', err)
+      alert('Could not update job. Please try again.')
     }
   }
-
 
   const deleteJob = async (jobId) => {
-    // Confirm is already done in JobDetail component
     try {
       await deleteJobInDb(jobId)
+      setJobs((prev) => prev.filter((j) => j.id !== jobId))
       goToDashboard()
     } catch (err) {
-      console.error('Error deleting job in Firebase:', err)
-      window.alert('Could not delete job. Please try again.')
-      throw err // Re-throw so JobDetail can handle it
+      console.error('Error deleting job:', err)
+      alert('Could not delete job. Please try again.')
+      throw err
     }
   }
 
+  // Helper functions
+  const getRoomById = (roomId) => rooms.find((r) => r.id === roomId)
 
-  const getJobsForCategory = (status) => {
-    if (status === 'To Do') {
-      return jobs.filter(
-        (job) =>
-          job.status === 'To Do' || job.status === 'Urgent' || job.status === 'Other',
-      )
-    }
-    return jobs.filter((job) => job.status === status)
+  const getJobsForCategory = (category) => {
+    if (category === 'Urgent') return jobs.filter((j) => j.status === 'Urgent')
+    if (category === 'To Do') return jobs.filter((j) => j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other')
+    if (category === 'Done') return jobs.filter((j) => j.status === 'Done')
+    return []
   }
 
   const getJobsWithRoomInfo = (jobsList) => {
     return jobsList.map((job) => ({
       ...job,
-      room: rooms.find((r) => r.id === job.room_id),
+      room: getRoomById(job.room_id),
     }))
   }
 
-  const getRoomById = (roomId) => {
-    if (!roomId) return null
-    return rooms.find((r) => r.id === roomId) || null
-  }
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
     <>
-      {/* Initial Loading Screen - OUTSIDE app-container for true full screen */}
+      {/* Loading Screen */}
       {isInitializing && (
         <div style={{
           position: 'fixed',
@@ -451,155 +403,160 @@ function HotelMaintenanceApp() {
         </div>
       )}
 
-      {/* Main App Container - Only show after initialization */}
+      {/* Main App */}
       {!isInitializing && (
         <div className="app-container">
-          {/* Page Transition Overlay */}
+          {/* Transition Overlay */}
           {isTransitioning && (
             <div className="transition-overlay">
               <div className="transition-spinner"></div>
             </div>
           )}
 
+          {/* Photo Modal */}
           {enlargedPhoto && (
             <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
-              <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
-                ×
-              </button>
-              <img src={enlargedPhoto} alt="Enlarged" />
+              <div className="photo-modal-content">
+                <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
+                  ✕
+                </button>
+                <img src={enlargedPhoto} alt="Job" />
+              </div>
             </div>
           )}
 
-          {currentView === 'role-select' && <RoleSelector key="role-select" onSelectRole={selectRole} />}
+          {/* Role Selection */}
+          {currentView === 'role-select' && (
+            <RoleSelector key="role-select" onSelectRole={selectRole} />
+          )}
 
+          {/* Dashboard */}
           {currentView === 'dashboard' && (
-        <Dashboard
-          key="dashboard"
-          role={userRole}
-          jobs={jobs}
-          onViewCategory={viewCategory}
-          onAddJob={addNewJob}
-          onLogout={logout}
-          onChangeCode={changeManagerCode}
-          showUserMenu={showUserMenu}
-          setShowUserMenu={setShowUserMenu}
-        />
-      )}
+            <Dashboard
+              key="dashboard"
+              role={userRole}
+              jobs={jobs}
+              onViewCategory={viewCategory}
+              onAddJob={addNewJob}
+              showUserMenu={showUserMenu}
+              setShowUserMenu={setShowUserMenu}
+              onChangeCode={changeManagerCode}
+              onLogout={logout}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'urgent-list' && (
-        <UrgentJobsList
-          key="urgent-list"
-          jobs={getJobsWithRoomInfo(getJobsForCategory('Urgent'))}
-          onBack={goToDashboard}
-          onViewJob={viewJobDetail}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Urgent List */}
+          {currentView === 'urgent-list' && (
+            <UrgentJobsList
+              key="urgent-list"
+              jobs={getJobsWithRoomInfo(getJobsForCategory('Urgent'))}
+              onBack={goToDashboard}
+              onViewJob={viewJobDetail}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'floor-list' && (
-        <FloorList
-          key="floor-list"
-          category={selectedCategory}
-          jobs={jobs}
-          rooms={rooms}
-          onBack={goToDashboard}
-          onViewFloor={viewFloorRooms}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Floor List */}
+          {currentView === 'floor-list' && (
+            <FloorList
+              key="floor-list"
+              category={selectedCategory}
+              jobs={jobs}
+              rooms={rooms}
+              onBack={goToDashboard}
+              onViewFloor={viewFloorRooms}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'room-list' && (
-        <RoomList
-          key={`room-list-${selectedFloor}`}
-          floor={selectedFloor}
-          category={selectedCategory}
-          jobs={jobs}
-          rooms={rooms}
-          onBack={() => transitionToView('floor-list', () => setSelectedFloor(null))}
-          onViewRoom={viewRoomJobs}
-          onViewJob={viewJobDetail}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Room List */}
+          {currentView === 'room-list' && (
+            <RoomList
+              key={`room-list-${selectedFloor}`}
+              floor={selectedFloor}
+              category={selectedCategory}
+              jobs={jobs}
+              rooms={rooms}
+              onBack={() => transitionToView('floor-list', () => setSelectedFloor(null))}
+              onViewRoom={viewRoomJobs}
+              onViewJob={viewJobDetail}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'job-list' && (
-        <JobList
-          key={`job-list-${selectedRoom?.id || 'none'}`}
-          room={selectedRoom}
-          category={selectedCategory}
-          jobs={jobs}
-          onBack={() => setCurrentView('room-list')}
-          onViewJob={viewJobDetail}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Job List */}
+          {currentView === 'job-list' && (
+            <JobList
+              key={`job-list-${selectedRoom?.id || 'none'}`}
+              room={selectedRoom}
+              category={selectedCategory}
+              jobs={jobs}
+              onBack={() => setCurrentView('room-list')}
+              onViewJob={viewJobDetail}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'job-detail' && selectedJob && (
-        <JobDetail
-          key={`job-detail-${selectedJob.id}`}
-          job={selectedJob}
-          room={getRoomById(selectedJob.room_id)}
-          role={userRole}
-          onBack={() => {
-            transitionToView(
-              selectedCategory === 'Urgent' ? 'urgent-list' : 'job-list',
-              () => {
-                setSelectedJob(null)
-              }
-            )
-          }}
-          onUpdateJob={updateJobData}
-          onDeleteJob={deleteJob}
-          onEditJob={editJob}
-          onEnlargePhoto={setEnlargedPhoto}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Job Detail */}
+          {currentView === 'job-detail' && selectedJob && (
+            <JobDetail
+              key={`job-detail-${selectedJob.id}`}
+              job={selectedJob}
+              room={getRoomById(selectedJob.room_id)}
+              role={userRole}
+              onBack={() => {
+                transitionToView(
+                  selectedCategory === 'Urgent' ? 'urgent-list' : 'job-list',
+                  () => setSelectedJob(null)
+                )
+              }}
+              onUpdateJob={updateJobData}
+              onDeleteJob={deleteJob}
+              onEditJob={editJob}
+              onEnlargePhoto={setEnlargedPhoto}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'add-job' && (
-        <AddJobForm
-          key="add-job"
-          rooms={rooms}
-          onBack={goToDashboard}
-          onSubmit={createJob}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Add Job */}
+          {currentView === 'add-job' && (
+            <AddJobForm
+              key="add-job"
+              rooms={rooms}
+              onBack={goToDashboard}
+              onSubmit={createJob}
+              goToDashboard={goToDashboard}
+            />
+          )}
 
-      {currentView === 'edit-job' && selectedJob && (
-        <EditJobForm
-          key={`edit-job-${selectedJob.id}`}
-          job={selectedJob}
-          rooms={rooms}
-          onBack={() => transitionToView('job-detail')}
-          onSubmit={updateJobData}
-          goToDashboard={goToDashboard}
-        />
-      )}
+          {/* Edit Job */}
+          {currentView === 'edit-job' && selectedJob && (
+            <EditJobForm
+              key={`edit-job-${selectedJob.id}`}
+              job={selectedJob}
+              rooms={rooms}
+              onBack={() => transitionToView('job-detail')}
+              onSubmit={updateJobData}
+              goToDashboard={goToDashboard}
+            />
+          )}
         </div>
       )}
     </>
   )
 }
 
-// ---- Components below here ----
+// ============================================================================
+// PAGE COMPONENTS
+// ============================================================================
 
 function RoleSelector({ onSelectRole }) {
   return (
-    <div className="role-selector-page">
+    <div className="page-view role-selector-page">
       <div className="app-branding">
         <div className="app-logo">
-          <img 
-            src="/hotelkeep-logo.png" 
-            alt="HotelKeep" 
-            style={{
-              width: '160px',
-              maxWidth: '80%',
-              height: 'auto',
-              display: 'block',
-              margin: '0 auto'
-            }}
-          />
+          <img src="/hotelkeep-logo.png" alt="HotelKeep" className="app-logo-image" />
         </div>
         <p className="app-tagline">Professional Maintenance Management</p>
       </div>
@@ -619,77 +576,33 @@ function RoleSelector({ onSelectRole }) {
   )
 }
 
-function Dashboard({
-  role,
-  jobs,
-  onViewCategory,
-  onAddJob,
-  onLogout,
-  onChangeCode,
-  showUserMenu,
-  setShowUserMenu,
-}) {
+function Dashboard({ role, jobs, onViewCategory, onAddJob, showUserMenu, setShowUserMenu, onChangeCode, onLogout, goToDashboard }) {
   const urgentCount = jobs.filter((j) => j.status === 'Urgent').length
-  const todoCount = jobs.filter(
-    (j) => j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other',
-  ).length
+  const todoCount = jobs.filter((j) => j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other').length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
 
   return (
-    <div className="dashboard">
-      <div className="app-header">
-        <div className="header-left"></div>
-        <h1 className="app-title" onClick={() => setShowUserMenu(false)}>HotelKeep</h1>
-        <div className="header-right">
-          <div className="user-menu-container">
-            <button
-              className="role-dropdown-button"
-              onClick={() => setShowUserMenu(!showUserMenu)}
-            >
-              <span className="role-name">
-                {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
-              </span>
-              <span className="dropdown-arrow">▼</span>
-            </button>
-            {showUserMenu && (
-              <div className="user-menu-dropdown">
-                {role === 'manager' && (
-                  <button
-                    className="user-menu-item"
-                    onClick={() => {
-                      setShowUserMenu(false)
-                      onChangeCode()
-                    }}
-                  >
-                    🔒 Change Security Code
-                  </button>
-                )}
-                <button
-                  className="user-menu-item danger"
-                  onClick={() => {
-                    setShowUserMenu(false)
-                    onLogout()
-                  }}
-                >
-                  🚪 Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+    <div className="page-view dashboard">
+      <AppHeader 
+        role={role}
+        showUserMenu={showUserMenu}
+        setShowUserMenu={setShowUserMenu}
+        onChangeCode={onChangeCode}
+        onLogout={onLogout}
+        goToDashboard={goToDashboard}
+      />
+      
       <div className="dashboard-content">
         <div className="dashboard-grid">
           <div className="category-card urgent" onClick={() => onViewCategory('Urgent')}>
             <div className="category-header">
               <div className="category-title">
-                <div className="category-icon">🔥</div>
+                <div className="category-icon">🚨</div>
                 Urgent Jobs
               </div>
             </div>
             <div className="category-count">{urgentCount}</div>
-            <div className="category-subtitle">Requires immediate attention</div>
+            <div className="category-subtitle">Need immediate attention</div>
           </div>
 
           <div className="category-card todo" onClick={() => onViewCategory('To Do')}>
@@ -700,7 +613,7 @@ function Dashboard({
               </div>
             </div>
             <div className="category-count">{todoCount}</div>
-            <div className="category-subtitle">Scheduled maintenance tasks</div>
+            <div className="category-subtitle">Pending tasks</div>
           </div>
 
           <div className="category-card done" onClick={() => onViewCategory('Done')}>
@@ -727,16 +640,12 @@ function Dashboard({
 
 function UrgentJobsList({ jobs, onBack, onViewJob, goToDashboard }) {
   return (
-    <div className="urgent-list">
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view urgent-list">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
       <div className="job-grid">
         {jobs.length === 0 ? (
@@ -748,18 +657,16 @@ function UrgentJobsList({ jobs, onBack, onViewJob, goToDashboard }) {
             </div>
           </div>
         ) : (
-          <div className="urgent-jobs">
+          <div className="grid-container">
             {jobs.map((job) => (
-              <div
-                key={job.id}
-                className="urgent-job-card"
-                onClick={() => onViewJob(job)}
-              >
-                <div className="job-header">
-                  <div className="job-title">{job.title}</div>
-                  <span className="status-badge urgent">Urgent</span>
+              <div key={job.id} className="job-card urgent" onClick={() => onViewJob(job)}>
+                <div className="job-card-header">
+                  <div className="job-card-title">
+                    {job.room ? `Room ${job.room.room_number}` : 'Unknown Room'}
+                  </div>
+                  <div className="job-status-badge urgent">🚨 Urgent</div>
                 </div>
-                <div className="room-number">Room {job.room?.room_number}</div>
+                <div className="detail-title">{job.title}</div>
                 <div className="detail-description">{job.description}</div>
                 <div className="job-meta">
                   <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
@@ -775,57 +682,33 @@ function UrgentJobsList({ jobs, onBack, onViewJob, goToDashboard }) {
 }
 
 function FloorList({ category, jobs, rooms, onBack, onViewFloor, goToDashboard }) {
-  const floors = [
-    'Basement',
-    'Ground Floor',
-    'First Floor',
-    'Second Floor',
-    'Third Floor',
-    'Fourth Floor',
-  ]
+  const floors = ['Basement', 'Ground Floor', 'First Floor', 'Second Floor', 'Third Floor', 'Fourth Floor']
 
-  const getFloorJobCount = (floor) => {
+  const getJobCountForFloor = (floor) => {
     const floorRooms = rooms.filter((r) => r.floor === floor)
-    const roomIds = floorRooms.map((r) => r.id)
-    if (category === 'To Do') {
-      return jobs.filter(
-        (j) =>
-          (j.status === 'To Do' || j.status === 'Urgent') &&
-          roomIds.includes(j.room_id),
-      ).length
-    }
-    return jobs.filter((j) => j.status === category && roomIds.includes(j.room_id))
-      .length
-  }
-
-  const getOtherJobsCount = () => {
-    if (category === 'To Do') {
-      return jobs.filter((j) => j.status === 'Other').length
-    } else if (category === 'Done') {
-      return jobs.filter((j) => j.status === 'Done' && j.original_status === 'Other')
-        .length
-    }
-    return 0
+    const floorRoomIds = floorRooms.map((r) => r.id)
+    return jobs.filter((j) => {
+      if (category === 'To Do') {
+        return floorRoomIds.includes(j.room_id) && (j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other')
+      }
+      if (category === 'Done') {
+        return floorRoomIds.includes(j.room_id) && j.status === 'Done'
+      }
+      return floorRoomIds.includes(j.room_id)
+    }).length
   }
 
   const getTotalJobCount = () => {
-    return (
-      getOtherJobsCount() +
-      floors.reduce((sum, floor) => sum + getFloorJobCount(floor), 0)
-    )
+    return floors.reduce((total, floor) => total + getJobCountForFloor(floor), 0)
   }
 
   return (
-    <>
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
       <div className="floor-list">
         {getTotalJobCount() === 0 ? (
@@ -833,52 +716,31 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor, goToDashboard }
             <div className="empty-icon">
               {category === 'To Do' ? '✅' : category === 'Done' ? '🎉' : '📋'}
             </div>
-            <div className="empty-title">
-              {category === 'To Do'
-                ? 'No Pending Jobs'
-                : category === 'Done'
-                  ? 'No Completed Jobs Yet'
-                  : `No ${category} Jobs`}
-            </div>
+            <div className="empty-title">No Jobs Found</div>
             <div className="empty-message">
-              {category === 'To Do'
-                ? 'Great! All caught up. Use the + button to add new maintenance tasks.'
-                : category === 'Done'
-                  ? 'No jobs have been completed yet. Completed jobs will appear here.'
-                  : `There are currently no ${category.toLowerCase()} jobs.`}
+              {category === 'Done'
+                ? 'No completed jobs yet. Great work stays ahead!'
+                : 'No jobs in this category at the moment.'}
             </div>
           </div>
         ) : (
           <>
-            {getOtherJobsCount() > 0 && (
-              <div className="floor-section" onClick={() => onViewFloor('Other')}>
-                <div className="floor-header" style={{ cursor: 'pointer' }}>
-                  <div className="floor-title">
-                    🔧 Other Jobs
-                    <span className="floor-count">
-                      ({getOtherJobsCount()}{' '}
-                      {getOtherJobsCount() === 1 ? 'job' : 'jobs'})
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {floors.map((floor) => {
-              const jobCount = getFloorJobCount(floor)
+              const jobCount = getJobCountForFloor(floor)
               if (jobCount === 0) return null
+
               return (
-                <div
-                  key={floor}
-                  className="floor-section"
-                  onClick={() => onViewFloor(floor)}
-                >
-                  <div className="floor-header" style={{ cursor: 'pointer' }}>
-                    <div className="floor-title">
-                      🏢 {floor}
-                      <span className="floor-count">
-                        ({jobCount} {jobCount === 1 ? 'job' : 'jobs'})
-                      </span>
+                <div key={floor} className="floor-card" onClick={() => onViewFloor(floor)}>
+                  <div className="floor-info">
+                    <div className="floor-name">{floor}</div>
+                    <div className="floor-subtitle">
+                      {rooms.filter((r) => r.floor === floor).length} rooms
+                    </div>
+                  </div>
+                  <div className="floor-count">
+                    <div className="count-number">{jobCount}</div>
+                    <div className="count-label">
+                      {jobCount === 1 ? 'job' : 'jobs'}
                     </div>
                   </div>
                 </div>
@@ -887,290 +749,126 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor, goToDashboard }
           </>
         )}
       </div>
-    </>
+    </div>
   )
 }
 
-function RoomList({
-  floor,
-  category,
-  jobs,
-  rooms,
-  onBack,
-  onViewRoom,
-  onViewJob,
-  goToDashboard,
-}) {
-  if (floor === 'Other') {
-    let otherJobs
-    if (category === 'To Do') {
-      otherJobs = jobs.filter((j) => j.status === 'Other')
-    } else if (category === 'Done') {
-      otherJobs = jobs.filter(
-        (j) => j.status === 'Done' && j.original_status === 'Other',
-      )
-    } else {
-      otherJobs = []
-    }
-
-    return (
-      <>
-        <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
-
-        <div className="urgent-list">
-          {otherJobs.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📭</div>
-              <div className="empty-title">No Other Jobs</div>
-              <div className="empty-message">
-                No {category === 'Done' ? 'completed' : 'pending'} non-room maintenance
-                tasks
-              </div>
-            </div>
-          ) : (
-            <div className="urgent-jobs">
-              {otherJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="urgent-job-card"
-                  onClick={() => onViewJob(job)}
-                  style={{
-                    borderLeftColor:
-                      job.status === 'Done' ? 'var(--done)' : 'var(--other)',
-                  }}
-                >
-                  <div className="job-header">
-                    <div className="job-title">{job.title}</div>
-                    <span
-                      className={`status-badge ${job.status
-                        .toLowerCase()
-                        .replace(' ', '')}`}
-                    >
-                      {job.status}
-                    </span>
-                  </div>
-                  <div className="detail-description">{job.description}</div>
-                  <div className="job-meta">
-                    <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
-                    {job.photo && (
-                      <span className="job-photo-indicator">📷 Photo</span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </>
-    )
-  }
-
+function RoomList({ floor, category, jobs, rooms, onBack, onViewRoom, onViewJob, goToDashboard }) {
   const floorRooms = rooms.filter((r) => r.floor === floor)
 
-  const getRoomJobCount = (roomId) => {
-    if (category === 'To Do') {
-      return jobs.filter(
-        (j) =>
-          (j.status === 'To Do' || j.status === 'Urgent') && j.room_id === roomId,
-      ).length
-    }
-    if (category === 'Done') {
-      return jobs.filter(
-        (j) => j.status === 'Done' && j.original_status !== 'Other' && j.room_id === roomId,
-      ).length
-    }
-    return jobs.filter((j) => j.status === category && j.room_id === roomId).length
+  const getJobsForRoom = (roomId) => {
+    return jobs.filter((j) => {
+      if (category === 'To Do') {
+        return j.room_id === roomId && (j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other')
+      }
+      if (category === 'Done') {
+        return j.room_id === roomId && j.status === 'Done'
+      }
+      return j.room_id === roomId
+    })
   }
 
-  const roomsWithJobs = floorRooms.filter((room) => getRoomJobCount(room.id) > 0)
-
   return (
-    <>
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
-      <div className="floor-list">
-        {roomsWithJobs.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">🏢</div>
-            <div className="empty-title">No Jobs on {floor}</div>
-            <div className="empty-message">
-              {category === 'To Do'
-                ? `All rooms on ${floor} are in good condition. No pending maintenance tasks.`
-                : category === 'Done'
-                  ? `No completed jobs on ${floor} yet.`
-                  : `There are no ${category.toLowerCase()} jobs on this floor.`}
-            </div>
-          </div>
-        ) : (
-          <div className="room-list">
-            {roomsWithJobs.map((room) => {
-              const jobCount = getRoomJobCount(room.id)
+      <div className="room-list">
+        {floorRooms.map((room) => {
+          const roomJobs = getJobsForRoom(room.id)
+          if (roomJobs.length === 0) return null
 
-              return (
-                <div
-                  key={room.id}
-                  className="room-card"
-                  onClick={() => onViewRoom(room)}
-                >
-                  <div className="room-header">
-                    <div className="room-number">Room {room.room_number}</div>
-                    <span className="job-count-badge">
-                      {jobCount} {jobCount === 1 ? 'job' : 'jobs'}
-                    </span>
+          return (
+            <div key={room.id} className="room-card" onClick={() => onViewRoom(room)}>
+              <div className="room-header">
+                <div className="room-number">Room {room.room_number}</div>
+                <div className="room-badge">{roomJobs.length} {roomJobs.length === 1 ? 'job' : 'jobs'}</div>
+              </div>
+              <div className="room-notes">{room.notes}</div>
+              <div className="room-jobs-preview">
+                {roomJobs.map((job) => (
+                  <div key={job.id} className="job-preview-item">
+                    • {job.title}
                   </div>
-                  <div className="room-notes">{room.notes}</div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
-    </>
+    </div>
   )
 }
 
 function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
-  let roomJobs
-  if (category === 'To Do') {
-    roomJobs = jobs.filter(
-      (j) =>
-        j.room_id === room.id &&
-        (j.status === 'To Do' || j.status === 'Urgent'),
-    )
-  } else if (category === 'Done') {
-    roomJobs = jobs.filter(
-      (j) =>
-        j.room_id === room.id &&
-        j.status === 'Done' &&
-        j.original_status !== 'Other',
-    )
-  } else {
-    roomJobs = jobs.filter((j) => j.room_id === room.id && j.status === category)
-  }
+  const roomJobs = jobs.filter((j) => {
+    if (category === 'To Do') {
+      return j.room_id === room.id && (j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other')
+    }
+    if (category === 'Done') {
+      return j.room_id === room.id && j.status === 'Done'
+    }
+    return j.room_id === room.id
+  })
 
   return (
-    <>
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
-      <div className="floor-list">
-        {roomJobs.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-icon">✅</div>
-            <div className="empty-title">No Jobs for Room {room.room_number}</div>
-            <div className="empty-message">
-              {category === 'To Do'
-                ? 'This room has no pending maintenance tasks.'
-                : category === 'Done'
-                  ? 'No completed jobs for this room yet.'
-                  : `No ${category.toLowerCase()} jobs for this room.`}
-            </div>
-          </div>
-        ) : (
-          <div className="job-list">
-            {roomJobs.map((job) => (
-              <div key={job.id} className="job-card" onClick={() => onViewJob(job)}>
-                <div className="job-header">
-                  <div className="job-title">{job.title}</div>
-                  <span
-                    className={`status-badge ${job.status
-                      .toLowerCase()
-                      .replace(' ', '')}`}
-                  >
-                    {job.status}
-                  </span>
-                </div>
-                <div className="detail-description">{job.description}</div>
-                <div className="job-meta">
-                  <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
-                  {job.photo && (
-                    <span className="job-photo-indicator">📷 Photo</span>
-                  )}
+      <div className="job-list">
+        <div className="room-info-header">
+          <h2>Room {room.room_number}</h2>
+          <p>{room.notes}</p>
+        </div>
+
+        <div className="job-items">
+          {roomJobs.map((job) => (
+            <div key={job.id} className="job-item" onClick={() => onViewJob(job)}>
+              <div className="job-item-header">
+                <div className="job-item-title">{job.title}</div>
+                <div className={`job-status-badge ${job.status.toLowerCase().replace(' ', '-')}`}>
+                  {job.status === 'Urgent' && '🚨'}
+                  {job.status === 'To Do' && '📋'}
+                  {job.status === 'Done' && '✅'}
+                  {job.status === 'Other' && '📝'}
+                  {' '}{job.status}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="job-item-description">{job.description}</div>
+              <div className="job-item-meta">
+                <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
+                {job.photo && <span className="job-photo-indicator">📷 Photo</span>}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-    </>
+    </div>
   )
 }
 
-function JobDetail({
-  job,
-  room,
-  role,
-  onBack,
-  onUpdateJob,
-  onDeleteJob,
-  onEditJob,
-  onEnlargePhoto,
-  goToDashboard,
-}) {
-  const fileInputRef = useRef(null)
-  const cameraInputRef = useRef(null)
-  const [isUpdating, setIsUpdating] = useState(false)
+function JobDetail({ job, room, role, onBack, onUpdateJob, onDeleteJob, onEditJob, onEnlargePhoto, goToDashboard }) {
   const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleMarkAsDone = async () => {
-    setIsUpdating(true)
-    try {
-      // Add minimum delay for processing feel
-      await Promise.all([
-        onUpdateJob(job.id, { status: 'Done' }),
-        new Promise(resolve => setTimeout(resolve, 600))
-      ])
-    } finally {
-      setIsUpdating(false)
-    }
-  }
-
-  const handleReopenAsOriginal = async () => {
-    setIsUpdating(true)
-    try {
-      const originalStatus = job.original_status || 'To Do'
-      // Add minimum delay for processing feel
-      await Promise.all([
-        onUpdateJob(job.id, { status: originalStatus }),
-        new Promise(resolve => setTimeout(resolve, 600))
-      ])
-    } finally {
-      setIsUpdating(false)
-    }
+  const handleStatusChange = (newStatus) => {
+    const updatedJob = { ...job, status: newStatus }
+    onUpdateJob(updatedJob)
   }
 
   const handleDelete = async () => {
-    // Only one confirm needed - remove the second one from deleteJob function
     if (!window.confirm('Are you sure you want to delete this job?')) {
-      return // User cancelled - don't proceed
+      return
     }
     
     setIsDeleting(true)
     try {
-      // Add minimum delay for processing feel
       await Promise.all([
         onDeleteJob(job.id),
         new Promise(resolve => setTimeout(resolve, 500))
@@ -1179,736 +877,348 @@ function JobDetail({
       console.error('Delete error:', error)
       setIsDeleting(false)
     }
-    // Note: don't set false here - component will unmount after delete
-  }
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setIsUpdating(true)
-      const reader = new FileReader()
-      reader.onload = async (event) => {
-        try {
-          // Add minimum delay for processing feel
-          await Promise.all([
-            onUpdateJob(job.id, { photo: event.target.result }),
-            new Promise(resolve => setTimeout(resolve, 800))
-          ])
-        } finally {
-          setIsUpdating(false)
-        }
-      }
-      reader.readAsDataURL(file)
-    }
   }
 
   return (
-    <>
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
       <div className="job-detail">
         <div className="detail-card">
           <div className="detail-header">
-            <div className="detail-title">{job.title}</div>
-            <span
-              className={`status-badge ${job.status.toLowerCase().replace(' ', '')}`}
-            >
-              {job.status}
-            </span>
+            <h2>Room {room ? room.room_number : 'Unknown'}</h2>
+            <p className="room-type">{room ? room.notes : ''}</p>
           </div>
 
-          <div className="detail-room">
-            Room {room?.room_number} - {room?.notes}
-          </div>
+          <div className="detail-content">
+            <h3 className="detail-title">{job.title}</h3>
+            <p className="detail-description">{job.description}</p>
 
-          <div className="detail-description">{job.description}</div>
+            {job.photo && (
+              <div className="detail-photo">
+                <img 
+                  src={job.photo} 
+                  alt="Job" 
+                  onClick={() => onEnlargePhoto(job.photo)}
+                />
+              </div>
+            )}
 
-          {job.photo && (
-            <img
-              src={job.photo}
-              alt="Job photo"
-              className="detail-photo"
-              onClick={() => onEnlargePhoto(job.photo)}
-            />
-          )}
-
-          <div className="photo-upload-section">
-            <label className="photo-upload-label">
-              {job.photo ? 'Update Photo' : 'Add Photo'}
-            </label>
-            <div className="photo-upload-buttons">
-              <button
-                className="photo-upload-btn"
-                onClick={() => fileInputRef.current?.click()}
-                type="button"
-              >
-                📁 Upload Photo
-              </button>
-              <button
-                className="photo-upload-btn"
-                onClick={() => cameraInputRef.current?.click()}
-                type="button"
-              >
-                📷 Take Photo
-              </button>
+            <div className="detail-meta">
+              <div className="meta-item">
+                <span className="meta-label">Created:</span>
+                <span className="meta-value">
+                  {new Date(job.created_at).toLocaleDateString()} at{' '}
+                  {new Date(job.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <div className="meta-item">
+                <span className="meta-label">Last Updated:</span>
+                <span className="meta-value">
+                  {new Date(job.updated_at).toLocaleDateString()} at{' '}
+                  {new Date(job.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
             </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden-file-input"
-              onChange={handleFileUpload}
-            />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden-file-input"
-              onChange={handleFileUpload}
-            />
           </div>
-
-          <div className="detail-meta">
-            <div>📅 Created: {new Date(job.created_at).toLocaleString()}</div>
-            <div>🔄 Updated: {new Date(job.updated_at).toLocaleString()}</div>
-          </div>
-        </div>
-
-        <div className="detail-actions">
-          <button 
-            className="edit-button" 
-            onClick={onEditJob}
-            disabled={isUpdating || isDeleting}
-          >
-            ✏️ Edit Job
-          </button>
-
-          {job.status !== 'Done' && (
-            <button 
-              className="action-btn primary" 
-              onClick={handleMarkAsDone}
-              disabled={isUpdating || isDeleting}
-              style={{ opacity: isUpdating ? 0.6 : 1 }}
-            >
-              {isUpdating ? '⏳ Updating...' : '✓ Mark as Done'}
-            </button>
-          )}
-
-          {job.status === 'Done' && role === 'manager' && (
-            <button 
-              className="action-btn secondary" 
-              onClick={handleReopenAsOriginal}
-              disabled={isUpdating || isDeleting}
-              style={{ opacity: isUpdating ? 0.6 : 1 }}
-            >
-              {isUpdating ? '⏳ Reopening...' : `↺ Reopen as ${job.original_status || 'To Do'}`}
-            </button>
-          )}
 
           {role === 'manager' && (
-            <button 
-              className="action-btn danger" 
-              onClick={handleDelete}
-              disabled={isUpdating || isDeleting}
-              style={{ opacity: isDeleting ? 0.6 : 1 }}
-            >
-              {isDeleting ? '⏳ Deleting...' : '🗑 Delete Job'}
-            </button>
+            <div className="detail-actions">
+              <div className="status-buttons">
+                <button
+                  className={`status-btn ${job.status === 'Urgent' ? 'active' : ''}`}
+                  onClick={() => handleStatusChange('Urgent')}
+                  disabled={job.status === 'Urgent'}
+                >
+                  🚨 Urgent
+                </button>
+                <button
+                  className={`status-btn ${job.status === 'To Do' ? 'active' : ''}`}
+                  onClick={() => handleStatusChange('To Do')}
+                  disabled={job.status === 'To Do'}
+                >
+                  📋 To Do
+                </button>
+                <button
+                  className={`status-btn ${job.status === 'Done' ? 'active' : ''}`}
+                  onClick={() => handleStatusChange('Done')}
+                  disabled={job.status === 'Done'}
+                >
+                  ✅ Done
+                </button>
+              </div>
+
+              <div className="action-buttons">
+                <button className="btn-secondary" onClick={onEditJob}>
+                  ✏️ Edit Job
+                </button>
+                <button 
+                  className="btn-danger" 
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? 'Deleting...' : '🗑️ Delete Job'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {role === 'handyman' && (
+            <div className="detail-actions">
+              <button
+                className="btn-primary full-width"
+                onClick={() => handleStatusChange('Done')}
+                disabled={job.status === 'Done'}
+              >
+                {job.status === 'Done' ? '✅ Completed' : '✅ Mark as Done'}
+              </button>
+            </div>
           )}
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
 function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
   const [formData, setFormData] = useState({
     room_id: '',
-    room_number: '',
     title: '',
     description: '',
-    jobType: 'room',
-    priority: 'To Do',
     status: 'To Do',
+    original_status: 'To Do',
     photo: null,
   })
 
-  const fileInputRef = useRef(null)
-  const cameraInputRef = useRef(null)
-  const [detectedFloor, setDetectedFloor] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const detectFloor = (roomNum) => {
-    if (!roomNum) return ''
-
-    const num = roomNum.toLowerCase().trim()
-
-    if (['51', '52', '53', '54'].includes(num)) return 'Basement'
-    if (['1', '2', '3', '4', '5', '6', '7'].includes(num)) return 'Ground Floor'
-    if (['8', '2b', '11', '12', '13', '14', '15', '16'].includes(num))
-      return 'First Floor'
-    if (['9', '5b', '21', '22', '23', '24', '25', '26'].includes(num))
-      return 'Second Floor'
-    if (['31', '32', '33', '34', '35', '36'].includes(num)) return 'Third Floor'
-    if (['41', '42', '43', '44', '45', '46'].includes(num)) return 'Fourth Floor'
-
-    return ''
-  }
-
-  const handleRoomNumberChange = (value) => {
-    const floor = detectFloor(value)
-    setDetectedFloor(floor)
-
-    const matchingRoom = rooms.find(
-      (r) => r.room_number.toLowerCase() === value.toLowerCase().trim(),
-    )
-
-    setFormData({
-      ...formData,
-      room_number: value,
-      room_id: matchingRoom ? matchingRoom.id : '',
-    })
-  }
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    
-    if (isSubmitting) return
-    
-    if (!formData.title || !formData.description) {
-      window.alert('Please fill in all required fields')
+    if (!formData.room_id || !formData.title || !formData.description) {
+      alert('Please fill in all required fields')
       return
     }
-
-    if (formData.jobType === 'room') {
-      if (!formData.room_number) {
-        window.alert('Please enter a room number')
-        return
-      }
-
-      const matchingRoom = rooms.find(
-        (r) =>
-          r.room_number.toLowerCase() === formData.room_number.toLowerCase().trim(),
-      )
-
-      if (!matchingRoom) {
-        window.alert(
-          `Room "${formData.room_number}" not found. Please enter a valid room number.`,
-        )
-        return
-      }
-
-      formData.room_id = matchingRoom.id
-    }
-
-    const finalStatus = formData.jobType === 'other' ? 'Other' : formData.priority
-
-    setIsSubmitting(true)
-    
-    try {
-      // Add minimum delay for processing feel
-      await Promise.all([
-        onSubmit({
-          ...formData,
-          status: finalStatus,
-        }),
-        new Promise(resolve => setTimeout(resolve, 700))
-      ])
-    } catch (error) {
-      console.error('Error creating job:', error)
-      window.alert('Failed to create job. Please try again.')
-      setIsSubmitting(false)
-    }
+    onSubmit(formData)
   }
 
-  const handleFileUpload = (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (event) => {
-        setFormData({ ...formData, photo: event.target.result })
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, photo: reader.result }))
       }
       reader.readAsDataURL(file)
     }
   }
 
   return (
-    <>
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Cancel
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
       <div className="form-container">
+        <h2>Add New Job</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Job Type *</label>
+            <label>Room *</label>
             <select
-              className="form-select"
-              value={formData.jobType}
-              onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
+              value={formData.room_id}
+              onChange={(e) => setFormData((prev) => ({ ...prev, room_id: parseInt(e.target.value) }))}
               required
             >
-              <option value="room">Room-based Job</option>
-              <option value="other">Other (Non-room task)</option>
+              <option value="">Select a room</option>
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>
+                  Room {room.room_number} - {room.notes} ({room.floor})
+                </option>
+              ))}
             </select>
           </div>
 
-          {formData.jobType === 'other' && (
-            <div className="form-group">
-              <label className="form-label">Priority *</label>
-              <select
-                className="form-select"
-                value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                required
-              >
-                <option value="To Do">To Do</option>
-                <option value="Urgent">Urgent</option>
-              </select>
-            </div>
-          )}
-
-          {formData.jobType === 'room' && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Priority *</label>
-                <select
-                  className="form-select"
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  required
-                >
-                  <option value="To Do">To Do</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Room Number *</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={formData.room_number}
-                  onChange={(e) => handleRoomNumberChange(e.target.value)}
-                  placeholder="e.g., 1, 2b, 21, 51"
-                  required
-                />
-                <div className="room-input-helper">
-                  {detectedFloor ? (
-                    <span>
-                      ✓ <strong>{detectedFloor}</strong> - Room {formData.room_number}
-                    </span>
-                  ) : formData.room_number ? (
-                    <span>⚠️ Room not found. Please check the room number.</span>
-                  ) : (
-                    <span>
-                      <strong>Available rooms:</strong> Basement (51-54), Ground (1-7),
-                      First (8, 2b, 11-16), Second (9, 5b, 21-26), Third (31-36), Fourth
-                      (41-46)
-                    </span>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-
           <div className="form-group">
-            <label className="form-label">Title *</label>
+            <label>Title *</label>
             <input
               type="text"
-              className="form-input"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Broken window handle"
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g., Broken shower head"
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Description *</label>
+            <label>Description *</label>
             <textarea
-              className="form-textarea"
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Provide detailed description of the issue..."
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe the issue in detail..."
+              rows={4}
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Photo (Optional)</label>
-            {formData.photo && (
-              <img src={formData.photo} alt="Job photo" className="detail-photo" />
-            )}
-            <div className="photo-upload-buttons">
-              <button
-                type="button"
-                className="photo-upload-btn"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                📁 Upload Photo
-              </button>
-              <button
-                type="button"
-                className="photo-upload-btn"
-                onClick={() => cameraInputRef.current?.click()}
-              >
-                📷 Take Photo
-              </button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden-file-input"
-              onChange={handleFileUpload}
-            />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden-file-input"
-              onChange={handleFileUpload}
-            />
+            <label>Status</label>
+            <select
+              value={formData.status}
+              onChange={(e) => {
+                const newStatus = e.target.value
+                setFormData((prev) => ({
+                  ...prev,
+                  status: newStatus,
+                  original_status: newStatus,
+                }))
+              }}
+            >
+              <option value="To Do">To Do</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
-          <button 
-            type="submit" 
-            className="form-submit"
-            disabled={isSubmitting}
-            style={{ opacity: isSubmitting ? 0.6 : 1 }}
-          >
-            {isSubmitting ? '⏳ Creating Job...' : 'Create Job'}
-          </button>
+          <div className="form-group">
+            <label>Photo (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+            />
+            {formData.photo && (
+              <div className="photo-preview">
+                <img src={formData.photo} alt="Preview" />
+              </div>
+            )}
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="btn-secondary" onClick={onBack}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              Create Job
+            </button>
+          </div>
         </form>
       </div>
-    </>
+    </div>
   )
 }
 
 function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
-  const currentRoom = rooms.find((r) => r.id === job.room_id)
-
-  const getInitialJobType = () => {
-    if (job.status === 'Other' || (job.status === 'Done' && job.original_status === 'Other')) {
-      return 'other'
-    }
-    return 'room'
-  }
-
-  const getInitialPriority = () => {
-    if (job.status === 'Done') return job.original_status || 'To Do'
-    if (job.status === 'Other') return 'To Do'
-    return job.status
-  }
-
   const [formData, setFormData] = useState({
-    room_id: job.room_id || '',
-    room_number: currentRoom ? currentRoom.room_number : '',
-    title: job.title,
-    description: job.description,
-    jobType: getInitialJobType(),
-    priority: getInitialPriority(),
-    status: job.status,
-    photo: job.photo,
+    ...job,
   })
 
-  const fileInputRef = useRef(null)
-  const cameraInputRef = useRef(null)
-  const [detectedFloor, setDetectedFloor] = useState(currentRoom ? currentRoom.floor : '')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const detectFloor = (roomNum) => {
-    if (!roomNum) return ''
-
-    const num = roomNum.toLowerCase().trim()
-
-    if (['51', '52', '53', '54'].includes(num)) return 'Basement'
-    if (['1', '2', '3', '4', '5', '6', '7'].includes(num)) return 'Ground Floor'
-    if (['8', '2b', '11', '12', '13', '14', '15', '16'].includes(num))
-      return 'First Floor'
-    if (['9', '5b', '21', '22', '23', '24', '25', '26'].includes(num))
-      return 'Second Floor'
-    if (['31', '32', '33', '34', '35', '36'].includes(num)) return 'Third Floor'
-    if (['41', '42', '43', '44', '45', '46'].includes(num)) return 'Fourth Floor'
-
-    return ''
-  }
-
-  const handleRoomNumberChange = (value) => {
-    const floor = detectFloor(value)
-    setDetectedFloor(floor)
-
-    const matchingRoom = rooms.find(
-      (r) => r.room_number.toLowerCase() === value.toLowerCase().trim(),
-    )
-
-    setFormData({
-      ...formData,
-      room_number: value,
-      room_id: matchingRoom ? matchingRoom.id : '',
-    })
-  }
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
-    
-    if (isSubmitting) return // Prevent double submission
-    
-    if (!formData.title || !formData.description) {
-      window.alert('Please fill in all required fields')
+    if (!formData.room_id || !formData.title || !formData.description) {
+      alert('Please fill in all required fields')
       return
     }
-
-    if (formData.jobType === 'room' && formData.status !== 'Done') {
-      if (!formData.room_number) {
-        window.alert('Please enter a room number')
-        return
-      }
-
-      const matchingRoom = rooms.find(
-        (r) =>
-          r.room_number.toLowerCase() === formData.room_number.toLowerCase().trim(),
-      )
-
-      if (!matchingRoom) {
-        window.alert(
-          `Room "${formData.room_number}" not found. Please enter a valid room number.`,
-        )
-        return
-      }
-
-      formData.room_id = matchingRoom.id
-    }
-
-    let finalStatus
-    if (formData.status === 'Done') {
-      finalStatus = 'Done'
-    } else {
-      finalStatus = formData.jobType === 'other' ? 'Other' : formData.priority
-    }
-
-    setIsSubmitting(true)
-    
-    try {
-      // Add minimum delay for processing feel
-      await Promise.all([
-        onSubmit(job.id, {
-          ...formData,
-          status: finalStatus,
-        }),
-        new Promise(resolve => setTimeout(resolve, 700))
-      ])
-      
-      console.log('Job updated successfully')
-      
-      // Navigate back to job detail after successful update
-      onBack()
-    } catch (error) {
-      console.error('Error updating job:', error)
-      window.alert('Failed to update job. Please try again.')
-      setIsSubmitting(false)
-    }
+    onSubmit(formData)
   }
 
-  const handleFileUpload = (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (event) => {
-        setFormData({ ...formData, photo: event.target.result })
+      reader.onloadend = () => {
+        setFormData((prev) => ({ ...prev, photo: reader.result }))
       }
       reader.readAsDataURL(file)
     }
   }
 
   return (
-    <>
-      <div className="app-header">
-        <div className="header-left">
-          <button className="back-button" onClick={onBack}>
-            ← Cancel
-          </button>
-        </div>
-        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
-        <div className="header-right"></div>
-      </div>
+    <div className="page-view">
+      <AppHeader 
+        showBackButton={true}
+        onBack={onBack}
+        goToDashboard={goToDashboard}
+      />
 
       <div className="form-container">
+        <h2>Edit Job</h2>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Mark as Done?</label>
+            <label>Room *</label>
             <select
-              className="form-select"
-              value={formData.status === 'Done' ? 'Done' : 'Active'}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  status: e.target.value === 'Done' ? 'Done' : 'Active',
-                })
-              }
+              value={formData.room_id}
+              onChange={(e) => setFormData((prev) => ({ ...prev, room_id: parseInt(e.target.value) }))}
               required
             >
-              <option value="Active">Active (Not Done)</option>
-              <option value="Done">Done (Completed)</option>
+              {rooms.map((room) => (
+                <option key={room.id} value={room.id}>
+                  Room {room.room_number} - {room.notes} ({room.floor})
+                </option>
+              ))}
             </select>
           </div>
 
-          {formData.status !== 'Done' && (
-            <>
-              <div className="form-group">
-                <label className="form-label">Job Type *</label>
-                <select
-                  className="form-select"
-                  value={formData.jobType}
-                  onChange={(e) =>
-                    setFormData({ ...formData, jobType: e.target.value })
-                  }
-                  required
-                >
-                  <option value="room">Room-based Job</option>
-                  <option value="other">Other (Non-room task)</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Priority *</label>
-                <select
-                  className="form-select"
-                  value={formData.priority}
-                  onChange={(e) =>
-                    setFormData({ ...formData, priority: e.target.value })
-                  }
-                  required
-                >
-                  <option value="To Do">To Do</option>
-                  <option value="Urgent">Urgent</option>
-                </select>
-              </div>
-
-              {formData.jobType === 'room' && (
-                <div className="form-group">
-                  <label className="form-label">Room Number *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={formData.room_number}
-                    onChange={(e) => handleRoomNumberChange(e.target.value)}
-                    placeholder="e.g., 1, 2b, 21, 51"
-                    required
-                  />
-                  <div className="room-input-helper">
-                    {detectedFloor ? (
-                      <span>
-                        ✓ <strong>{detectedFloor}</strong> - Room {formData.room_number}
-                      </span>
-                    ) : formData.room_number ? (
-                      <span>⚠️ Room not found. Please check the room number.</span>
-                    ) : (
-                      <span>
-                        <strong>Available rooms:</strong> Basement (51-54), Ground (1-7),
-                        First (8, 2b, 11-16), Second (9, 5b, 21-26), Third (31-36), Fourth
-                        (41-46)
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
           <div className="form-group">
-            <label className="form-label">Title *</label>
+            <label>Title *</label>
             <input
               type="text"
-              className="form-input"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              placeholder="e.g., Broken window handle"
+              onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Description *</label>
+            <label>Description *</label>
             <textarea
-              className="form-textarea"
               value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-              placeholder="Provide detailed description of the issue..."
+              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+              rows={4}
               required
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">Photo (Optional)</label>
-            {formData.photo && (
-              <img src={formData.photo} alt="Job photo" className="detail-photo" />
-            )}
-            <div className="photo-upload-buttons">
-              <button
-                type="button"
-                className="photo-upload-btn"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                📁 Upload Photo
-              </button>
-              <button
-                type="button"
-                className="photo-upload-btn"
-                onClick={() => cameraInputRef.current?.click()}
-              >
-                📷 Take Photo
-              </button>
-            </div>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden-file-input"
-              onChange={handleFileUpload}
-            />
-            <input
-              ref={cameraInputRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              className="hidden-file-input"
-              onChange={handleFileUpload}
-            />
+            <label>Status</label>
+            <select
+              value={formData.status}
+              onChange={(e) => setFormData((prev) => ({ ...prev, status: e.target.value }))}
+            >
+              <option value="To Do">To Do</option>
+              <option value="Urgent">Urgent</option>
+              <option value="Done">Done</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
-          <button 
-            type="submit" 
-            className="form-submit"
-            disabled={isSubmitting}
-            style={{ opacity: isSubmitting ? 0.6 : 1 }}
-          >
-            {isSubmitting ? 'Updating...' : 'Update Job'}
-          </button>
+          <div className="form-group">
+            <label>Photo (optional)</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+            />
+            {formData.photo && (
+              <div className="photo-preview">
+                <img src={formData.photo} alt="Preview" />
+              </div>
+            )}
+          </div>
+
+          <div className="form-actions">
+            <button type="button" className="btn-secondary" onClick={onBack}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-primary">
+              Save Changes
+            </button>
+          </div>
         </form>
       </div>
-    </>
+    </div>
   )
 }
 
