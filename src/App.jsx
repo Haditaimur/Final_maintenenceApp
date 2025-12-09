@@ -727,12 +727,13 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
   return (
     <div className="urgent-list">
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
-        <h1 className="app-title" onClick={onBack}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="job-grid">
@@ -815,12 +816,13 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
   return (
     <>
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
-        <h1 className="app-title" onClick={onBack}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="floor-list">
@@ -912,13 +914,14 @@ function RoomList({
     return (
       <>
         <div className="app-header">
+        <div className="header-left">
           <button className="back-button" onClick={onBack}>
             ← Back
           </button>
-          <h1 className="app-title" onClick={goToDashboard}>
-            HotelKeep
-          </h1>
         </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
+      </div>
 
         <div className="urgent-list">
           {otherJobs.length === 0 ? (
@@ -990,12 +993,13 @@ function RoomList({
   return (
     <>
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
-        <h1 className="app-title" onClick={goToDashboard}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="floor-list">
@@ -1061,12 +1065,13 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
   return (
     <>
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
-        <h1 className="app-title" onClick={goToDashboard}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="floor-list">
@@ -1198,12 +1203,13 @@ function JobDetail({
   return (
     <>
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Back
-        </button>
-        <h1 className="app-title" onClick={goToDashboard}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="job-detail">
@@ -1436,12 +1442,13 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
   return (
     <>
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Cancel
-        </button>
-        <h1 className="app-title" onClick={goToDashboard}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Cancel
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="form-container">
@@ -1734,12 +1741,13 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
   return (
     <>
       <div className="app-header">
-        <button className="back-button" onClick={onBack}>
-          ← Cancel
-        </button>
-        <h1 className="app-title" onClick={goToDashboard}>
-          HotelKeep
-        </h1>
+        <div className="header-left">
+          <button className="back-button" onClick={onBack}>
+            ← Cancel
+          </button>
+        </div>
+        <h1 className="app-title">HotelKeep</h1>
+        <div className="header-right"></div>
       </div>
 
       <div className="form-container">
