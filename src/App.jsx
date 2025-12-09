@@ -503,76 +503,40 @@ function HotelMaintenanceApp() {
       )}
     </div>
   )
-}
 
 // ---- Components below here ----
 
-// Reusable Header Component
-function AppHeader({ 
-  showBackButton = false,
-  onBack = null,
-  role = null,
-  showUserMenu = false,
-  setShowUserMenu = null,
-  onChangeCode = null,
-  onLogout = null
-}) {
+// Reusable Header Component  
+function AppHeader({ role, showUserMenu, setShowUserMenu, onChangeCode, onLogout }) {
   return (
     <div className="app-header">
       <div className="header-content">
-        {showBackButton && onBack && (
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        )}
-        <h1 className="app-title" onClick={() => setShowUserMenu && setShowUserMenu(false)}>
-          HotelKeep
-        </h1>
-        {role && (
-          <div className="header-right">
-            <span className={`role-badge ${role}`}>
-              {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
-            </span>
-            <div className="user-menu-container">
-              <button
-                className="user-menu-button"
-                onClick={() => setShowUserMenu && setShowUserMenu(!showUserMenu)}
-              >
-                ⚙️
-                <span style={{ fontSize: '0.6rem' }}>▼</span>
-              </button>
-              {showUserMenu && (
-                <div className="user-menu-dropdown">
-                  {role === 'manager' && onChangeCode && (
-                    <button
-                      className="user-menu-item"
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        onChangeCode()
-                      }}
-                    >
-                      🔒 Change Security Code
-                    </button>
-                  )}
-                  {onLogout && (
-                    <button
-                      className="user-menu-item danger"
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        onLogout()
-                      }}
-                    >
-                      🚪 Logout
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
+        <h1 className="app-title" onClick={() => setShowUserMenu(false)}>HotelKeep</h1>
+        <div className="header-right">
+          <span className={`role-badge ${role}`}>
+            {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
+          </span>
+          <div className="user-menu-container">
+            <button className="user-menu-button" onClick={() => setShowUserMenu(!showUserMenu)}>
+              ⚙️<span style={{ fontSize: '0.6rem' }}>▼</span>
+            </button>
+            {showUserMenu && (
+              <div className="user-menu-dropdown">
+                {role === 'manager' && (
+                  <button className="user-menu-item" onClick={() => { setShowUserMenu(false); onChangeCode(); }}>
+                    🔒 Change Security Code
+                  </button>
+                )}
+                <button className="user-menu-item danger" onClick={() => { setShowUserMenu(false); onLogout(); }}>
+                  🚪 Logout
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
 function RoleSelector({ onSelectRole }) {
@@ -674,10 +638,14 @@ function Dashboard({
 function UrgentJobsList({ jobs, onBack, onViewJob }) {
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+        <h1 className="app-title" onClick={onBack}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="urgent-list fade-in">
         {jobs.length === 0 ? (
@@ -758,10 +726,14 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
 
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+        <h1 className="app-title" onClick={onBack}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="floor-list fade-in">
         {getTotalJobCount() === 0 ? (
@@ -851,10 +823,14 @@ function RoomList({
 
     return (
       <>
-        <AppHeader 
-          showBackButton={true}
-          onBack={onBack}
-        />
+        <div className="app-header">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+          <h1 className="app-title" onClick={goToDashboard}>
+            HotelKeep
+          </h1>
+        </div>
 
         <div className="urgent-list fade-in">
           {otherJobs.length === 0 ? (
@@ -925,10 +901,14 @@ function RoomList({
 
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+        <h1 className="app-title" onClick={goToDashboard}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="floor-list fade-in">
         {roomsWithJobs.length === 0 ? (
@@ -992,10 +972,14 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
 
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+        <h1 className="app-title" onClick={goToDashboard}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="floor-list fade-in">
         {roomJobs.length === 0 ? (
@@ -1082,10 +1066,14 @@ function JobDetail({
 
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+        <h1 className="app-title" onClick={goToDashboard}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="job-detail fade-in">
         <div className="detail-card">
@@ -1281,10 +1269,14 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
 
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Cancel
+        </button>
+        <h1 className="app-title" onClick={goToDashboard}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="form-container fade-in">
         <form onSubmit={handleSubmit}>
@@ -1549,10 +1541,14 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
 
   return (
     <>
-      <AppHeader 
-        showBackButton={true}
-        onBack={onBack}
-      />
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Cancel
+        </button>
+        <h1 className="app-title" onClick={goToDashboard}>
+          HotelKeep
+        </h1>
+      </div>
 
       <div className="form-container fade-in">
         <form onSubmit={handleSubmit}>
