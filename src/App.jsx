@@ -827,7 +827,7 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
         </h1>
       </div>
 
-      <div className="floor-list fade-in">
+      <div className="floor-list">
         {getTotalJobCount() === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">
@@ -924,7 +924,7 @@ function RoomList({
           </h1>
         </div>
 
-        <div className="urgent-list fade-in">
+        <div className="urgent-list">
           {otherJobs.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📭</div>
@@ -1002,7 +1002,7 @@ function RoomList({
         </h1>
       </div>
 
-      <div className="floor-list fade-in">
+      <div className="floor-list">
         {roomsWithJobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🏢</div>
@@ -1073,7 +1073,7 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
         </h1>
       </div>
 
-      <div className="floor-list fade-in">
+      <div className="floor-list">
         {roomJobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">✅</div>
@@ -1210,7 +1210,7 @@ function JobDetail({
         </h1>
       </div>
 
-      <div className="job-detail fade-in">
+      <div className="job-detail">
         <div className="detail-card">
           <div className="detail-header">
             <div className="detail-title">{job.title}</div>
@@ -1448,7 +1448,7 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
         </h1>
       </div>
 
-      <div className="form-container fade-in">
+      <div className="form-container">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">Job Type *</label>
@@ -1746,7 +1746,7 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
         </h1>
       </div>
 
-      <div className="form-container fade-in">
+      <div className="form-container">
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">Mark as Done?</label>
