@@ -106,6 +106,21 @@ body {
   opacity: 0.9;
 }
 
+/* Text-based header title (fallback for logo) */
+.header-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #667eea;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.header-title:hover {
+  color: #764ba2;
+  transform: scale(1.05);
+}
+
 /* Back Button */
 .back-button {
   background: transparent;
@@ -308,6 +323,14 @@ body {
   width: 180px;
   height: auto;
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.2));
+}
+
+.app-logo-text {
+  font-size: 56px;
+  font-weight: 800;
+  color: white;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  margin: 0;
 }
 
 .app-tagline {
