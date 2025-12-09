@@ -1,61 +1,69 @@
 import { useState, useEffect, useRef } from 'react'
-import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice'
+import {
+  subscribeToJobs,
+  createJobInDb,
+  updateJobInDb,
+  deleteJobInDb,
+} from './Jobsservice'
 
-//Data
+// Data
 const initialRooms = [
-            // Basement
-            { id: 1, room_number: "51", notes: "Triple Room", floor: "Basement" },
-            { id: 2, room_number: "52", notes: "Triple Room", floor: "Basement" },
-            { id: 3, room_number: "53", notes: "Twin Room", floor: "Basement" },
-            { id: 4, room_number: "54", notes: "Triple Room", floor: "Basement" },
-            // Ground Floor
-            { id: 5, room_number: "1", notes: "Single Room", floor: "Ground Floor" },
-            { id: 6, room_number: "2", notes: "Family Room", floor: "Ground Floor" },
-            { id: 7, room_number: "3", notes: "Double Room", floor: "Ground Floor" },
-            { id: 8, room_number: "4", notes: "Double Room", floor: "Ground Floor" },
-            { id: 9, room_number: "5", notes: "Twin Room", floor: "Ground Floor" },
-            { id: 10, room_number: "6", notes: "Triple Room", floor: "Ground Floor" },
-            { id: 11, room_number: "7", notes: "Family Room", floor: "Ground Floor" },
-            // First Floor
-            { id: 12, room_number: "8", notes: "Twin Room", floor: "First Floor" },
-            { id: 13, room_number: "2b", notes: "Twin Room", floor: "First Floor" },
-            { id: 14, room_number: "11", notes: "Quad Room", floor: "First Floor" },
-            { id: 15, room_number: "12", notes: "Quad Room", floor: "First Floor" },
-            { id: 16, room_number: "13", notes: "Quad Room", floor: "First Floor" },
-            { id: 17, room_number: "14", notes: "Family Room", floor: "First Floor" },
-            { id: 18, room_number: "15", notes: "Double Room", floor: "First Floor" },
-            { id: 19, room_number: "16", notes: "Double Room", floor: "First Floor" },
-            // Second Floor
-            { id: 20, room_number: "9", notes: "Single Room", floor: "Second Floor" },
-            { id: 21, room_number: "5b", notes: "Single Room", floor: "Second Floor" },
-            { id: 22, room_number: "21", notes: "Family Room", floor: "Second Floor" },
-            { id: 23, room_number: "22", notes: "Family Room", floor: "Second Floor" },
-            { id: 24, room_number: "23", notes: "Family Room", floor: "Second Floor" },
-            { id: 25, room_number: "24", notes: "Family Room", floor: "Second Floor" },
-            { id: 26, room_number: "25", notes: "Double Room", floor: "Second Floor" },
-            { id: 27, room_number: "26", notes: "Double Room", floor: "Second Floor" },
-            // Third Floor
-            { id: 28, room_number: "31", notes: "Quad Room", floor: "Third Floor" },
-            { id: 29, room_number: "32", notes: "Family Room", floor: "Third Floor" },
-            { id: 30, room_number: "33", notes: "Quad Room", floor: "Third Floor" },
-            { id: 31, room_number: "34", notes: "Triple Room", floor: "Third Floor" },
-            { id: 32, room_number: "35", notes: "Double Room", floor: "Third Floor" },
-            { id: 33, room_number: "36", notes: "Double Room", floor: "Third Floor" },
-            // Fourth Floor
-            { id: 34, room_number: "41", notes: "Quad Room", floor: "Fourth Floor" },
-            { id: 35, room_number: "42", notes: "Quad Room", floor: "Fourth Floor" },
-            { id: 36, room_number: "43", notes: "Quad Room", floor: "Fourth Floor" },
-            { id: 37, room_number: "44", notes: "Triple Room", floor: "Fourth Floor" },
-            { id: 38, room_number: "45", notes: "Single Room", floor: "Fourth Floor" },
-            { id: 39, room_number: "46", notes: "Single Room", floor: "Fourth Floor" },
+  // Basement
+  { id: 1, room_number: '51', notes: 'Triple Room', floor: 'Basement' },
+  { id: 2, room_number: '52', notes: 'Triple Room', floor: 'Basement' },
+  { id: 3, room_number: '53', notes: 'Twin Room', floor: 'Basement' },
+  { id: 4, room_number: '54', notes: 'Triple Room', floor: 'Basement' },
+  // Ground Floor
+  { id: 5, room_number: '1', notes: 'Single Room', floor: 'Ground Floor' },
+  { id: 6, room_number: '2', notes: 'Family Room', floor: 'Ground Floor' },
+  { id: 7, room_number: '3', notes: 'Double Room', floor: 'Ground Floor' },
+  { id: 8, room_number: '4', notes: 'Double Room', floor: 'Ground Floor' },
+  { id: 9, room_number: '5', notes: 'Twin Room', floor: 'Ground Floor' },
+  { id: 10, room_number: '6', notes: 'Triple Room', floor: 'Ground Floor' },
+  { id: 11, room_number: '7', notes: 'Family Room', floor: 'Ground Floor' },
+  // First Floor
+  { id: 12, room_number: '8', notes: 'Twin Room', floor: 'First Floor' },
+  { id: 13, room_number: '2b', notes: 'Twin Room', floor: 'First Floor' },
+  { id: 14, room_number: '11', notes: 'Quad Room', floor: 'First Floor' },
+  { id: 15, room_number: '12', notes: 'Quad Room', floor: 'First Floor' },
+  { id: 16, room_number: '13', notes: 'Quad Room', floor: 'First Floor' },
+  { id: 17, room_number: '14', notes: 'Family Room', floor: 'First Floor' },
+  { id: 18, room_number: '15', notes: 'Double Room', floor: 'First Floor' },
+  { id: 19, room_number: '16', notes: 'Double Room', floor: 'First Floor' },
+  // Second Floor
+  { id: 20, room_number: '9', notes: 'Single Room', floor: 'Second Floor' },
+  { id: 21, room_number: '5b', notes: 'Single Room', floor: 'Second Floor' },
+  { id: 22, room_number: '21', notes: 'Family Room', floor: 'Second Floor' },
+  { id: 23, room_number: '22', notes: 'Family Room', floor: 'Second Floor' },
+  { id: 24, room_number: '23', notes: 'Family Room', floor: 'Second Floor' },
+  { id: 25, room_number: '24', notes: 'Family Room', floor: 'Second Floor' },
+  { id: 26, room_number: '25', notes: 'Double Room', floor: 'Second Floor' },
+  { id: 27, room_number: '26', notes: 'Double Room', floor: 'Second Floor' },
+  // Third Floor
+  { id: 28, room_number: '31', notes: 'Quad Room', floor: 'Third Floor' },
+  { id: 29, room_number: '32', notes: 'Family Room', floor: 'Third Floor' },
+  { id: 30, room_number: '33', notes: 'Quad Room', floor: 'Third Floor' },
+  { id: 31, room_number: '34', notes: 'Triple Room', floor: 'Third Floor' },
+  { id: 32, room_number: '35', notes: 'Double Room', floor: 'Third Floor' },
+  { id: 33, room_number: '36', notes: 'Double Room', floor: 'Third Floor' },
+  // Fourth Floor
+  { id: 34, room_number: '41', notes: 'Quad Room', floor: 'Fourth Floor' },
+  { id: 35, room_number: '42', notes: 'Quad Room', floor: 'Fourth Floor' },
+  { id: 36, room_number: '43', notes: 'Quad Room', floor: 'Fourth Floor' },
+  { id: 37, room_number: '44', notes: 'Triple Room', floor: 'Fourth Floor' },
+  { id: 38, room_number: '45', notes: 'Single Room', floor: 'Fourth Floor' },
+  { id: 39, room_number: '46', notes: 'Single Room', floor: 'Fourth Floor' },
 ]
 
+// NOTE: initialJobs is currently unused; you can use it as seed data or remove it.
+// Keeping it here for reference for now.
 const initialJobs = [
   {
     id: 1,
     room_id: 5,
     title: 'Shower Leak',
-    description: 'Water dripping from shower head constantly. Needs immediate attention.',
+    description:
+      'Water dripping from shower head constantly. Needs immediate attention.',
     photo: null,
     status: 'Urgent',
     original_status: 'Urgent',
@@ -180,7 +188,6 @@ function HotelMaintenanceApp() {
   )
   const [showUserMenu, setShowUserMenu] = useState(false)
 
-
   useEffect(() => {
     storage.set('rooms', rooms)
   }, [rooms])
@@ -197,7 +204,6 @@ function HotelMaintenanceApp() {
 
     return () => unsubscribe()
   }, [hotelId])
-
 
   const selectRole = (role) => {
     if (role === 'manager') {
@@ -217,7 +223,9 @@ function HotelMaintenanceApp() {
   const changeManagerCode = () => {
     const currentCode = window.prompt('Enter current security code:')
     if (currentCode && hashCode(currentCode) === managerCode) {
-      const newCode = window.prompt('Enter new security code (4-8 digits recommended):')
+      const newCode = window.prompt(
+        'Enter new security code (4-8 digits recommended):',
+      )
       if (newCode && newCode.length >= 4) {
         const confirmCode = window.prompt('Confirm new security code:')
         if (confirmCode === newCode) {
@@ -286,6 +294,7 @@ function HotelMaintenanceApp() {
     setCurrentView('add-job')
   }
 
+  // FIXED: clean Firebase-based createJob with timestamps and original_status
   const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
       window.alert('Job must have a title and description')
@@ -297,10 +306,15 @@ function HotelMaintenanceApp() {
       return
     }
 
+    const now = new Date().toISOString()
+
     try {
       await createJobInDb({
         ...jobData,
         hotelId,
+        original_status: jobData.status,
+        created_at: now,
+        updated_at: now,
       })
       goToDashboard()
     } catch (err) {
@@ -309,23 +323,8 @@ function HotelMaintenanceApp() {
     }
   }
 
-    if (jobData.status !== 'Other' && !jobData.room_id) {
-      window.alert('Room-based jobs must have a valid room')
-      return
-    }
-
-    const newJob = {
-      ...jobData,
-      id: jobs.length > 0 ? Math.max(...jobs.map((j) => j.id)) + 1 : 1,
-      original_status: jobData.status,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    }
-    setJobs([...jobs, newJob])
-    goToDashboard()
-  }
-
-   const updateJobData = async (jobId, updates) => {
+  // FIXED: updateJobData now always sets updated_at
+  const updateJobData = async (jobId, updates) => {
     if (updates.title !== undefined && !updates.title.trim()) {
       window.alert('Job title cannot be empty')
       return
@@ -341,10 +340,14 @@ function HotelMaintenanceApp() {
 
     const newUpdates = { ...updates }
 
+    // preserve original_status when moving to Done
     if (updates.status === 'Done' && existingJob.status !== 'Done') {
       newUpdates.original_status =
         existingJob.status === 'Other' ? 'Other' : existingJob.status
     }
+
+    // always bump updated_at
+    newUpdates.updated_at = new Date().toISOString()
 
     try {
       await updateJobInDb(jobId, newUpdates)
@@ -359,10 +362,8 @@ function HotelMaintenanceApp() {
     }
   }
 
-
+  // FIXED: confirmation handled in JobDetail, this just executes the delete
   const deleteJob = async (jobId) => {
-    if (!window.confirm('Are you sure you want to delete this job?')) return
-
     try {
       await deleteJobInDb(jobId)
       goToDashboard()
@@ -372,12 +373,13 @@ function HotelMaintenanceApp() {
     }
   }
 
-
   const getJobsForCategory = (status) => {
     if (status === 'To Do') {
       return jobs.filter(
         (job) =>
-          job.status === 'To Do' || job.status === 'Urgent' || job.status === 'Other',
+          job.status === 'To Do' ||
+          job.status === 'Urgent' ||
+          job.status === 'Other',
       )
     }
     return jobs.filter((job) => job.status === status)
@@ -399,14 +401,19 @@ function HotelMaintenanceApp() {
     <div className="app-container">
       {enlargedPhoto && (
         <div className="photo-modal" onClick={() => setEnlargedPhoto(null)}>
-          <button className="photo-modal-close" onClick={() => setEnlargedPhoto(null)}>
+          <button
+            className="photo-modal-close"
+            onClick={() => setEnlargedPhoto(null)}
+          >
             ×
           </button>
           <img src={enlargedPhoto} alt="Enlarged" />
         </div>
       )}
 
-      {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
+      {currentView === 'role-select' && (
+        <RoleSelector onSelectRole={selectRole} />
+      )}
 
       {currentView === 'dashboard' && (
         <Dashboard
@@ -519,10 +526,16 @@ function RoleSelector({ onSelectRole }) {
         <h2>Select Your Role</h2>
         <p>Choose your role to access the system</p>
         <div className="role-buttons">
-          <button className="role-select-btn manager" onClick={() => onSelectRole('manager')}>
+          <button
+            className="role-select-btn manager"
+            onClick={() => onSelectRole('manager')}
+          >
             <span>👨‍💼 Manager</span>
           </button>
-          <button className="role-select-btn" onClick={() => onSelectRole('handyman')}>
+          <button
+            className="role-select-btn"
+            onClick={() => onSelectRole('handyman')}
+          >
             <span>🔧 Handyman</span>
           </button>
         </div>
@@ -543,7 +556,8 @@ function Dashboard({
 }) {
   const urgentCount = jobs.filter((j) => j.status === 'Urgent').length
   const todoCount = jobs.filter(
-    (j) => j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other',
+    (j) =>
+      j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other',
   ).length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
 
@@ -597,7 +611,10 @@ function Dashboard({
 
       <div className="dashboard fade-in">
         <div className="dashboard-grid">
-          <div className="category-card urgent" onClick={() => onViewCategory('Urgent')}>
+          <div
+            className="category-card urgent"
+            onClick={() => onViewCategory('Urgent')}
+          >
             <div className="category-header">
               <div className="category-title">
                 <div className="category-icon">🔥</div>
@@ -605,10 +622,15 @@ function Dashboard({
               </div>
             </div>
             <div className="category-count">{urgentCount}</div>
-            <div className="category-subtitle">Requires immediate attention</div>
+            <div className="category-subtitle">
+              Requires immediate attention
+            </div>
           </div>
 
-          <div className="category-card todo" onClick={() => onViewCategory('To Do')}>
+          <div
+            className="category-card todo"
+            onClick={() => onViewCategory('To Do')}
+          >
             <div className="category-header">
               <div className="category-title">
                 <div className="category-icon">📋</div>
@@ -616,10 +638,15 @@ function Dashboard({
               </div>
             </div>
             <div className="category-count">{todoCount}</div>
-            <div className="category-subtitle">Scheduled maintenance tasks</div>
+            <div className="category-subtitle">
+              Scheduled maintenance tasks
+            </div>
           </div>
 
-          <div className="category-card done" onClick={() => onViewCategory('Done')}>
+          <div
+            className="category-card done"
+            onClick={() => onViewCategory('Done')}
+          >
             <div className="category-header">
               <div className="category-title">
                 <div className="category-icon">✅</div>
@@ -674,11 +701,17 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
                   <div className="job-title">{job.title}</div>
                   <span className="status-badge urgent">Urgent</span>
                 </div>
-                <div className="room-number">Room {job.room?.room_number}</div>
+                <div className="room-number">
+                  Room {job.room?.room_number}
+                </div>
                 <div className="detail-description">{job.description}</div>
                 <div className="job-meta">
-                  <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
-                  {job.photo && <span className="job-photo-indicator">📷 Photo</span>}
+                  <span>
+                    📅 {new Date(job.created_at).toLocaleDateString()}
+                  </span>
+                  {job.photo && (
+                    <span className="job-photo-indicator">📷 Photo</span>
+                  )}
                 </div>
               </div>
             ))}
@@ -709,16 +742,18 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
           roomIds.includes(j.room_id),
       ).length
     }
-    return jobs.filter((j) => j.status === category && roomIds.includes(j.room_id))
-      .length
+    return jobs.filter(
+      (j) => j.status === category && roomIds.includes(j.room_id),
+    ).length
   }
 
   const getOtherJobsCount = () => {
     if (category === 'To Do') {
       return jobs.filter((j) => j.status === 'Other').length
     } else if (category === 'Done') {
-      return jobs.filter((j) => j.status === 'Done' && j.original_status === 'Other')
-        .length
+      return jobs.filter(
+        (j) => j.status === 'Done' && j.original_status === 'Other',
+      ).length
     }
     return 0
   }
@@ -745,27 +780,34 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
         {getTotalJobCount() === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">
-              {category === 'To Do' ? '✅' : category === 'Done' ? '🎉' : '📋'}
+              {category === 'To Do'
+                ? '✅'
+                : category === 'Done'
+                ? '🎉'
+                : '📋'}
             </div>
             <div className="empty-title">
               {category === 'To Do'
                 ? 'No Pending Jobs'
                 : category === 'Done'
-                  ? 'No Completed Jobs Yet'
-                  : `No ${category} Jobs`}
+                ? 'No Completed Jobs Yet'
+                : `No ${category} Jobs`}
             </div>
             <div className="empty-message">
               {category === 'To Do'
                 ? 'Great! All caught up. Use the + button to add new maintenance tasks.'
                 : category === 'Done'
-                  ? 'No jobs have been completed yet. Completed jobs will appear here.'
-                  : `There are currently no ${category.toLowerCase()} jobs.`}
+                ? 'No jobs have been completed yet. Completed jobs will appear here.'
+                : `There are currently no ${category.toLowerCase()} jobs.`}
             </div>
           </div>
         ) : (
           <>
             {getOtherJobsCount() > 0 && (
-              <div className="floor-section" onClick={() => onViewFloor('Other')}>
+              <div
+                className="floor-section"
+                onClick={() => onViewFloor('Other')}
+              >
                 <div className="floor-header" style={{ cursor: 'pointer' }}>
                   <div className="floor-title">
                     🔧 Other Jobs
@@ -844,8 +886,9 @@ function RoomList({
               <div className="empty-icon">📭</div>
               <div className="empty-title">No Other Jobs</div>
               <div className="empty-message">
-                No {category === 'Done' ? 'completed' : 'pending'} non-room maintenance
-                tasks
+                No{' '}
+                {category === 'Done' ? 'completed' : 'pending'} non-room
+                maintenance tasks
               </div>
             </div>
           ) : (
@@ -870,9 +913,13 @@ function RoomList({
                       {job.status}
                     </span>
                   </div>
-                  <div className="detail-description">{job.description}</div>
+                  <div className="detail-description">
+                    {job.description}
+                  </div>
                   <div className="job-meta">
-                    <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
+                    <span>
+                      📅 {new Date(job.created_at).toLocaleDateString()}
+                    </span>
                     {job.photo && (
                       <span className="job-photo-indicator">📷 Photo</span>
                     )}
@@ -892,18 +939,26 @@ function RoomList({
     if (category === 'To Do') {
       return jobs.filter(
         (j) =>
-          (j.status === 'To Do' || j.status === 'Urgent') && j.room_id === roomId,
+          (j.status === 'To Do' || j.status === 'Urgent') &&
+          j.room_id === roomId,
       ).length
     }
     if (category === 'Done') {
       return jobs.filter(
-        (j) => j.status === 'Done' && j.original_status !== 'Other' && j.room_id === roomId,
+        (j) =>
+          j.status === 'Done' &&
+          j.original_status !== 'Other' &&
+          j.room_id === roomId,
       ).length
     }
-    return jobs.filter((j) => j.status === category && j.room_id === roomId).length
+    return jobs.filter(
+      (j) => j.status === category && j.room_id === roomId,
+    ).length
   }
 
-  const roomsWithJobs = floorRooms.filter((room) => getRoomJobCount(room.id) > 0)
+  const roomsWithJobs = floorRooms.filter(
+    (room) => getRoomJobCount(room.id) > 0,
+  )
 
   return (
     <>
@@ -925,8 +980,8 @@ function RoomList({
               {category === 'To Do'
                 ? `All rooms on ${floor} are in good condition. No pending maintenance tasks.`
                 : category === 'Done'
-                  ? `No completed jobs on ${floor} yet.`
-                  : `There are no ${category.toLowerCase()} jobs on this floor.`}
+                ? `No completed jobs on ${floor} yet.`
+                : `There are no ${category.toLowerCase()} jobs on this floor.`}
             </div>
           </div>
         ) : (
@@ -941,7 +996,9 @@ function RoomList({
                   onClick={() => onViewRoom(room)}
                 >
                   <div className="room-header">
-                    <div className="room-number">Room {room.room_number}</div>
+                    <div className="room-number">
+                      Room {room.room_number}
+                    </div>
                     <span className="job-count-badge">
                       {jobCount} {jobCount === 1 ? 'job' : 'jobs'}
                     </span>
@@ -973,7 +1030,9 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
         j.original_status !== 'Other',
     )
   } else {
-    roomJobs = jobs.filter((j) => j.room_id === room.id && j.status === category)
+    roomJobs = jobs.filter(
+      (j) => j.room_id === room.id && j.status === category,
+    )
   }
 
   return (
@@ -991,19 +1050,25 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
         {roomJobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">✅</div>
-            <div className="empty-title">No Jobs for Room {room.room_number}</div>
+            <div className="empty-title">
+              No Jobs for Room {room.room_number}
+            </div>
             <div className="empty-message">
               {category === 'To Do'
                 ? 'This room has no pending maintenance tasks.'
                 : category === 'Done'
-                  ? 'No completed jobs for this room yet.'
-                  : `No ${category.toLowerCase()} jobs for this room.`}
+                ? 'No completed jobs for this room yet.'
+                : `No ${category.toLowerCase()} jobs for this room.`}
             </div>
           </div>
         ) : (
           <div className="job-list">
             {roomJobs.map((job) => (
-              <div key={job.id} className="job-card" onClick={() => onViewJob(job)}>
+              <div
+                key={job.id}
+                className="job-card"
+                onClick={() => onViewJob(job)}
+              >
                 <div className="job-header">
                   <div className="job-title">{job.title}</div>
                   <span
@@ -1014,9 +1079,13 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
                     {job.status}
                   </span>
                 </div>
-                <div className="detail-description">{job.description}</div>
+                <div className="detail-description">
+                  {job.description}
+                </div>
                 <div className="job-meta">
-                  <span>📅 {new Date(job.created_at).toLocaleDateString()}</span>
+                  <span>
+                    📅 {new Date(job.created_at).toLocaleDateString()}
+                  </span>
                   {job.photo && (
                     <span className="job-photo-indicator">📷 Photo</span>
                   )}
@@ -1070,6 +1139,11 @@ function JobDetail({
     }
   }
 
+  // SAFER: handle missing status gracefully
+  const statusClass = job.status
+    ? job.status.toLowerCase().replace(' ', '')
+    : 'unknown'
+
   return (
     <>
       <div className="app-header">
@@ -1085,10 +1159,8 @@ function JobDetail({
         <div className="detail-card">
           <div className="detail-header">
             <div className="detail-title">{job.title}</div>
-            <span
-              className={`status-badge ${job.status.toLowerCase().replace(' ', '')}`}
-            >
-              {job.status}
+            <span className={`status-badge ${statusClass}`}>
+              {job.status || 'Unknown'}
             </span>
           </div>
 
@@ -1162,7 +1234,10 @@ function JobDetail({
           )}
 
           {job.status === 'Done' && role === 'manager' && (
-            <button className="action-btn secondary" onClick={handleReopenAsOriginal}>
+            <button
+              className="action-btn secondary"
+              onClick={handleReopenAsOriginal}
+            >
               ↺ Reopen as {job.original_status || 'To Do'}
             </button>
           )}
@@ -1200,13 +1275,16 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
     const num = roomNum.toLowerCase().trim()
 
     if (['51', '52', '53', '54'].includes(num)) return 'Basement'
-    if (['1', '2', '3', '4', '5', '6', '7'].includes(num)) return 'Ground Floor'
+    if (['1', '2', '3', '4', '5', '6', '7'].includes(num))
+      return 'Ground Floor'
     if (['8', '2b', '11', '12', '13', '14', '15', '16'].includes(num))
       return 'First Floor'
     if (['9', '5b', '21', '22', '23', '24', '25', '26'].includes(num))
       return 'Second Floor'
-    if (['31', '32', '33', '34', '35', '36'].includes(num)) return 'Third Floor'
-    if (['41', '42', '43', '44', '45', '46'].includes(num)) return 'Fourth Floor'
+    if (['31', '32', '33', '34', '35', '36'].includes(num))
+      return 'Third Floor'
+    if (['41', '42', '43', '44', '45', '46'].includes(num))
+      return 'Fourth Floor'
 
     return ''
   }
@@ -1216,7 +1294,8 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
     setDetectedFloor(floor)
 
     const matchingRoom = rooms.find(
-      (r) => r.room_number.toLowerCase() === value.toLowerCase().trim(),
+      (r) =>
+        r.room_number.toLowerCase() === value.toLowerCase().trim(),
     )
 
     setFormData({
@@ -1241,7 +1320,8 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
 
       const matchingRoom = rooms.find(
         (r) =>
-          r.room_number.toLowerCase() === formData.room_number.toLowerCase().trim(),
+          r.room_number.toLowerCase() ===
+          formData.room_number.toLowerCase().trim(),
       )
 
       if (!matchingRoom) {
@@ -1254,7 +1334,8 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
       formData.room_id = matchingRoom.id
     }
 
-    const finalStatus = formData.jobType === 'other' ? 'Other' : formData.priority
+    const finalStatus =
+      formData.jobType === 'other' ? 'Other' : formData.priority
 
     onSubmit({
       ...formData,
@@ -1291,7 +1372,9 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
             <select
               className="form-select"
               value={formData.jobType}
-              onChange={(e) => setFormData({ ...formData, jobType: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, jobType: e.target.value })
+              }
               required
             >
               <option value="room">Room-based Job</option>
@@ -1305,7 +1388,9 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
               <select
                 className="form-select"
                 value={formData.priority}
-                onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, priority: e.target.value })
+                }
                 required
               >
                 <option value="To Do">To Do</option>
@@ -1321,7 +1406,9 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
                 <select
                   className="form-select"
                   value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, priority: e.target.value })
+                  }
                   required
                 >
                   <option value="To Do">To Do</option>
@@ -1335,22 +1422,27 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
                   type="text"
                   className="form-input"
                   value={formData.room_number}
-                  onChange={(e) => handleRoomNumberChange(e.target.value)}
+                  onChange={(e) =>
+                    handleRoomNumberChange(e.target.value)
+                  }
                   placeholder="e.g., 1, 2b, 21, 51"
                   required
                 />
                 <div className="room-input-helper">
                   {detectedFloor ? (
                     <span>
-                      ✓ <strong>{detectedFloor}</strong> - Room {formData.room_number}
+                      ✓ <strong>{detectedFloor}</strong> - Room{' '}
+                      {formData.room_number}
                     </span>
                   ) : formData.room_number ? (
-                    <span>⚠️ Room not found. Please check the room number.</span>
+                    <span>
+                      ⚠️ Room not found. Please check the room number.
+                    </span>
                   ) : (
                     <span>
-                      <strong>Available rooms:</strong> Basement (51-54), Ground (1-7),
-                      First (8, 2b, 11-16), Second (9, 5b, 21-26), Third (31-36), Fourth
-                      (41-46)
+                      <strong>Available rooms:</strong> Basement (51-54),
+                      Ground (1-7), First (8, 2b, 11-16), Second (9, 5b,
+                      21-26), Third (31-36), Fourth (41-46)
                     </span>
                   )}
                 </div>
@@ -1364,7 +1456,9 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
               type="text"
               className="form-input"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="e.g., Broken window handle"
               required
             />
@@ -1386,7 +1480,11 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
           <div className="form-group">
             <label className="form-label">Photo (Optional)</label>
             {formData.photo && (
-              <img src={formData.photo} alt="Job photo" className="detail-photo" />
+              <img
+                src={formData.photo}
+                alt="Job photo"
+                className="detail-photo"
+              />
             )}
             <div className="photo-upload-buttons">
               <button
@@ -1434,7 +1532,10 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
   const currentRoom = rooms.find((r) => r.id === job.room_id)
 
   const getInitialJobType = () => {
-    if (job.status === 'Other' || (job.status === 'Done' && job.original_status === 'Other')) {
+    if (
+      job.status === 'Other' ||
+      (job.status === 'Done' && job.original_status === 'Other')
+    ) {
       return 'other'
     }
     return 'room'
@@ -1459,7 +1560,9 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
 
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
-  const [detectedFloor, setDetectedFloor] = useState(currentRoom ? currentRoom.floor : '')
+  const [detectedFloor, setDetectedFloor] = useState(
+    currentRoom ? currentRoom.floor : '',
+  )
 
   const detectFloor = (roomNum) => {
     if (!roomNum) return ''
@@ -1467,13 +1570,16 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     const num = roomNum.toLowerCase().trim()
 
     if (['51', '52', '53', '54'].includes(num)) return 'Basement'
-    if (['1', '2', '3', '4', '5', '6', '7'].includes(num)) return 'Ground Floor'
+    if (['1', '2', '3', '4', '5', '6', '7'].includes(num))
+      return 'Ground Floor'
     if (['8', '2b', '11', '12', '13', '14', '15', '16'].includes(num))
       return 'First Floor'
     if (['9', '5b', '21', '22', '23', '24', '25', '26'].includes(num))
       return 'Second Floor'
-    if (['31', '32', '33', '34', '35', '36'].includes(num)) return 'Third Floor'
-    if (['41', '42', '43', '44', '45', '46'].includes(num)) return 'Fourth Floor'
+    if (['31', '32', '33', '34', '35', '36'].includes(num))
+      return 'Third Floor'
+    if (['41', '42', '43', '44', '45', '46'].includes(num))
+      return 'Fourth Floor'
 
     return ''
   }
@@ -1483,7 +1589,8 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     setDetectedFloor(floor)
 
     const matchingRoom = rooms.find(
-      (r) => r.room_number.toLowerCase() === value.toLowerCase().trim(),
+      (r) =>
+        r.room_number.toLowerCase() === value.toLowerCase().trim(),
     )
 
     setFormData({
@@ -1508,7 +1615,8 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
 
       const matchingRoom = rooms.find(
         (r) =>
-          r.room_number.toLowerCase() === formData.room_number.toLowerCase().trim(),
+          r.room_number.toLowerCase() ===
+          formData.room_number.toLowerCase().trim(),
       )
 
       if (!matchingRoom) {
@@ -1525,7 +1633,8 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     if (formData.status === 'Done') {
       finalStatus = 'Done'
     } else {
-      finalStatus = formData.jobType === 'other' ? 'Other' : formData.priority
+      finalStatus =
+        formData.jobType === 'other' ? 'Other' : formData.priority
     }
 
     onSubmit(job.id, {
@@ -1615,22 +1724,27 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
                     type="text"
                     className="form-input"
                     value={formData.room_number}
-                    onChange={(e) => handleRoomNumberChange(e.target.value)}
+                    onChange={(e) =>
+                      handleRoomNumberChange(e.target.value)
+                    }
                     placeholder="e.g., 1, 2b, 21, 51"
                     required
                   />
                   <div className="room-input-helper">
                     {detectedFloor ? (
                       <span>
-                        ✓ <strong>{detectedFloor}</strong> - Room {formData.room_number}
+                        ✓ <strong>{detectedFloor}</strong> - Room{' '}
+                        {formData.room_number}
                       </span>
                     ) : formData.room_number ? (
-                      <span>⚠️ Room not found. Please check the room number.</span>
+                      <span>
+                        ⚠️ Room not found. Please check the room number.
+                      </span>
                     ) : (
                       <span>
-                        <strong>Available rooms:</strong> Basement (51-54), Ground (1-7),
-                        First (8, 2b, 11-16), Second (9, 5b, 21-26), Third (31-36), Fourth
-                        (41-46)
+                        <strong>Available rooms:</strong> Basement (51-54),
+                        Ground (1-7), First (8, 2b, 11-16), Second (9, 5b,
+                        21-26), Third (31-36), Fourth (41-46)
                       </span>
                     )}
                   </div>
@@ -1645,7 +1759,9 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
               type="text"
               className="form-input"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
               placeholder="e.g., Broken window handle"
               required
             />
@@ -1667,7 +1783,11 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
           <div className="form-group">
             <label className="form-label">Photo (Optional)</label>
             {formData.photo && (
-              <img src={formData.photo} alt="Job photo" className="detail-photo" />
+              <img
+                src={formData.photo}
+                alt="Job photo"
+                className="detail-photo"
+              />
             )}
             <div className="photo-upload-buttons">
               <button
