@@ -137,31 +137,35 @@ body {
 }
 
 
-/* Header */
+/* Header - Consistent 3-column layout */
 .app-header {
   position: sticky;
   top: 0;
   z-index: 100;
   background: white;
   border-bottom: 1px solid #e0e0e0;
-  padding: 12px 16px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
-  min-height: 56px;
-}
-
-.header-actions {
+  padding: 16px 20px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  min-height: 64px;
   gap: 16px;
-  justify-self: end;
-  margin-left: auto;
 }
 
-.header-spacer {
-  width: 80px;
+.header-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 100px;
+}
+
+.header-right {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 100px;
 }
 
 .back-button {
@@ -170,31 +174,24 @@ body {
   font-size: 16px;
   color: #007aff;
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 8px 16px;
   border-radius: 8px;
   transition: background 0.2s;
-  justify-self: start;
   white-space: nowrap;
 }
 
-.back-button.invisible {
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
-}
-
-.back-button:hover:not(.invisible) {
+.back-button:hover {
   background: #f0f0f0;
 }
 
 .app-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #1d1d1f;
   cursor: pointer;
   text-align: center;
   margin: 0;
-  justify-self: center;
+  flex-shrink: 0;
 }
 
 /* Branding */
@@ -335,6 +332,40 @@ body {
   position: relative;
 }
 
+.role-dropdown-button {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 24px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.role-dropdown-button:hover {
+  border-color: #007aff;
+  background: #f8f9fa;
+}
+
+.role-name {
+  color: #1d1d1f;
+}
+
+.dropdown-arrow {
+  color: #86868b;
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.user-menu-container:has(.user-menu-dropdown) .dropdown-arrow {
+  transform: rotate(180deg);
+}
+
 .user-menu-button {
   background: white;
   border: 2px solid #e0e0e0;
@@ -359,16 +390,43 @@ body {
 .user-menu-dropdown {
   position: absolute;
   right: 0;
-  top: 50px;
+  top: 56px;
   background: white;
   border: 1px solid #e0e0e0;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  min-width: 220px;
   overflow: hidden;
+  z-index: 1000;
 }
 
-.menu-item {
+.user-menu-item {
+  width: 100%;
+  padding: 14px 18px;
+  border: none;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+  font-size: 15px;
+  color: #1d1d1f;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-menu-item:hover {
+  background: #f5f5f7;
+}
+
+.user-menu-item.danger {
+  color: #ff3b30;
+}
+
+.user-menu-item.danger:hover {
+  background: #fff3f2;
+}
+
   padding: 12px 16px;
   cursor: pointer;
   transition: background 0.2s;
@@ -955,15 +1013,15 @@ button:disabled {
 }
 
 /* Slide in from right animation - Subtle slide with fade */
-/* Simple, reliable slide animation */
+/* Page transition animation - VERY OBVIOUS */
 @keyframes slideInFromRight {
-  from {
+  0% {
     opacity: 0;
-    transform: translateX(50px);
+    transform: translateX(100%) scale(0.95);
   }
-  to {
+  100% {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
@@ -976,7 +1034,7 @@ button:disabled {
 .job-list,
 .job-detail,
 .form-container {
-  animation: slideInFromRight 0.5s ease-out forwards;
+  animation: slideInFromRight 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
 }
 
 /* App Container */
