@@ -573,7 +573,7 @@ function HotelMaintenanceApp() {
       )}
     </div>
   )
-}
+
 
 // ---- Components below here ----
 
