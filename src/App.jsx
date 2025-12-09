@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice.js'
 
 // ============================================================================
@@ -23,12 +23,9 @@ function AppHeader({
             ← Back
           </button>
         )}
-        <img 
-          src="/hotelkeep-logo.png" 
-          alt="HotelKeep" 
-          className="header-logo"
-          onClick={goToDashboard}
-        />
+        <div className="header-title" onClick={goToDashboard}>
+          HotelKeep
+        </div>
       </div>
       
       <div className="header-center"></div>
@@ -387,17 +384,15 @@ function HotelMaintenanceApp() {
           zIndex: 9999
         }}>
           <div style={{ textAlign: 'center' }}>
-            <img 
-              src="/hotelkeep-logo.png" 
-              alt="HotelKeep" 
-              style={{
-                width: '200px',
-                height: 'auto',
-                display: 'block',
-                margin: '0 auto 30px',
-                filter: 'drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3))'
-              }}
-            />
+            <h1 style={{
+              fontSize: '48px',
+              fontWeight: '700',
+              color: 'white',
+              marginBottom: '30px',
+              textShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+            }}>
+              HotelKeep
+            </h1>
             <div className="loading-spinner"></div>
           </div>
         </div>
@@ -556,7 +551,7 @@ function RoleSelector({ onSelectRole }) {
     <div className="page-view role-selector-page">
       <div className="app-branding">
         <div className="app-logo">
-          <img src="/hotelkeep-logo.png" alt="HotelKeep" className="app-logo-image" />
+          <h1 className="app-logo-text">HotelKeep</h1>
         </div>
         <p className="app-tagline">Professional Maintenance Management</p>
       </div>
