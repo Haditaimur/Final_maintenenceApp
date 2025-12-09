@@ -266,8 +266,8 @@ function HotelMaintenanceApp() {
       setCurrentView(newView)
       setTimeout(() => {
         setIsTransitioning(false)
-      }, 600) // Longer fade out so you can see it
-    }, 800) // Much longer delay so overlay is very visible
+      }, 300)
+    }, 400)
   }
 
   const logout = () => {
@@ -470,10 +470,11 @@ function HotelMaintenanceApp() {
             </div>
           )}
 
-          {currentView === 'role-select' && <RoleSelector onSelectRole={selectRole} />}
+          {currentView === 'role-select' && <RoleSelector key="role-select" onSelectRole={selectRole} />}
 
           {currentView === 'dashboard' && (
         <Dashboard
+          key="dashboard"
           role={userRole}
           jobs={jobs}
           onViewCategory={viewCategory}
@@ -487,6 +488,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'urgent-list' && (
         <UrgentJobsList
+          key="urgent-list"
           jobs={getJobsWithRoomInfo(getJobsForCategory('Urgent'))}
           onBack={goToDashboard}
           onViewJob={viewJobDetail}
@@ -495,6 +497,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'floor-list' && (
         <FloorList
+          key="floor-list"
           category={selectedCategory}
           jobs={jobs}
           rooms={rooms}
@@ -505,6 +508,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'room-list' && (
         <RoomList
+          key={`room-list-${selectedFloor}`}
           floor={selectedFloor}
           category={selectedCategory}
           jobs={jobs}
@@ -518,6 +522,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'job-list' && (
         <JobList
+          key={`job-list-${selectedRoom?.id || 'none'}`}
           room={selectedRoom}
           category={selectedCategory}
           jobs={jobs}
@@ -529,6 +534,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'job-detail' && selectedJob && (
         <JobDetail
+          key={`job-detail-${selectedJob.id}`}
           job={selectedJob}
           room={getRoomById(selectedJob.room_id)}
           role={userRole}
@@ -550,6 +556,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'add-job' && (
         <AddJobForm
+          key="add-job"
           rooms={rooms}
           onBack={goToDashboard}
           onSubmit={createJob}
@@ -559,6 +566,7 @@ function HotelMaintenanceApp() {
 
       {currentView === 'edit-job' && selectedJob && (
         <EditJobForm
+          key={`edit-job-${selectedJob.id}`}
           job={selectedJob}
           rooms={rooms}
           onBack={() => transitionToView('job-detail')}
