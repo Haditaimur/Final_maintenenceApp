@@ -492,6 +492,7 @@ function HotelMaintenanceApp() {
           jobs={getJobsWithRoomInfo(getJobsForCategory('Urgent'))}
           onBack={goToDashboard}
           onViewJob={viewJobDetail}
+          goToDashboard={goToDashboard}
         />
       )}
 
@@ -503,6 +504,7 @@ function HotelMaintenanceApp() {
           rooms={rooms}
           onBack={goToDashboard}
           onViewFloor={viewFloorRooms}
+          goToDashboard={goToDashboard}
         />
       )}
 
@@ -637,7 +639,7 @@ function Dashboard({
     <div className="dashboard">
       <div className="app-header">
         <div className="header-left"></div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={() => setShowUserMenu(false)}>HotelKeep</h1>
         <div className="header-right">
           <div className="user-menu-container">
             <button
@@ -723,7 +725,7 @@ function Dashboard({
   )
 }
 
-function UrgentJobsList({ jobs, onBack, onViewJob }) {
+function UrgentJobsList({ jobs, onBack, onViewJob, goToDashboard }) {
   return (
     <div className="urgent-list">
       <div className="app-header">
@@ -732,7 +734,7 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
             ← Back
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -772,7 +774,7 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
   )
 }
 
-function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
+function FloorList({ category, jobs, rooms, onBack, onViewFloor, goToDashboard }) {
   const floors = [
     'Basement',
     'Ground Floor',
@@ -821,7 +823,7 @@ function FloorList({ category, jobs, rooms, onBack, onViewFloor }) {
             ← Back
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -919,7 +921,7 @@ function RoomList({
             ← Back
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -998,7 +1000,7 @@ function RoomList({
             ← Back
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -1070,7 +1072,7 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
             ← Back
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -1208,7 +1210,7 @@ function JobDetail({
             ← Back
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -1447,7 +1449,7 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
             ← Cancel
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
@@ -1746,7 +1748,7 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
             ← Cancel
           </button>
         </div>
-        <h1 className="app-title">HotelKeep</h1>
+        <h1 className="app-title" onClick={goToDashboard}>HotelKeep</h1>
         <div className="header-right"></div>
       </div>
 
