@@ -503,41 +503,9 @@ function HotelMaintenanceApp() {
       )}
     </div>
   )
+}
 
 // ---- Components below here ----
-
-// Reusable Header Component  
-function AppHeader({ role, showUserMenu, setShowUserMenu, onChangeCode, onLogout }) {
-  return (
-    <div className="app-header">
-      <div className="header-content">
-        <h1 className="app-title" onClick={() => setShowUserMenu(false)}>HotelKeep</h1>
-        <div className="header-right">
-          <span className={`role-badge ${role}`}>
-            {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
-          </span>
-          <div className="user-menu-container">
-            <button className="user-menu-button" onClick={() => setShowUserMenu(!showUserMenu)}>
-              ⚙️<span style={{ fontSize: '0.6rem' }}>▼</span>
-            </button>
-            {showUserMenu && (
-              <div className="user-menu-dropdown">
-                {role === 'manager' && (
-                  <button className="user-menu-item" onClick={() => { setShowUserMenu(false); onChangeCode(); }}>
-                    🔒 Change Security Code
-                  </button>
-                )}
-                <button className="user-menu-item danger" onClick={() => { setShowUserMenu(false); onLogout(); }}>
-                  🚪 Logout
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function RoleSelector({ onSelectRole }) {
   return (
@@ -581,13 +549,51 @@ function Dashboard({
 
   return (
     <>
-      <AppHeader 
-        role={role}
-        showUserMenu={showUserMenu}
-        setShowUserMenu={setShowUserMenu}
-        onChangeCode={onChangeCode}
-        onLogout={onLogout}
-      />
+      <div className="app-header">
+        <div className="header-content">
+          <h1 className="app-title" onClick={() => setShowUserMenu(false)}>
+            HotelKeep
+          </h1>
+          <div className="header-right">
+            <span className={`role-badge ${role}`}>
+              {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
+            </span>
+            <div className="user-menu-container">
+              <button
+                className="user-menu-button"
+                onClick={() => setShowUserMenu(!showUserMenu)}
+              >
+                ⚙️
+                <span style={{ fontSize: '0.6rem' }}>▼</span>
+              </button>
+              {showUserMenu && (
+                <div className="user-menu-dropdown">
+                  {role === 'manager' && (
+                    <button
+                      className="user-menu-item"
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        onChangeCode()
+                      }}
+                    >
+                      🔒 Change Security Code
+                    </button>
+                  )}
+                  <button
+                    className="user-menu-item danger"
+                    onClick={() => {
+                      setShowUserMenu(false)
+                      onLogout()
+                    }}
+                  >
+                    🚪 Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="dashboard fade-in">
         <div className="dashboard-grid">
