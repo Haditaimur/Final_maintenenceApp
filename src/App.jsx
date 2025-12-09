@@ -1,76 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { subscribeToJobs, createJobInDb, updateJobInDb, deleteJobInDb } from './Jobsservice'
 
-// ============================================================================
-// REUSABLE HEADER COMPONENT
-// ============================================================================
-function AppHeader({ 
-  showBackButton = false,
-  onBack = null,
-  role = null,
-  showUserMenu = false,
-  setShowUserMenu = null,
-  onChangeCode = null,
-  onLogout = null
-}) {
-  return (
-    <div className="app-header">
-      <div className="header-content">
-        {showBackButton && onBack && (
-          <button className="back-button" onClick={onBack}>
-            ← Back
-          </button>
-        )}
-        <h1 className="app-title" onClick={() => setShowUserMenu && setShowUserMenu(false)}>
-          HotelKeep
-        </h1>
-        {role && (
-          <div className="header-right">
-            <span className={`role-badge ${role}`}>
-              {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
-            </span>
-            <div className="user-menu-container">
-              <button
-                className="user-menu-button"
-                onClick={() => setShowUserMenu && setShowUserMenu(!showUserMenu)}
-              >
-                ⚙️
-                <span style={{ fontSize: '0.6rem' }}>▼</span>
-              </button>
-              {showUserMenu && (
-                <div className="user-menu-dropdown">
-                  {role === 'manager' && onChangeCode && (
-                    <button
-                      className="user-menu-item"
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        onChangeCode()
-                      }}
-                    >
-                      🔒 Change Security Code
-                    </button>
-                  )}
-                  {onLogout && (
-                    <button
-                      className="user-menu-item danger"
-                      onClick={() => {
-                        setShowUserMenu(false)
-                        onLogout()
-                      }}
-                    >
-                      🚪 Logout
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 //Data
 const initialRooms = [
             // Basement
@@ -573,9 +503,77 @@ function HotelMaintenanceApp() {
       )}
     </div>
   )
-
+}
 
 // ---- Components below here ----
+
+// Reusable Header Component
+function AppHeader({ 
+  showBackButton = false,
+  onBack = null,
+  role = null,
+  showUserMenu = false,
+  setShowUserMenu = null,
+  onChangeCode = null,
+  onLogout = null
+}) {
+  return (
+    <div className="app-header">
+      <div className="header-content">
+        {showBackButton && onBack && (
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+        )}
+        <h1 className="app-title" onClick={() => setShowUserMenu && setShowUserMenu(false)}>
+          HotelKeep
+        </h1>
+        {role && (
+          <div className="header-right">
+            <span className={`role-badge ${role}`}>
+              {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
+            </span>
+            <div className="user-menu-container">
+              <button
+                className="user-menu-button"
+                onClick={() => setShowUserMenu && setShowUserMenu(!showUserMenu)}
+              >
+                ⚙️
+                <span style={{ fontSize: '0.6rem' }}>▼</span>
+              </button>
+              {showUserMenu && (
+                <div className="user-menu-dropdown">
+                  {role === 'manager' && onChangeCode && (
+                    <button
+                      className="user-menu-item"
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        onChangeCode()
+                      }}
+                    >
+                      🔒 Change Security Code
+                    </button>
+                  )}
+                  {onLogout && (
+                    <button
+                      className="user-menu-item danger"
+                      onClick={() => {
+                        setShowUserMenu(false)
+                        onLogout()
+                      }}
+                    >
+                      🚪 Logout
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 function RoleSelector({ onSelectRole }) {
   return (
