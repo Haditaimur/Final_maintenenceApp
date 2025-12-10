@@ -55,8 +55,7 @@ const initialRooms = [
   { id: 39, room_number: '46', notes: 'Single Room', floor: 'Fourth Floor' },
 ]
 
-// NOTE: initialJobs is currently unused; you can use it as seed data or remove it.
-// Keeping it here for reference for now.
+// NOTE: initialJobs is currently unused; kept for reference.
 const initialJobs = [
   {
     id: 1,
@@ -294,7 +293,7 @@ function HotelMaintenanceApp() {
     setCurrentView('add-job')
   }
 
-  // FIXED: clean Firebase-based createJob with timestamps and original_status
+  // Firebase-based createJob with timestamps and original_status
   const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
       window.alert('Job must have a title and description')
@@ -323,7 +322,7 @@ function HotelMaintenanceApp() {
     }
   }
 
-  // FIXED: updateJobData now always sets updated_at
+  // updateJobData always sets updated_at
   const updateJobData = async (jobId, updates) => {
     if (updates.title !== undefined && !updates.title.trim()) {
       window.alert('Job title cannot be empty')
@@ -362,7 +361,7 @@ function HotelMaintenanceApp() {
     }
   }
 
-  // FIXED: confirmation handled in JobDetail, this just executes the delete
+  // confirmation handled in JobDetail, this just executes the delete
   const deleteJob = async (jobId) => {
     try {
       await deleteJobInDb(jobId)
@@ -691,30 +690,33 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
           </div>
         ) : (
           <div className="urgent-jobs">
-            {jobs.map((job) => (
-              <div
-                key={job.id}
-                className="urgent-job-card"
-                onClick={() => onViewJob(job)}
-              >
-                <div className="job-header">
-                  <div className="job-title">{job.title}</div>
-                  <span className="status-badge urgent">Urgent</span>
+            {jobs.map((job) => {
+              const photoSrc = job.photoUrl || job.photo
+              return (
+                <div
+                  key={job.id}
+                  className="urgent-job-card"
+                  onClick={() => onViewJob(job)}
+                >
+                  <div className="job-header">
+                    <div className="job-title">{job.title}</div>
+                    <span className="status-badge urgent">Urgent</span>
+                  </div>
+                  <div className="room-number">
+                    Room {job.room?.room_number}
+                  </div>
+                  <div className="detail-description">{job.description}</div>
+                  <div className="job-meta">
+                    <span>
+                      📅 {new Date(job.created_at).toLocaleDateString()}
+                    </span>
+                    {photoSrc && (
+                      <span className="job-photo-indicator">📷 Photo</span>
+                    )}
+                  </div>
                 </div>
-                <div className="room-number">
-                  Room {job.room?.room_number}
-                </div>
-                <div className="detail-description">{job.description}</div>
-                <div className="job-meta">
-                  <span>
-                    📅 {new Date(job.created_at).toLocaleDateString()}
-                  </span>
-                  {job.photo && (
-                    <span className="job-photo-indicator">📷 Photo</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -893,39 +895,44 @@ function RoomList({
             </div>
           ) : (
             <div className="urgent-jobs">
-              {otherJobs.map((job) => (
-                <div
-                  key={job.id}
-                  className="urgent-job-card"
-                  onClick={() => onViewJob(job)}
-                  style={{
-                    borderLeftColor:
-                      job.status === 'Done' ? 'var(--done)' : 'var(--other)',
-                  }}
-                >
-                  <div className="job-header">
-                    <div className="job-title">{job.title}</div>
-                    <span
-                      className={`status-badge ${job.status
-                        .toLowerCase()
-                        .replace(' ', '')}`}
-                    >
-                      {job.status}
-                    </span>
+              {otherJobs.map((job) => {
+                const photoSrc = job.photoUrl || job.photo
+                return (
+                  <div
+                    key={job.id}
+                    className="urgent-job-card"
+                    onClick={() => onViewJob(job)}
+                    style={{
+                      borderLeftColor:
+                        job.status === 'Done' ? 'var(--done)' : 'var(--other)',
+                    }}
+                  >
+                    <div className="job-header">
+                      <div className="job-title">{job.title}</div>
+                      <span
+                        className={`status-badge ${job.status
+                          .toLowerCase()
+                          .replace(' ', '')}`}
+                      >
+                        {job.status}
+                      </span>
+                    </div>
+                    <div className="detail-description">
+                      {job.description}
+                    </div>
+                    <div className="job-meta">
+                      <span>
+                        📅 {new Date(job.created_at).toLocaleDateString()}
+                      </span>
+                      {photoSrc && (
+                        <span className="job-photo-indicator">
+                          📷 Photo
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="detail-description">
-                    {job.description}
-                  </div>
-                  <div className="job-meta">
-                    <span>
-                      📅 {new Date(job.created_at).toLocaleDateString()}
-                    </span>
-                    {job.photo && (
-                      <span className="job-photo-indicator">📷 Photo</span>
-                    )}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -1063,35 +1070,38 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
           </div>
         ) : (
           <div className="job-list">
-            {roomJobs.map((job) => (
-              <div
-                key={job.id}
-                className="job-card"
-                onClick={() => onViewJob(job)}
-              >
-                <div className="job-header">
-                  <div className="job-title">{job.title}</div>
-                  <span
-                    className={`status-badge ${job.status
-                      .toLowerCase()
-                      .replace(' ', '')}`}
-                  >
-                    {job.status}
-                  </span>
+            {roomJobs.map((job) => {
+              const photoSrc = job.photoUrl || job.photo
+              return (
+                <div
+                  key={job.id}
+                  className="job-card"
+                  onClick={() => onViewJob(job)}
+                >
+                  <div className="job-header">
+                    <div className="job-title">{job.title}</div>
+                    <span
+                      className={`status-badge ${job.status
+                        .toLowerCase()
+                        .replace(' ', '')}`}
+                    >
+                      {job.status}
+                    </span>
+                  </div>
+                  <div className="detail-description">
+                    {job.description}
+                  </div>
+                  <div className="job-meta">
+                    <span>
+                      📅 {new Date(job.created_at).toLocaleDateString()}
+                    </span>
+                    {photoSrc && (
+                      <span className="job-photo-indicator">📷 Photo</span>
+                    )}
+                  </div>
                 </div>
-                <div className="detail-description">
-                  {job.description}
-                </div>
-                <div className="job-meta">
-                  <span>
-                    📅 {new Date(job.created_at).toLocaleDateString()}
-                  </span>
-                  {job.photo && (
-                    <span className="job-photo-indicator">📷 Photo</span>
-                  )}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
@@ -1144,6 +1154,8 @@ function JobDetail({
     ? job.status.toLowerCase().replace(' ', '')
     : 'unknown'
 
+  const photoSrc = job.photoUrl || job.photo
+
   return (
     <>
       <div className="app-header">
@@ -1170,18 +1182,18 @@ function JobDetail({
 
           <div className="detail-description">{job.description}</div>
 
-          {job.photo && (
+          {photoSrc && (
             <img
-              src={job.photo}
+              src={photoSrc}
               alt="Job photo"
               className="detail-photo"
-              onClick={() => onEnlargePhoto(job.photo)}
+              onClick={() => onEnlargePhoto(photoSrc)}
             />
           )}
 
           <div className="photo-upload-section">
             <label className="photo-upload-label">
-              {job.photo ? 'Update Photo' : 'Add Photo'}
+              {photoSrc ? 'Update Photo' : 'Add Photo'}
             </label>
             <div className="photo-upload-buttons">
               <button
@@ -1547,6 +1559,8 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     return job.status
   }
 
+  const initialPhoto = job.photoUrl || job.photo
+
   const [formData, setFormData] = useState({
     room_id: job.room_id || '',
     room_number: currentRoom ? currentRoom.room_number : '',
@@ -1555,7 +1569,7 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     jobType: getInitialJobType(),
     priority: getInitialPriority(),
     status: job.status,
-    photo: job.photo,
+    photo: initialPhoto,
   })
 
   const fileInputRef = useRef(null)
