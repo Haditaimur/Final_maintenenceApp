@@ -1,4 +1,4 @@
-// src/jobsService.js (or wherever you keep it)
+// src/jobsService.js
 
 import { db, storage } from './firebase'
 import {
@@ -11,8 +11,9 @@ import {
   query,
   where,
   serverTimestamp,
+  writeBatch,
 } from 'firebase/firestore'
-import { ref, uploadString, getDownloadURL } from 'firebase/storage'
+import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storage'
 
 // ---- REALTIME SUBSCRIPTION ----
 
@@ -78,6 +79,21 @@ const uploadPhotoDataUrl = async (hotelId, jobId, photoDataUrl) => {
   return url
 }
 
+// Delete photo from storage
+const deletePhotoFromStorage = async (photoUrl) => {
+  if (!photoUrl) return
+
+  try {
+    // Extract the path from the URL
+    const photoRef = ref(storage, photoUrl)
+    await deleteObject(photoRef)
+    console.log('Photo deleted from storage:', photoUrl)
+  } catch (error) {
+    console.error('Error deleting photo from storage:', error)
+    // Don't throw - if photo is already deleted, that's fine
+  }
+}
+
 // ---- CRUD OPERATIONS ----
 
 // Create a new job (optionally with photo data URL in jobData.photo)
@@ -118,7 +134,7 @@ export const createJobInDb = async (jobData) => {
             photoUrl: url,
             updated_at: serverTimestamp(),
           })
-          console.log('Photo uploaded & job updated with photoUrl')
+          console.log('Photo uploaded & job updated with photoUrl:', url)
         }
       } catch (photoErr) {
         console.error('Error uploading photo, job will exist without photo:', photoErr)
@@ -133,30 +149,90 @@ export const createJobInDb = async (jobData) => {
   }
 }
 
-// Update an existing job (without changing photo)
-// If you want to support photo changes on edit later, we can extend this.
+// Update an existing job (with photo support)
 export const updateJobInDb = async (jobId, updates) => {
   try {
-    const { photo, ...rest } = updates || {} // ignore `photo` here for now
+    const { photo, ...rest } = updates || {}
 
+    // Get current job to check if it has an old photo
     const jobRef = doc(db, 'jobs', jobId)
+
+    // If a new photo is provided
+    if (photo) {
+      try {
+        // Upload new photo
+        const hotelId = 'athena' // You might want to pass this or fetch from the job
+        const url = await uploadPhotoDataUrl(hotelId, jobId, photo)
+
+        if (url) {
+          // Update with new photoUrl
+          await updateDoc(jobRef, {
+            ...rest,
+            hasPhoto: true,
+            photoUrl: url,
+            updated_at: serverTimestamp(),
+          })
+          console.log('Job updated with new photo:', url)
+          return
+        }
+      } catch (photoErr) {
+        console.error('Error uploading new photo:', photoErr)
+        throw photoErr
+      }
+    }
+
+    // If no photo update, just update other fields
     await updateDoc(jobRef, {
       ...rest,
       updated_at: serverTimestamp(),
     })
+    console.log('Job updated successfully')
   } catch (error) {
     console.error('Error updating job:', error)
     throw error
   }
 }
 
-// Delete a job
+// Delete a single job
 export const deleteJobInDb = async (jobId) => {
   try {
     const jobRef = doc(db, 'jobs', jobId)
+    
+    // Note: We're not deleting the photo from storage here
+    // If you want to delete photos too, you'd need to:
+    // 1. Fetch the job document first
+    // 2. Get the photoUrl
+    // 3. Delete from storage
+    // 4. Then delete the document
+    
     await deleteDoc(jobRef)
+    console.log('Job deleted:', jobId)
   } catch (error) {
     console.error('Error deleting job:', error)
+    throw error
+  }
+}
+
+// Delete multiple jobs at once
+export const deleteMultipleJobsInDb = async (jobIds) => {
+  if (!jobIds || jobIds.length === 0) {
+    throw new Error('No job IDs provided')
+  }
+
+  try {
+    const batch = writeBatch(db)
+
+    // Add all delete operations to the batch
+    jobIds.forEach((jobId) => {
+      const jobRef = doc(db, 'jobs', jobId)
+      batch.delete(jobRef)
+    })
+
+    // Commit all deletes at once
+    await batch.commit()
+    console.log(`Successfully deleted ${jobIds.length} jobs`)
+  } catch (error) {
+    console.error('Error deleting multiple jobs:', error)
     throw error
   }
 }
