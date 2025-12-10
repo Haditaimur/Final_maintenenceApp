@@ -1,4 +1,6 @@
-import { db } from './firebase'
+// src/jobsService.js (or wherever you keep it)
+
+import { db, storage } from './firebase'
 import {
   collection,
   addDoc,
@@ -8,84 +10,121 @@ import {
   onSnapshot,
   query,
   where,
-  orderBy,
   serverTimestamp,
 } from 'firebase/firestore'
+import { ref, uploadString, getDownloadURL } from 'firebase/storage'
+
+// ---- REALTIME SUBSCRIPTION ----
 
 // Subscribe to real-time updates for all jobs in a hotel
 export const subscribeToJobs = (hotelId, callback) => {
   const jobsRef = collection(db, 'jobs')
-  
-  // Try with orderBy first, fall back to simple query if index doesn't exist
-  const q = query(
-    jobsRef,
-    where('hotelId', '==', hotelId)
-  )
+
+  const q = query(jobsRef, where('hotelId', '==', hotelId))
 
   const unsubscribe = onSnapshot(
     q,
     (snapshot) => {
       const jobs = []
-      snapshot.forEach((doc) => {
-        const data = doc.data()
+      snapshot.forEach((snap) => {
+        const data = snap.data()
         jobs.push({
-          id: doc.id,
+          id: snap.id,
           ...data,
           // Convert Firestore timestamps to ISO strings if they exist
           created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at,
           updated_at: data.updated_at?.toDate?.()?.toISOString() || data.updated_at,
         })
       })
-      
+
       // Sort by created_at manually (most recent first)
       jobs.sort((a, b) => {
         const dateA = new Date(a.created_at || 0).getTime()
         const dateB = new Date(b.created_at || 0).getTime()
         return dateB - dateA
       })
-      
+
       console.log('Fetched jobs from Firebase:', jobs.length)
       callback(jobs)
     },
     (error) => {
       console.error('Error fetching jobs:', error)
-      // Still call callback with empty array to prevent app from hanging
-      callback([])
-    }
+      callback([]) // prevent UI from hanging
+    },
   )
 
   return unsubscribe
 }
 
-// Create a new job
+// ---- INTERNAL PHOTO HELPER ----
+
+// photoDataUrl is a base64 data URL string (e.g. "data:image/jpeg;base64,...")
+const uploadPhotoDataUrl = async (hotelId, jobId, photoDataUrl) => {
+  if (!photoDataUrl) return null
+
+  // Basic size guard (Firestore doc limit is 1MB; Storage can handle big files)
+  const approxSize = photoDataUrl.length
+  console.log('Photo data length:', approxSize)
+
+  // Path in Storage: jobPhotos/<hotelId>/<jobId>-timestamp.jpg
+  const path = `jobPhotos/${hotelId}/${jobId}-${Date.now()}.jpg`
+  const storageRef = ref(storage, path)
+
+  // Upload the data URL directly
+  await uploadString(storageRef, photoDataUrl, 'data_url')
+
+  // Get a download URL we can store on the job
+  const url = await getDownloadURL(storageRef)
+  return url
+}
+
+// ---- CRUD OPERATIONS ----
+
+// Create a new job (optionally with photo data URL in jobData.photo)
 export const createJobInDb = async (jobData) => {
   try {
     const jobsRef = collection(db, 'jobs')
-    
-    // Handle photo - compress if too large or remove if problematic
-    let processedData = { ...jobData }
-    
-    if (processedData.photo && typeof processedData.photo === 'string') {
-      // Check if photo is too large (Firestore has 1MB document limit)
-      const photoSize = processedData.photo.length
-      console.log('Photo size:', Math.round(photoSize / 1024), 'KB')
-      
-      if (photoSize > 500000) { // If larger than ~500KB
-        console.warn('Photo too large for Firestore, removing from job')
-        processedData.photo = null
-        alert('Photo was too large and could not be uploaded. Job will be created without photo.')
-      }
-    }
-    
-    console.log('Creating job in Firebase:', processedData)
-    
+
+    // extract photo out of jobData; rest goes into the doc directly
+    const { photo, hotelId: inputHotelId, ...rest } = jobData || {}
+    const hotelId = inputHotelId || 'athena' // default for now
+
+    console.log('Creating job in Firebase (without photo yet):', {
+      ...rest,
+      hotelId,
+    })
+
+    // 1) Create job without photoUrl first
     const docRef = await addDoc(jobsRef, {
-      ...processedData,
+      ...rest,
+      hotelId,
+      hasPhoto: false,
+      photoUrl: null,
       created_at: serverTimestamp(),
       updated_at: serverTimestamp(),
     })
-    
+
     console.log('Job created successfully with ID:', docRef.id)
+
+    // 2) If we have a photo as data URL, upload to Storage and update the job
+    if (photo) {
+      try {
+        const url = await uploadPhotoDataUrl(hotelId, docRef.id, photo)
+
+        if (url) {
+          const jobRef = doc(db, 'jobs', docRef.id)
+          await updateDoc(jobRef, {
+            hasPhoto: true,
+            photoUrl: url,
+            updated_at: serverTimestamp(),
+          })
+          console.log('Photo uploaded & job updated with photoUrl')
+        }
+      } catch (photoErr) {
+        console.error('Error uploading photo, job will exist without photo:', photoErr)
+      }
+    }
+
     return docRef.id
   } catch (error) {
     console.error('Error creating job:', error)
@@ -94,12 +133,15 @@ export const createJobInDb = async (jobData) => {
   }
 }
 
-// Update an existing job
+// Update an existing job (without changing photo)
+// If you want to support photo changes on edit later, we can extend this.
 export const updateJobInDb = async (jobId, updates) => {
   try {
+    const { photo, ...rest } = updates || {} // ignore `photo` here for now
+
     const jobRef = doc(db, 'jobs', jobId)
     await updateDoc(jobRef, {
-      ...updates,
+      ...rest,
       updated_at: serverTimestamp(),
     })
   } catch (error) {
