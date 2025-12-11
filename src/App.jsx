@@ -573,7 +573,8 @@ function HotelMaintenanceApp() {
           onEditJob={editJob}
           onEnlargePhoto={setEnlargedPhoto}
           goToDashboard={goToDashboard}
-        />
+          isDeleting={isDeleting}         
+          />
       )}
 
       {currentView === 'add-job' && (
@@ -1184,6 +1185,30 @@ function JobList({
   onDeleteSelected,
   isDeleting
 }) {
+  // Guard against missing room (prevents white screen)
+  if (!room) {
+    return (
+      <>
+        <div className="app-header">
+          <button className="back-button" onClick={onBack}>
+            ← Back
+          </button>
+          <h1 className="app-title" onClick={goToDashboard}>
+            HotelKeep
+          </h1>
+        </div>
+
+        <div className="empty-state">
+          <div className="empty-icon">🛏️</div>
+          <div className="empty-title">No room selected</div>
+          <div className="empty-message">
+            Go back and pick a room again to view its jobs.
+          </div>
+        </div>
+      </>
+    )
+  }
+
   let roomJobs
   if (category === 'To Do') {
     roomJobs = jobs.filter(
@@ -1224,32 +1249,36 @@ function JobList({
               onClick={onToggleMode}
               disabled={isDeleting}
             >
-              {isSelectionMode ? '✕ Cancel Selection' : '☑ Select Jobs'}
+              {isSelectionMode 
+                ? '✕ Cancel Selection' 
+                : '☑ Select Jobs'}
             </button>
-            
+
             {isSelectionMode && (
               <>
                 <button 
                   className="btn-secondary" 
                   onClick={() => onSelectAll(roomJobs)}
+                  disabled={isDeleting}
                 >
                   Select All ({roomJobs?.length || 0})
                 </button>
-                
+
                 {(selectedJobs?.length || 0) > 0 && (
                   <button 
-                    className={isDeleting ? "btn-danger loading" : "btn-danger"}
+                    className={isDeleting ? 'btn-danger loading' : 'btn-danger'}
                     onClick={onDeleteSelected}
                     disabled={isDeleting}
                   >
-                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs?.length || 0}`}
+                    {isDeleting 
+                      ? 'Deleting...' 
+                      : `🗑 Delete ${selectedJobs?.length || 0}`}
                   </button>
                 )}
               </>
             )}
           </div>
         )}
-
         {roomJobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">✅</div>
@@ -1330,6 +1359,7 @@ function JobDetail({
   onEditJob,
   onEnlargePhoto,
   goToDashboard,
+  isDeleting, 
 }) {
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
@@ -1466,8 +1496,12 @@ function JobDetail({
           )}
 
           {role === 'manager' && (
-            <button className="action-btn danger" onClick={handleDelete}>
-              🗑 Delete Job
+            <button
+              className={isDeleting ? 'action-btn danger loading' : 'action-btn danger'}
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting…' : '🗑 Delete Job'}
             </button>
           )}
         </div>
