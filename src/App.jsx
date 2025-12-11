@@ -490,6 +490,13 @@ function HotelMaintenanceApp() {
           jobs={getJobsWithRoomInfo(getJobsForCategory('Urgent'))}
           onBack={goToDashboard}
           onViewJob={viewJobDetail}
+          isSelectionMode={isSelectionMode}
+          selectedJobs={selectedJobs}
+          onToggleSelection={toggleJobSelection}
+          onToggleMode={toggleSelectionMode}
+          onSelectAll={selectAllJobs}
+          onDeleteSelected={deleteSelectedJobs}
+          isDeleting={isDeleting}
         />
       )}
 
@@ -524,6 +531,13 @@ function HotelMaintenanceApp() {
           onBack={() => setCurrentView('room-list')}
           onViewJob={viewJobDetail}
           goToDashboard={goToDashboard}
+          isSelectionMode={isSelectionMode}
+          selectedJobs={selectedJobs}
+          onToggleSelection={toggleJobSelection}
+          onToggleMode={toggleSelectionMode}
+          onSelectAll={selectAllJobs}
+          onDeleteSelected={deleteSelectedJobs}
+          isDeleting={isDeleting}
         />
       )}
 
@@ -726,7 +740,18 @@ function Dashboard({
   )
 }
 
-function UrgentJobsList({ jobs, onBack, onViewJob }) {
+function UrgentJobsList({ 
+  jobs, 
+  onBack, 
+  onViewJob,
+  isSelectionMode,
+  selectedJobs,
+  onToggleSelection,
+  onToggleMode,
+  onSelectAll,
+  onDeleteSelected,
+  isDeleting
+}) {
   return (
     <>
       <div className="app-header">
@@ -739,6 +764,40 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
       </div>
 
       <div className="urgent-list fade-in">
+        {/* Selection Toolbar */}
+        {jobs.length > 0 && (
+          <div className="selection-toolbar">
+            <button 
+              className="btn-secondary" 
+              onClick={onToggleMode}
+              disabled={isDeleting}
+            >
+              {isSelectionMode ? '✕ Cancel Selection' : '☑ Select Jobs'}
+            </button>
+            
+            {isSelectionMode && (
+              <>
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => onSelectAll(jobs)}
+                >
+                  Select All ({jobs.length})
+                </button>
+                
+                {selectedJobs.length > 0 && (
+                  <button 
+                    className={isDeleting ? "btn-danger loading" : "btn-danger"}
+                    onClick={onDeleteSelected}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs.length}`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         {jobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">🎉</div>
@@ -754,9 +813,24 @@ function UrgentJobsList({ jobs, onBack, onViewJob }) {
               return (
                 <div
                   key={job.id}
-                  className="urgent-job-card"
-                  onClick={() => onViewJob(job)}
+                  className={`urgent-job-card ${selectedJobs?.includes(job.id) ? 'selected' : ''}`}
+                  onClick={() => {
+                    if (isSelectionMode) {
+                      onToggleSelection(job.id)
+                    } else {
+                      onViewJob(job)
+                    }
+                  }}
                 >
+                  {isSelectionMode && (
+                    <input
+                      type="checkbox"
+                      checked={selectedJobs?.includes(job.id)}
+                      onChange={() => onToggleSelection(job.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="job-checkbox"
+                    />
+                  )}
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
                     <span className="status-badge urgent">Urgent</span>
@@ -1127,6 +1201,40 @@ function JobList({
       </div>
 
       <div className="floor-list fade-in">
+        {/* Selection Toolbar */}
+        {roomJobs.length > 0 && (
+          <div className="selection-toolbar">
+            <button 
+              className="btn-secondary" 
+              onClick={onToggleMode}
+              disabled={isDeleting}
+            >
+              {isSelectionMode ? '✕ Cancel Selection' : '☑ Select Jobs'}
+            </button>
+            
+            {isSelectionMode && (
+              <>
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => onSelectAll(roomJobs)}
+                >
+                  Select All ({roomJobs.length})
+                </button>
+                
+                {selectedJobs.length > 0 && (
+                  <button 
+                    className={isDeleting ? "btn-danger loading" : "btn-danger"}
+                    onClick={onDeleteSelected}
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs.length}`}
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+
         {roomJobs.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">✅</div>
