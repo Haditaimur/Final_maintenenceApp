@@ -268,14 +268,23 @@ function HotelMaintenanceApp() {
     setSelectedJob(null)
     setSelectedFloor(null)
     setSelectedRoom(null)
+    setIsSelectionMode(false)
+    setSelectedJobs([])
   }
 
   const viewCategory = (category) => {
-    setSelectedCategory(category)
-    if (category === 'Urgent') {
-      setCurrentView('urgent-list')
-    } else {
-      setCurrentView('floor-list')
+    try {
+      setSelectedCategory(category)
+      setIsSelectionMode(false)
+      setSelectedJobs([])
+      if (category === 'Urgent') {
+        setCurrentView('urgent-list')
+      } else {
+        setCurrentView('floor-list')
+      }
+    } catch (err) {
+      console.error('Error in viewCategory:', err)
+      goToDashboard()
     }
   }
 
@@ -1761,8 +1770,6 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard, isUpdating }
     return job.status
   }
 
-  const displayPhoto = newPhoto || job.photoUrl || job.photo
-
   const [formData, setFormData] = useState({
     room_id: job.room_id || '',
     room_number: currentRoom ? currentRoom.room_number : '',
@@ -2005,9 +2012,9 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard, isUpdating }
 
           <div className="form-group">
             <label className="form-label">Photo (Optional)</label>
-            {displayPhoto && (
+            {(newPhoto || job.photoUrl || job.photo) && (
               <img
-                src={displayPhoto}
+                src={newPhoto || job.photoUrl || job.photo}
                 alt="Job photo"
                 className="detail-photo"
               />
