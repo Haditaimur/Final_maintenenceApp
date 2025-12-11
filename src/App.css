@@ -959,23 +959,8 @@ body {
   transform: translateY(0);
 }
 
-.btn-danger {
-  background: white;
-  color: #e53e3e;
-  border: 2px solid rgba(229, 62, 62, 0.2);
-}
-
-.btn-danger:hover {
-  background: rgba(229, 62, 62, 0.06);
-  border-color: #e53e3e;
-  transform: translateY(-2px);
-}
-
-.btn-danger:active {
-  transform: translateY(0);
-}
-
-.btn-danger:disabled {
+/* base disabled state */
+button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -1172,11 +1157,6 @@ body {
   outline-offset: 2px;
 }
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
@@ -1212,47 +1192,6 @@ html {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.btn-secondary {
-  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(74, 85, 104, 0.4);
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-  color: white;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.btn-danger:hover {
-  background: linear-gradient(135deg, #c53030 0%, #9b2c2c 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.4);
-}
-
-.btn-danger:disabled,
-.btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
 /* Loading spinner for buttons */
 button.loading {
   position: relative;
@@ -1272,12 +1211,6 @@ button.loading::after {
   border-radius: 50%;
   border-top-color: transparent;
   animation: spinner 0.6s linear infinite;
-}
-
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 /* --- Primary form submit button --- */
@@ -1355,23 +1288,3 @@ button.loading::after {
   box-shadow: none;
   transform: none;
 }
-
-/* loading state for delete buttons */
-.action-btn.danger.loading::after,
-.btn-danger.loading::after {
-  content: "";
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(127, 29, 29, 0.25);
-  border-top-color: transparent;
-  animation: spinner 0.6s linear infinite;
-}
-
-/* simple spinner keyframes (in case it isn't defined above) */
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
