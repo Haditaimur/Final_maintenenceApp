@@ -4,6 +4,7 @@ import {
   createJobInDb,
   updateJobInDb,
   deleteJobInDb,
+  deleteMultipleJobsInDb,
 } from './Jobsservice'
 
 // Data
@@ -186,6 +187,11 @@ function HotelMaintenanceApp() {
     storage.get('managerCodeHash', hashCode('1234')),
   )
   const [showUserMenu, setShowUserMenu] = useState(false)
+  const [selectedJobs, setSelectedJobs] = useState([])
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [isCreating, setIsCreating] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     storage.set('rooms', rooms)
@@ -307,6 +313,7 @@ function HotelMaintenanceApp() {
 
     const now = new Date().toISOString()
 
+    setIsCreating(true)
     try {
       await createJobInDb({
         ...jobData,
@@ -319,6 +326,8 @@ function HotelMaintenanceApp() {
     } catch (err) {
       console.error('Error creating job in Firebase:', err)
       window.alert('Could not create job. Please try again.')
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -348,6 +357,7 @@ function HotelMaintenanceApp() {
     // always bump updated_at
     newUpdates.updated_at = new Date().toISOString()
 
+    setIsUpdating(true)
     try {
       await updateJobInDb(jobId, newUpdates)
 
@@ -358,17 +368,65 @@ function HotelMaintenanceApp() {
     } catch (err) {
       console.error('Error updating job in Firebase:', err)
       window.alert('Could not update job. Please try again.')
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   // confirmation handled in JobDetail, this just executes the delete
   const deleteJob = async (jobId) => {
+    setIsDeleting(true)
     try {
       await deleteJobInDb(jobId)
       goToDashboard()
     } catch (err) {
       console.error('Error deleting job in Firebase:', err)
       window.alert('Could not delete job. Please try again.')
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  // Toggle selection mode
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode)
+    setSelectedJobs([])
+  }
+
+  // Toggle job selection
+  const toggleJobSelection = (jobId) => {
+    setSelectedJobs((prev) =>
+      prev.includes(jobId) ? prev.filter((id) => id !== jobId) : [...prev, jobId]
+    )
+  }
+
+  // Select all jobs
+  const selectAllJobs = (jobsList) => {
+    setSelectedJobs(jobsList.map((job) => job.id))
+  }
+
+  // Delete selected jobs
+  const deleteSelectedJobs = async () => {
+    if (selectedJobs.length === 0) {
+      window.alert('No jobs selected')
+      return
+    }
+
+    if (!window.confirm(`Delete ${selectedJobs.length} job(s)?`)) {
+      return
+    }
+
+    setIsDeleting(true)
+    try {
+      await deleteMultipleJobsInDb(selectedJobs)
+      setSelectedJobs([])
+      setIsSelectionMode(false)
+      window.alert(`Deleted ${selectedJobs.length} job(s)!`)
+    } catch (err) {
+      console.error('Error deleting jobs:', err)
+      window.alert('Could not delete jobs')
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -505,6 +563,7 @@ function HotelMaintenanceApp() {
           onBack={() => setCurrentView('job-detail')}
           onSubmit={updateJobData}
           goToDashboard={goToDashboard}
+          isUpdating={isUpdating}
         />
       )}
     </div>
@@ -1021,7 +1080,21 @@ function RoomList({
   )
 }
 
-function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
+function JobList({ 
+  room, 
+  category, 
+  jobs, 
+  onBack, 
+  onViewJob, 
+  goToDashboard,
+  isSelectionMode,
+  selectedJobs,
+  onToggleSelection,
+  onToggleMode,
+  onSelectAll,
+  onDeleteSelected,
+  isDeleting
+}) {
   let roomJobs
   if (category === 'To Do') {
     roomJobs = jobs.filter(
@@ -1075,9 +1148,24 @@ function JobList({ room, category, jobs, onBack, onViewJob, goToDashboard }) {
               return (
                 <div
                   key={job.id}
-                  className="job-card"
-                  onClick={() => onViewJob(job)}
+                  className={`job-card ${selectedJobs?.includes(job.id) ? "selected" : ""}`}
+                  onClick={() => {
+                    if (isSelectionMode) {
+                      onToggleSelection(job.id)
+                    } else {
+                      onViewJob(job)
+                    }
+                  }}
                 >
+                  {isSelectionMode && (
+                    <input
+                      type="checkbox"
+                      checked={selectedJobs?.includes(job.id)}
+                      onChange={() => onToggleSelection(job.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="job-checkbox"
+                    />
+                  )}
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
                     <span
@@ -1265,7 +1353,7 @@ function JobDetail({
   )
 }
 
-function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
+function AddJobForm({ rooms, onBack, onSubmit, goToDashboard, isCreating }) {
   const [formData, setFormData] = useState({
     room_id: '',
     room_number: '',
@@ -1531,8 +1619,8 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
             />
           </div>
 
-          <button type="submit" className="form-submit">
-            Create Job
+          <button type="submit" className={isCreating ? "form-submit loading" : "form-submit"} disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create Job"}
           </button>
         </form>
       </div>
@@ -1540,7 +1628,7 @@ function AddJobForm({ rooms, onBack, onSubmit, goToDashboard }) {
   )
 }
 
-function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
+function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard, isUpdating }) {
   const currentRoom = rooms.find((r) => r.id === job.room_id)
 
   const getInitialJobType = () => {
@@ -1559,7 +1647,7 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     return job.status
   }
 
-  const initialPhoto = job.photoUrl || job.photo
+  const displayPhoto = newPhoto || job.photoUrl || job.photo
 
   const [formData, setFormData] = useState({
     room_id: job.room_id || '',
@@ -1569,8 +1657,8 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     jobType: getInitialJobType(),
     priority: getInitialPriority(),
     status: job.status,
-    photo: initialPhoto,
   })
+  const [newPhoto, setNewPhoto] = useState(null) // Track NEW photo separately
 
   const fileInputRef = useRef(null)
   const cameraInputRef = useRef(null)
@@ -1651,10 +1739,17 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
         formData.jobType === 'other' ? 'Other' : formData.priority
     }
 
-    onSubmit(job.id, {
+    const updates = {
       ...formData,
       status: finalStatus,
-    })
+    }
+    
+    // Only include photo if a new one was uploaded
+    if (newPhoto) {
+      updates.photo = newPhoto
+    }
+    
+    onSubmit(job.id, updates)
   }
 
   const handleFileUpload = (e) => {
@@ -1662,7 +1757,7 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
     if (file) {
       const reader = new FileReader()
       reader.onload = (event) => {
-        setFormData({ ...formData, photo: event.target.result })
+        setNewPhoto(event.target.result)
       }
       reader.readAsDataURL(file)
     }
@@ -1796,9 +1891,9 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
 
           <div className="form-group">
             <label className="form-label">Photo (Optional)</label>
-            {formData.photo && (
+            {displayPhoto && (
               <img
-                src={formData.photo}
+                src={displayPhoto}
                 alt="Job photo"
                 className="detail-photo"
               />
@@ -1836,8 +1931,8 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard }) {
             />
           </div>
 
-          <button type="submit" className="form-submit">
-            Update Job
+          <button type="submit" className={isUpdating ? "form-submit loading" : "form-submit"} disabled={isUpdating}>
+            {isUpdating ? "Updating..." : "Update Job"}
           </button>
         </form>
       </div>
