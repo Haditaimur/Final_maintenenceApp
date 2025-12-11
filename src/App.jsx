@@ -1,3 +1,4 @@
+// HotelKeep App v2.0 - With Bulk Delete
 import { useState, useEffect, useRef } from 'react'
 import {
   subscribeToJobs,
@@ -192,6 +193,10 @@ function HotelMaintenanceApp() {
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  useEffect(() => {
+    console.log('🎉 HotelKeep v2.0 - Bulk Delete Enabled')
+  }, [])
 
   useEffect(() => {
     storage.set('rooms', rooms)
@@ -389,6 +394,7 @@ function HotelMaintenanceApp() {
 
   // Toggle selection mode
   const toggleSelectionMode = () => {
+    console.log('Toggle selection mode:', !isSelectionMode)
     setIsSelectionMode(!isSelectionMode)
     setSelectedJobs([])
   }
@@ -412,7 +418,7 @@ function HotelMaintenanceApp() {
       return
     }
 
-    if (!window.confirm(`Delete ${selectedJobs.length} job(s)?`)) {
+    if (!window.confirm(`Delete ${selectedJobs?.length || 0} job(s)?`)) {
       return
     }
 
@@ -421,7 +427,7 @@ function HotelMaintenanceApp() {
       await deleteMultipleJobsInDb(selectedJobs)
       setSelectedJobs([])
       setIsSelectionMode(false)
-      window.alert(`Deleted ${selectedJobs.length} job(s)!`)
+      window.alert(`Deleted ${selectedJobs?.length || 0} job(s)!`)
     } catch (err) {
       console.error('Error deleting jobs:', err)
       window.alert('Could not delete jobs')
@@ -744,8 +750,8 @@ function UrgentJobsList({
   jobs, 
   onBack, 
   onViewJob,
-  isSelectionMode,
-  selectedJobs,
+  isSelectionMode = false,
+  selectedJobs = [],
   onToggleSelection,
   onToggleMode,
   onSelectAll,
@@ -781,16 +787,16 @@ function UrgentJobsList({
                   className="btn-secondary" 
                   onClick={() => onSelectAll(jobs)}
                 >
-                  Select All ({jobs.length})
+                  Select All ({jobs?.length || 0})
                 </button>
                 
-                {selectedJobs.length > 0 && (
+                {(selectedJobs?.length || 0) > 0 && (
                   <button 
                     className={isDeleting ? "btn-danger loading" : "btn-danger"}
                     onClick={onDeleteSelected}
                     disabled={isDeleting}
                   >
-                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs.length}`}
+                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs?.length || 0}`}
                   </button>
                 )}
               </>
@@ -1161,8 +1167,8 @@ function JobList({
   onBack, 
   onViewJob, 
   goToDashboard,
-  isSelectionMode,
-  selectedJobs,
+  isSelectionMode = false,
+  selectedJobs = [],
   onToggleSelection,
   onToggleMode,
   onSelectAll,
@@ -1218,16 +1224,16 @@ function JobList({
                   className="btn-secondary" 
                   onClick={() => onSelectAll(roomJobs)}
                 >
-                  Select All ({roomJobs.length})
+                  Select All ({roomJobs?.length || 0})
                 </button>
                 
-                {selectedJobs.length > 0 && (
+                {(selectedJobs?.length || 0) > 0 && (
                   <button 
                     className={isDeleting ? "btn-danger loading" : "btn-danger"}
                     onClick={onDeleteSelected}
                     disabled={isDeleting}
                   >
-                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs.length}`}
+                    {isDeleting ? 'Deleting...' : `🗑 Delete ${selectedJobs?.length || 0}`}
                   </button>
                 )}
               </>
