@@ -345,47 +345,60 @@ function HotelMaintenanceApp() {
     }
   }
 
-  // updateJobData always sets updated_at
-  const updateJobData = async (jobId, updates) => {
-    if (updates.title !== undefined && !updates.title.trim()) {
-      window.alert('Job title cannot be empty')
-      return
-    }
-
-    if (updates.description !== undefined && !updates.description.trim()) {
-      window.alert('Job description cannot be empty')
-      return
-    }
-
-    const existingJob = jobs.find((j) => j.id === jobId)
-    if (!existingJob) return
-
-    const newUpdates = { ...updates }
-
-    // preserve original_status when moving to Done
-    if (updates.status === 'Done' && existingJob.status !== 'Done') {
-      newUpdates.original_status =
-        existingJob.status === 'Other' ? 'Other' : existingJob.status
-    }
-
-    // always bump updated_at
-    newUpdates.updated_at = new Date().toISOString()
-
-    setIsUpdating(true)
-    try {
-      await updateJobInDb(jobId, newUpdates)
-
-      // keep detail view responsive while Firestore syncs
-      if (selectedJob && selectedJob.id === jobId) {
-        setSelectedJob({ ...selectedJob, ...newUpdates })
-      }
-    } catch (err) {
-      console.error('Error updating job in Firebase:', err)
-      window.alert('Could not update job. Please try again.')
-    } finally {
-      setIsUpdating(false)
-    }
+// updateJobData always sets updated_at
+const updateJobData = async (jobId, updates) => {
+  // Basic validation
+  if (updates.title !== undefined && !updates.title.trim()) {
+    window.alert('Job title cannot be empty')
+    return
   }
+
+  if (updates.description !== undefined && !updates.description.trim()) {
+    window.alert('Job description cannot be empty')
+    return
+  }
+
+  const existingJob = jobs.find((j) => j.id === jobId)
+  if (!existingJob) return
+
+  const newUpdates = { ...updates }
+
+  // preserve original_status when moving to Done
+  if (updates.status === 'Done' && existingJob.status !== 'Done') {
+    newUpdates.original_status =
+      existingJob.status === 'Other' ? 'Other' : existingJob.status
+  }
+
+  // always bump updated_at
+  newUpdates.updated_at = new Date().toISOString()
+
+  setIsUpdating(true)
+  try {
+    // 🔹 1) Write to Firestore
+    await updateJobInDb(jobId, newUpdates)
+
+    // 🔹 2) Optimistically update local jobs list
+    setJobs((prev) =>
+      prev.map((job) =>
+        job.id === jobId ? { ...job, ...newUpdates } : job
+      )
+    )
+
+    // 🔹 3) Keep selectedJob in sync if we’re on the detail view
+    if (selectedJob && selectedJob.id === jobId) {
+      setSelectedJob((prev) => (prev ? { ...prev, ...newUpdates } : prev))
+    }
+
+    // 🔹 4) Go back to Job Detail after successful update
+    setCurrentView('job-detail')
+  } catch (err) {
+    console.error('Error updating job in Firebase:', err)
+    window.alert('Could not update job. Please try again.')
+  } finally {
+    setIsUpdating(false)
+  }
+}
+
 
   // confirmation handled in JobDetail, this just executes the delete
   const deleteJob = async (jobId) => {
