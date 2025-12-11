@@ -862,7 +862,7 @@ function UrgentJobsList({
                   )}
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
-                    <span className="status-badge urgent">Urgent</span>
+                    <span className="job-status-badge urgent">Urgent</span>
                   </div>
                   <div className="room-number">
                     Room {job.room?.room_number}
@@ -1072,7 +1072,7 @@ function RoomList({
                     <div className="job-header">
                       <div className="job-title">{job.title}</div>
                       <span
-                        className={`job-status-badge ${job.status
+                        className={`job-job-status-badge ${job.status
                           .toLowerCase()
                           .replace(' ', '')}`}
                       >
@@ -1334,7 +1334,7 @@ function JobList({
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
                     <span
-                      className={`job-status-badge ${job.status
+                      className={`job-job-status-badge ${job.status
                         .toLowerCase()
                         .replace(' ', '')}`}
                     >
@@ -1425,7 +1425,7 @@ function JobDetail({
         <div className="detail-card">
           <div className="detail-header">
             <div className="detail-title">{job.title}</div>
-            <span className={`job-status-badge ${statusClass}`}>
+            <span className={`job-job-status-badge ${statusClass}`}>
               {job.status || 'Unknown'}
             </span>
           </div>
