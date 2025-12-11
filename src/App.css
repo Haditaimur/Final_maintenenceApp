@@ -959,14 +959,50 @@ body {
   transform: translateY(0);
 }
 
-/* base disabled state */
-button:disabled {
+.btn-danger {
+  background: white;
+  color: #e53e3e;
+  border: 2px solid rgba(229, 62, 62, 0.2);
+}
+
+.btn-danger:hover {
+  background: rgba(229, 62, 62, 0.06);
+  border-color: #e53e3e;
+  transform: translateY(-2px);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
+}
+
+.btn-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .full-width {
   width: 100%;
+}
+
+/* Loading spinner for buttons */
+button.loading {
+  position: relative;
+  color: transparent;
+}
+
+button.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spinner 0.6s linear infinite;
 }
 
 /* ============================================================================
@@ -1157,6 +1193,11 @@ button:disabled {
   outline-offset: 2px;
 }
 
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
@@ -1192,25 +1233,45 @@ html {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-/* Loading spinner for buttons */
-button.loading {
-  position: relative;
-  color: transparent;
+/* Toolbar buttons inherit base .btn- styles but are slightly smaller */
+.selection-toolbar .btn-secondary,
+.selection-toolbar .btn-danger {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 999px;
 }
 
-button.loading::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  top: 50%;
-  left: 50%;
-  margin-left: -8px;
-  margin-top: -8px;
-  border: 2px solid #ffffff;
-  border-radius: 50%;
-  border-top-color: transparent;
-  animation: spinner 0.6s linear infinite;
+.selection-toolbar .btn-secondary {
+  background: white;
+  color: #4a5568;
+  border: 1px solid rgba(102, 126, 234, 0.35);
+}
+
+.selection-toolbar .btn-secondary:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.06);
+  border-color: #667eea;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
+}
+
+.selection-toolbar .btn-danger {
+  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.45);
+}
+
+.selection-toolbar .btn-danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(197, 48, 48, 0.6);
+}
+
+.selection-toolbar .btn-secondary:disabled,
+.selection-toolbar .btn-danger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 /* --- Primary form submit button --- */
@@ -1258,8 +1319,7 @@ button.loading::after {
 
 /* --- Delete / dangerous actions (single + bulk) --- */
 
-.action-btn.danger,
-.btn-danger {
+.action-btn.danger {
   padding: 8px 14px;
   border-radius: 999px;
   border: 1px solid #f97373;
@@ -1274,141 +1334,26 @@ button.loading::after {
   transition: all 0.18s ease;
 }
 
-.action-btn.danger:hover:not(:disabled),
-.btn-danger:hover:not(:disabled) {
+.action-btn.danger:hover:not(:disabled) {
   background: linear-gradient(135deg, #fecaca, #fca5a5);
   box-shadow: 0 10px 24px rgba(248, 113, 113, 0.45);
   transform: translateY(-1px);
 }
 
-.action-btn.danger:disabled,
-.btn-danger:disabled {
+.action-btn.danger:disabled {
   opacity: 0.6;
   cursor: default;
   box-shadow: none;
   transform: none;
 }
-/* ============ REFINED SELECTION / BULK DELETE STYLES ============ */
 
-.selection-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 18px;
-  background: linear-gradient(135deg, #edf2ff 0%, #e0e7ff 100%);
-  border-radius: 16px;
-  border: 1px solid rgba(102, 126, 234, 0.25);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.18);
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-/* Checkbox next to each job */
-.selection-toolbar .job-checkbox,
-.job-card .job-checkbox,
-.urgent-job-card .job-checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  margin-right: 10px;
-  accent-color: #667eea;
-}
-
-/* Generic toolbar buttons: “Select jobs”, “Cancel selection”, “Select all” */
-.selection-toolbar .btn-secondary,
-.selection-toolbar .btn-primary {
-  padding: 8px 18px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(102, 126, 234, 0.4);
-  background: #ffffff;
-  color: #2d3748;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.15);
-}
-
-.selection-toolbar .btn-secondary:hover,
-.selection-toolbar .btn-primary:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  border-color: transparent;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(102, 126, 234, 0.35);
-}
-
-.selection-toolbar .btn-secondary:active,
-.selection-toolbar .btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
-}
-
-.selection-toolbar .btn-secondary:disabled,
-.selection-toolbar .btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-/* “Delete selected” – danger style */
-.selection-toolbar .btn-danger {
-  padding: 8px 18px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(229, 62, 62, 0.7);
-  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-  color: #742a2a;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 6px 16px rgba(229, 62, 62, 0.35);
-}
-
-.selection-toolbar .btn-danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, #feb2b2 0%, #fc8181 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(229, 62, 62, 0.45);
-}
-
-.selection-toolbar .btn-danger:active:not(:disabled) {
-  transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(229, 62, 62, 0.3);
-}
-
-.selection-toolbar .btn-danger:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  box-shadow: none;
-  transform: none;
-}
-
-/* Loading state on toolbar buttons (uses your existing .loading pattern) */
-.selection-toolbar button.loading {
-  position: relative;
-  color: transparent;
-}
-
-.selection-toolbar button.loading::after {
-  content: '';
-  position: absolute;
+/* loading state for delete buttons */
+.action-btn.danger.loading::after {
+  content: "";
   width: 14px;
   height: 14px;
-  top: 50%;
-  left: 50%;
-  margin-left: -7px;
-  margin-top: -7px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.6);
+  border: 2px solid rgba(127, 29, 29, 0.25);
   border-top-color: transparent;
   animation: spinner 0.6s linear infinite;
 }
