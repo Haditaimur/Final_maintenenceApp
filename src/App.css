@@ -47,7 +47,7 @@ body {
 .app-container {
   width: 100%;
   min-height: 100vh;
-  /*background:linear-gradient(135deg, #667eea, #764ba2);*/
+  background:linear-gradient(135deg, #667eea, #764ba2);
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
