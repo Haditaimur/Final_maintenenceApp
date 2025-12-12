@@ -1517,3 +1517,98 @@ html {
     transform: rotate(360deg);
   }
 }
+
+/* =========================================================
+   HEADER + DASHBOARD VISUAL FIXES
+   (Overrides earlier rules – keep this at the very bottom)
+   ========================================================= */
+
+/* Make the top header look like a proper purple bar again */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #f7fafc;
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 12px 30px rgba(102, 126, 234, 0.45);
+  border-bottom-left-radius: 24px;
+  border-bottom-right-radius: 24px;
+}
+
+/* Make sure the header “lanes” still behave nicely */
+.header-left,
+.header-center,
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+/* Title in the header (HotelKeep) */
+.app-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.app-title:hover {
+  opacity: 0.9;
+}
+
+/* Back button: small but neat, so it doesn’t push content down */
+.back-button {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  color: #f7fafc;
+  cursor: pointer;
+  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.24);
+  transform: translateX(-1px);
+}
+
+/* Role badge + user menu button now assume a purple header */
+.role-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #f7fafc;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.user-menu-button {
+  border-radius: 999px;
+  border: none;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #f7fafc;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+/* Give dashboard content a tiny breathing space under the header */
+.dashboard {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(to bottom, #ffffff, #f8f9fa);
+  padding-top: 16px;
+}
+
