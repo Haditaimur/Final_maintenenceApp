@@ -26,7 +26,7 @@ body {
 @keyframes slideInSoft {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(24px); /* soft right-to-left slide-in */
   }
   to {
     opacity: 1;
@@ -101,6 +101,10 @@ body {
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
+.header-logo:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
 
 /* Text-based header title (fallback for logo) */
 .header-title {
@@ -112,22 +116,33 @@ body {
   user-select: none;
 }
 
+.header-title:hover {
+  color: #764ba2;
+  transform: scale(1.05);
+}
 
-/* Back Button */
+/* Back Button – single, small & neat */
 .back-button {
   background: transparent;
   border: none;
-  font-size: 15px;
+  font-size: 13px;
   color: #667eea;
   cursor: pointer;
-  padding: 8px 14px;
+  padding: 6px 12px;
   border-radius: 12px;
   transition: all 0.2s ease;
   font-weight: 500;
   white-space: nowrap;
 }
 
+.back-button:hover {
+  background: rgba(102, 126, 234, 0.08);
+  transform: translateX(-2px);
+}
 
+.back-button:active {
+  transform: scale(0.98);
+}
 
 /* Role Dropdown Button */
 .user-menu-container {
@@ -149,7 +164,16 @@ body {
   white-space: nowrap;
 }
 
+.role-dropdown-button:hover {
+  border-color: #667eea;
+  background: rgba(102, 126, 234, 0.04);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
 
+.role-dropdown-button:active {
+  transform: translateY(0);
+}
 
 .role-name {
   color: #2d3748;
@@ -161,6 +185,9 @@ body {
   transition: transform 0.25s ease;
 }
 
+.user-menu-container:has(.user-menu-dropdown) .dropdown-arrow {
+  transform: rotate(180deg);
+}
 
 /* Dropdown Menu */
 .user-menu-dropdown {
@@ -204,8 +231,17 @@ body {
   font-weight: 500;
 }
 
+.user-menu-item:hover {
+  background: rgba(102, 126, 234, 0.06);
+}
 
+.user-menu-item.danger {
+  color: #e53e3e;
+}
 
+.user-menu-item.danger:hover {
+  background: rgba(229, 62, 62, 0.06);
+}
 
 /* ============================================================================
    LOADING & TRANSITIONS
@@ -313,7 +349,18 @@ body {
   text-align: center;
 }
 
+.role-selector h2 {
+  font-size: 28px;
+  color: #2d3748;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
 
+.role-selector p {
+  font-size: 15px;
+  color: #718096;
+  margin-bottom: 32px;
+}
 
 .role-buttons {
   display: flex;
@@ -333,7 +380,17 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.role-select-btn:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: transparent;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(102, 126, 234, 0.3);
+}
 
+.role-select-btn:active {
+  transform: translateY(0);
+}
 
 /* ============================================================================
    DASHBOARD
@@ -372,11 +429,40 @@ body {
   overflow: hidden;
 }
 
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+  transform-origin: left;
+}
 
+.category-card:hover::before {
+  transform: scaleX(1);
+}
 
+.category-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  border-color: rgba(102, 126, 234, 0.2);
+}
 
+.category-card.urgent:hover {
+  border-color: rgba(229, 62, 62, 0.3);
+}
 
+.category-card.urgent::before {
+  background: linear-gradient(90deg, #fc8181, #e53e3e);
+}
 
+.category-card.done::before {
+  background: linear-gradient(90deg, #68d391, #38a169);
+}
 
 .category-header {
   display: flex;
@@ -406,7 +492,13 @@ body {
   line-height: 1;
 }
 
+.category-card.urgent .category-count {
+  color: #e53e3e;
+}
 
+.category-card.done .category-count {
+  color: #38a169;
+}
 
 .category-subtitle {
   font-size: 14px;
@@ -436,7 +528,14 @@ body {
   line-height: 1;
 }
 
+.add-job-button:hover {
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 12px 32px rgba(102, 126, 234, 0.5);
+}
 
+.add-job-button:active {
+  transform: scale(1.05) rotate(90deg);
+}
 
 /* ============================================================================
    JOB LISTS & CARDS
@@ -475,6 +574,12 @@ body {
 
 .job-card:hover,
 .floor-card:hover,
+.room-card:hover,
+.job-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border-color: rgba(102, 126, 234, 0.2);
+}
 
 .job-card-header,
 .room-header,
@@ -501,11 +606,33 @@ body {
   white-space: nowrap;
 }
 
+.job-status-badge.urgent {
+  background: rgba(229, 62, 62, 0.1);
+  color: #e53e3e;
+}
 
+.job-status-badge.to-do {
+  background: rgba(102, 126, 234, 0.1);
+  color: #667eea;
+}
 
+.job-status-badge.done {
+  background: rgba(56, 161, 105, 0.1);
+  color: #38a169;
+}
 
+.job-status-badge.other {
+  background: rgba(113, 128, 150, 0.1);
+  color: #718096;
+}
 
 .detail-title,
+.job-item-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 8px;
+}
 
 .detail-description,
 .job-item-description {
@@ -598,7 +725,17 @@ body {
   margin-bottom: 24px;
 }
 
+.room-info-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
 
+.room-info-header p {
+  font-size: 15px;
+  color: #718096;
+}
 
 /* Empty State */
 .empty-state {
@@ -649,6 +786,12 @@ body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
+.detail-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 4px;
+}
 
 .room-type {
   font-size: 15px;
@@ -662,6 +805,12 @@ body {
   margin-bottom: 12px;
 }
 
+.detail-content p {
+  font-size: 15px;
+  color: #4a5568;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
 
 .detail-photo {
   margin: 24px 0;
@@ -670,7 +819,17 @@ body {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+.detail-photo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+}
 
+.detail-photo img:hover {
+  transform: scale(1.02);
+}
 
 .detail-meta {
   display: flex;
@@ -723,9 +882,26 @@ body {
   transition: all 0.25s ease;
 }
 
+.status-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
 
+.status-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
 
+.status-btn:disabled,
+.status-btn.active {
+  opacity: 1;
+  cursor: default;
+}
 
+.status-btn.active {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
 
 .action-buttons {
   display: flex;
@@ -758,25 +934,76 @@ body {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
 
+.btn-primary:active {
+  transform: translateY(0);
+}
 
+.btn-secondary {
+  background: white;
+  color: #667eea;
+  border: 2px solid rgba(102, 126, 234, 0.2);
+}
 
+.btn-secondary:hover {
+  background: rgba(102, 126, 234, 0.06);
+  border-color: #667eea;
+  transform: translateY(-2px);
+}
 
+.btn-secondary:active {
+  transform: translateY(0);
+}
 
+.btn-danger {
+  background: white;
+  color: #e53e3e;
+  border: 2px solid rgba(229, 62, 62, 0.2);
+}
 
+.btn-danger:hover {
+  background: rgba(229, 62, 62, 0.06);
+  border-color: #e53e3e;
+  transform: translateY(-2px);
+}
 
+.btn-danger:active {
+  transform: translateY(0);
+}
 
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
 
 .full-width {
   width: 100%;
 }
 
-/* Loading spinner for buttons */
+/* Loading spinner for any .loading button */
 button.loading {
   position: relative;
   color: transparent;
 }
 
+button.loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
 
 /* ============================================================================
    FORMS
@@ -788,16 +1015,51 @@ button.loading {
   margin: 0 auto;
 }
 
+.form-container h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 28px;
+}
 
 .form-group {
   margin-bottom: 24px;
 }
 
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-bottom: 8px;
+}
 
 .form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  background: white;
+  color: #2d3748;
+}
 
 .form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
 
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
 
 .photo-preview {
   margin-top: 16px;
@@ -806,6 +1068,11 @@ button.loading {
   max-width: 400px;
 }
 
+.photo-preview img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 
 .form-actions {
   display: flex;
@@ -813,6 +1080,9 @@ button.loading {
   margin-top: 32px;
 }
 
+.form-actions button {
+  flex: 1;
+}
 
 /* ============================================================================
    PHOTO MODAL
@@ -840,6 +1110,13 @@ button.loading {
   cursor: default;
 }
 
+.photo-modal-content img {
+  max-width: 100%;
+  max-height: 90vh;
+  display: block;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
 
 .photo-modal-close {
   position: absolute;
@@ -858,20 +1135,53 @@ button.loading {
   transition: all 0.2s ease;
 }
 
+.photo-modal-close:hover {
+  background: #f7fafc;
+  transform: scale(1.1);
+}
 
 /* ============================================================================
    RESPONSIVE
    ============================================================================ */
 
 @media (max-width: 768px) {
+  .app-header {
+    padding: 10px 16px;
+    gap: 12px;
+  }
 
+  .header-logo {
+    height: 30px;
+  }
 
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
 
+  .job-grid,
+  .grid-container {
+    grid-template-columns: 1fr;
+  }
 
+  .status-buttons {
+    flex-direction: column;
+  }
 
+  .status-btn {
+    width: 100%;
+  }
 
+  .action-buttons {
+    flex-direction: column;
+  }
 
+  .form-actions {
+    flex-direction: column;
+  }
 
+  .form-actions button {
+    width: 100%;
+  }
 }
 
 /* ============================================================================
@@ -893,89 +1203,8 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ============ SELECTION MODE STYLES ============ */
-
-.selection-toolbar {
-  display: flex;
-  gap: 12px;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  flex-wrap: wrap;
-}
-
-.job-checkbox {
-  width: 22px;
-  height: 22px;
-  cursor: pointer;
-  margin-right: 15px;
-  accent-color: #667eea;
-  flex-shrink: 0;
-}
-
-.urgent-job-card.selected,
-.job-card.selected {
-  border: 3px solid #667eea;
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-/* Toolbar buttons inherit base .btn- styles but are slightly smaller */
-
-
-
-
-
-
-/* --- Primary form submit button --- */
-.form-submit {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.18s ease;
-}
-
-
-
-/* loading state for form-submit */
-
-/* --- Delete / dangerous actions (single + bulk) --- */
-
-.action-btn.danger {
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid #f97373;
-  background: linear-gradient(135deg, #fee2e2, #fecaca);
-  color: #7f1d1d;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.18s ease;
-}
-
-
-
-/* loading state for delete buttons */
-
 /* ===== Generic fade-in helper (used on several pages) ===== */
+
 .fade-in {
   animation: slideInSoft 0.35s ease-out;
 }
@@ -997,8 +1226,9 @@ html {
   cursor: pointer;
 }
 
-
-/* Small tweak so back button doesn’t make header feel huge */
+.app-title:hover {
+  opacity: 0.9;
+}
 
 /* Role badge + user menu button in the header */
 .role-badge {
@@ -1025,7 +1255,20 @@ html {
 }
 
 /* ===== Urgent job cards (JSX uses urgent-job-card) ===== */
+.urgent-job-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(229, 62, 62, 0.18);
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.12);
+}
 
+.urgent-job-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(229, 62, 62, 0.22);
+}
 
 /* ===== Job card header/title (job-header / job-title) ===== */
 .job-header {
@@ -1054,9 +1297,31 @@ html {
   margin-right: 8px;
 }
 
+.action-btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  margin-right: 8px;
+}
 
+.action-btn.primary {
+  background: linear-gradient(135deg, #48bb78, #38a169);
+  color: #fff;
+}
 
+.action-btn.secondary {
+  background: #ffffff;
+  border: 1px solid #cbd5e0;
+  color: #4a5568;
+}
 
+.action-btn.danger {
+  background: linear-gradient(135deg, #fed7d7, #feb2b2);
+  color: #742a2a;
+}
 
 /* ===== Photo upload area ===== */
 .photo-upload-section {
@@ -1104,110 +1369,151 @@ html {
 }
 
 /* ============================================================================
-   BULK SELECTION TOOLBAR + CHECKBOXES
+   BULK SELECTION TOOLBAR + CHECKBOXES (FINAL VERSION)
    ============================================================================ */
 
+.selection-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f5f7ff 0%, #e9edff 100%);
+  box-shadow: 0 10px 24px rgba(102, 126, 234, 0.18);
+  position: sticky;
+  top: 80px; /* sits just under the header */
+  z-index: 20;
+}
 
+.selection-toolbar .selection-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+  margin-right: auto;
+}
 
 /* Checkbox next to each job while in selection mode */
+.job-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-right: 12px;
+  cursor: pointer;
+  accent-color: #667eea;
+  flex-shrink: 0;
+}
 
 /* Highlight selected job cards */
+.job-card.selected,
+.urgent-job-card.selected {
+  border: 2px solid #667eea;
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+  box-shadow: 0 6px 18px rgba(102, 126, 234, 0.35);
+}
 
 /* Toolbar buttons – neutral + danger */
+.selection-toolbar .btn-secondary,
+.selection-toolbar .btn-danger {
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.18s ease;
+}
 
 /* Cancel Selection */
+.selection-toolbar .btn-secondary {
+  background: linear-gradient(135deg, #edf2ff 0%, #e2e8f0 100%);
+  color: #2d3748;
+  box-shadow: 0 6px 16px rgba(160, 174, 192, 0.35);
+}
 
+.selection-toolbar .btn-secondary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(160, 174, 192, 0.45);
+}
 
 /* Delete (danger) */
+.selection-toolbar .btn-danger {
+  background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+  color: #822727;
+  box-shadow: 0 6px 18px rgba(248, 113, 113, 0.45);
+}
 
+.selection-toolbar .btn-danger:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(248, 113, 113, 0.6);
+}
 
 /* Disabled toolbar buttons */
+.selection-toolbar .btn-secondary:disabled,
+.selection-toolbar .btn-danger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
 
 /* ============================================================================
    PRIMARY FORM BUTTON (CREATE / UPDATE) WITH LOADING STATE
    ============================================================================ */
 
+.form-submit {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.45);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+}
 
+.form-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(118, 75, 162, 0.55);
+}
 
+.form-submit:disabled {
+  opacity: 0.65;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
 
 /* Loading state for Create / Update Job buttons */
+.form-submit.loading {
+  position: relative;
+  color: transparent; /* hide the text while spinner shows */
+}
 
+.form-submit.loading::after {
+  content: "";
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  border-top-color: transparent;
+  animation: hk-button-spin 0.6s linear infinite;
+}
 
 /* Spinner animation used for form-submit buttons */
 @keyframes hk-button-spin {
   to {
     transform: rotate(360deg);
   }
-}
-
-
-
-/* ============ MISSING CLASSES FOR JSX ============ */
-
-.urgent-jobs {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.floor-section {
-  margin-bottom: 30px;
-}
-
-.floor-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.floor-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-.detail-room {
-  font-size: 1.1rem;
-  color: #4a5568;
-  margin-bottom: 15px;
-  padding: 10px 15px;
-  background: #f7fafc;
-  border-radius: 8px;
-  border-left: 4px solid #667eea;
-}
-
-.room-input-helper {
-  font-size: 0.85rem;
-  color: #718096;
-  margin-top: 5px;
-  font-style: italic;
-}
-
-.app-name {
-  font-size: 1.8rem;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.manager,
-.todo {
-  font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 6px;
-}
-
-.manager {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.todo {
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-  color: white;
 }
