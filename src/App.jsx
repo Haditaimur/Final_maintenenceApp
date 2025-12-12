@@ -1,5 +1,6 @@
 // HotelKeep App v2.0 - With Bulk Delete
 import { useState, useEffect, useRef } from 'react'
+import './App.css'
 import {
   subscribeToJobs,
   createJobInDb,
