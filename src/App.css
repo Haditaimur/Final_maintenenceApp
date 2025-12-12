@@ -48,6 +48,7 @@ body {
   width: 100%;
   min-height: 100vh;
   /*background: linear-gradient(135deg, var(--primary), #764ba2);*/
+   background: black;
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
