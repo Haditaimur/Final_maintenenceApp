@@ -47,7 +47,7 @@ body {
 .app-container {
   width: 100%;
   min-height: 100vh;
-  background:linear-gradient(135deg, #667eea, #764ba2);
+  background:linear-gradient(135deg, #667eea, #764ba273);
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
@@ -72,6 +72,10 @@ body {
   gap: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   transition: box-shadow 0.3s ease;
+}
+
+.app-name {
+   background: linear-gradient(135deg, #66a7ea, #000000);
 }
 
 .header-left {
