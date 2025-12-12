@@ -1314,7 +1314,7 @@ function JobList({
               return (
                 <div
                   key={job.id}
-                  className={`job-card ${selectedJobs?.includes(job.id) ? "selected" : ""}`}
+                  className={`urgent-job-card ${selectedJobs?.includes(job.id) ? "selected" : ""}`}
                   onClick={() => {
                     if (isSelectionMode) {
                       onToggleSelection(job.id)
