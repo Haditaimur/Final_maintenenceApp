@@ -76,7 +76,7 @@ body {
 }
 
 .app-name {
-   background: linear-gradient(135deg, #66a7ea, #000000);
+   color: linear-gradient(135deg, #66a7ea, #000000);
 }
 
 .header-left {
