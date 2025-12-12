@@ -597,6 +597,7 @@ const updateJobData = async (jobId, updates) => {
           onBack={goToDashboard}
           onSubmit={createJob}
           goToDashboard={goToDashboard}
+          isCreating={isCreating}
         />
       )}
 
