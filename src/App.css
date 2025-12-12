@@ -26,7 +26,7 @@ body {
 @keyframes slideInSoft {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(24px); /* soft right-to-left slide-in */
   }
   to {
     opacity: 1;
@@ -121,14 +121,14 @@ body {
   transform: scale(1.05);
 }
 
-/* Back Button */
+/* Back Button – single, small & neat */
 .back-button {
   background: transparent;
   border: none;
-  font-size: 15px;
+  font-size: 13px;
   color: #667eea;
   cursor: pointer;
-  padding: 8px 14px;
+  padding: 6px 12px;
   border-radius: 12px;
   transition: all 0.2s ease;
   font-weight: 500;
@@ -984,7 +984,7 @@ body {
   width: 100%;
 }
 
-/* Loading spinner for buttons */
+/* Loading spinner for any .loading button */
 button.loading {
   position: relative;
   color: transparent;
@@ -1002,7 +1002,7 @@ button.loading::after {
   border: 2px solid #ffffff;
   border-radius: 50%;
   border-top-color: transparent;
-  animation: spinner 0.6s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
 /* ============================================================================
@@ -1203,162 +1203,8 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ============ SELECTION MODE STYLES ============ */
-
-.selection-toolbar {
-  display: flex;
-  gap: 12px;
-  padding: 15px 20px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e3e8f0 100%);
-  border-radius: 12px;
-  margin-bottom: 20px;
-  align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  flex-wrap: wrap;
-}
-
-.job-checkbox {
-  width: 22px;
-  height: 22px;
-  cursor: pointer;
-  margin-right: 15px;
-  accent-color: #667eea;
-  flex-shrink: 0;
-}
-
-.urgent-job-card.selected,
-.job-card.selected {
-  border: 3px solid #667eea;
-  background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-/* Toolbar buttons inherit base .btn- styles but are slightly smaller */
-.selection-toolbar .btn-secondary,
-.selection-toolbar .btn-danger {
-  padding: 8px 16px;
-  font-size: 13px;
-  border-radius: 999px;
-}
-
-.selection-toolbar .btn-secondary {
-  background: white;
-  color: #4a5568;
-  border: 1px solid rgba(102, 126, 234, 0.35);
-}
-
-.selection-toolbar .btn-secondary:hover:not(:disabled) {
-  background: rgba(102, 126, 234, 0.06);
-  border-color: #667eea;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.2);
-}
-
-.selection-toolbar .btn-danger {
-  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-  color: #fff;
-  border: none;
-  box-shadow: 0 4px 12px rgba(197, 48, 48, 0.45);
-}
-
-.selection-toolbar .btn-danger:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(197, 48, 48, 0.6);
-}
-
-.selection-toolbar .btn-secondary:disabled,
-.selection-toolbar .btn-danger:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* --- Primary form submit button --- */
-.form-submit {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: all 0.18s ease;
-}
-
-.form-submit:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.4);
-}
-
-.form-submit:disabled {
-  opacity: 0.65;
-  cursor: default;
-  box-shadow: none;
-  transform: none;
-}
-
-/* loading state for form-submit */
-.form-submit.loading::after {
-  content: "";
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  border-top-color: transparent;
-  animation: spinner 0.6s linear infinite;
-}
-
-/* --- Delete / dangerous actions (single + bulk) --- */
-
-.action-btn.danger {
-  padding: 8px 14px;
-  border-radius: 999px;
-  border: 1px solid #f97373;
-  background: linear-gradient(135deg, #fee2e2, #fecaca);
-  color: #7f1d1d;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  transition: all 0.18s ease;
-}
-
-.action-btn.danger:hover:not(:disabled) {
-  background: linear-gradient(135deg, #fecaca, #fca5a5);
-  box-shadow: 0 10px 24px rgba(248, 113, 113, 0.45);
-  transform: translateY(-1px);
-}
-
-.action-btn.danger:disabled {
-  opacity: 0.6;
-  cursor: default;
-  box-shadow: none;
-  transform: none;
-}
-
-/* loading state for delete buttons */
-.action-btn.danger.loading::after {
-  content: "";
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(127, 29, 29, 0.25);
-  border-top-color: transparent;
-  animation: spinner 0.6s linear infinite;
-}
-
 /* ===== Generic fade-in helper (used on several pages) ===== */
+
 .fade-in {
   animation: slideInSoft 0.35s ease-out;
 }
@@ -1382,12 +1228,6 @@ html {
 
 .app-title:hover {
   opacity: 0.9;
-}
-
-/* Small tweak so back button doesn’t make header feel huge */
-.back-button {
-  font-size: 13px;
-  padding: 6px 12px;
 }
 
 /* Role badge + user menu button in the header */
@@ -1529,7 +1369,7 @@ html {
 }
 
 /* ============================================================================
-   BULK SELECTION TOOLBAR + CHECKBOXES
+   BULK SELECTION TOOLBAR + CHECKBOXES (FINAL VERSION)
    ============================================================================ */
 
 .selection-toolbar {
@@ -1677,5 +1517,3 @@ html {
     transform: rotate(360deg);
   }
 }
-
-
