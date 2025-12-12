@@ -16,7 +16,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  color: linear-gradient(135deg, var(--primary), #764ba2);
+  color: #6292a3;
 }
 
 /* ============================================================================
@@ -47,7 +47,7 @@ body {
 .app-container {
   width: 100%;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  background: linear-gradient(135deg, var(--primary), #764ba2);
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
