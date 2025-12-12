@@ -546,7 +546,7 @@ body {
 .floor-list,
 .room-list,
 .job-list {
-  min-height: calc(100vh - 64px);
+  /*min-height: calc(100vh - 64px);*/
   padding: 24px 20px;
   max-width: 1200px;
   margin: 0 auto;
