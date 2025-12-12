@@ -569,8 +569,8 @@ body {
   padding: 20px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(229, 62, 62, 0.18);
+  box-shadow: 0 2px 8px rgba(229, 62, 62, 0.12);
   max-width: 400px;
 }
 
