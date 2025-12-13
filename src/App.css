@@ -71,7 +71,7 @@ body {
   height: 64px;
   box-sizing: border-box;
   gap: 20px;
-  transition: box-shadow 0.3s ease;
+  transition: 0.3s ease;
 }
 
 .app-name {
