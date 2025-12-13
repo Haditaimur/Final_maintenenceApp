@@ -315,7 +315,6 @@ body {
 
 .app-branding {
   text-align: center;
-  margin-bottom: 60px;
 }
 
 .app-logo {
@@ -672,13 +671,13 @@ body {
 .floor-name {
   font-size: 18px;
   font-weight: 600;
-  color: #2d3748;
+  color: #151f2e;
   margin-bottom: 4px;
 }
 
 .floor-subtitle {
   font-size: 14px;
-  color: #718096;
+  color: #151f2e;
 }
 
 .floor-count {
