@@ -48,7 +48,7 @@ body {
 .app-container {
   width: 100%;
   min-height: 100vh;
-  background:linear-gradient(135deg, #667eea, #764ba273);
+  background: white;
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
@@ -71,7 +71,6 @@ body {
   height: 64px;
   box-sizing: border-box;
   gap: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   transition: box-shadow 0.3s ease;
 }
 
@@ -340,7 +339,7 @@ body {
 
 .app-tagline {
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #4a5568;
   font-weight: 500;
 }
 
@@ -1051,7 +1050,7 @@ button.loading::after {
   font-family: inherit;
   transition: all 0.2s ease;
   background: white;
-  color: #000000;
+  color: #4a5568;
 }
 
 .form-group input:focus,
