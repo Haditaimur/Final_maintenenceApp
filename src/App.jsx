@@ -376,7 +376,7 @@ const updateJobData = async (jobId, updates) => {
   setIsUpdating(true)
   try {
     // 🔹 1) Write to Firestore
-    await updateJobInDb(jobId, newUpdates)
+   await updateJobInDb(jobId, newUpdates, hotelId)
 
     // 🔹 2) Optimistically update local jobs list
     setJobs((prev) =>
