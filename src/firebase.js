@@ -7,7 +7,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyB5WBBBPwYnpRMSGO-b35BJwlt0nGvhukw",
   authDomain: "hotelkeep-hotelmaintenanceapp.firebaseapp.com",
   projectId: "hotelkeep-hotelmaintenanceapp",
-  storageBucket: "hotelkeep-hotelmaintenanceapp.appspot.com",
+  storageBucket: "hotelkeep-hotelmaintenanceapp.firebasestorage.app",
   messagingSenderId: "391774453754",
   appId: "1:391774453754:web:1dc905aaa3e315ecccae43",
   measurementId: "G-CD7CE6BWK8"
