@@ -168,28 +168,43 @@ export const updateJobInDb = async (jobId, updates) => {
     const jobRef = doc(db, 'jobs', jobId)
 
     // If a new photo is provided
-    if (photo) {
-      try {
-        // Upload new photo
-        const hotelId = 'athena' // You might want to pass this or fetch from the job
-        const url = await uploadPhotoDataUrl(hotelId, jobId, photo)
+// Update an existing job (with photo support)
+export const updateJobInDb = async (jobId, updates, hotelId) => {
+  try {
+    const { photo, ...rest } = updates || {}
+    const jobRef = doc(db, 'jobs', jobId)
 
-        if (url) {
-          // Update with new photoUrl
-          await updateDoc(jobRef, {
-            ...rest,
-            hasPhoto: true,
-            photoUrl: url,
-            updated_at: serverTimestamp(),
-          })
-          console.log('Job updated with new photo:', url)
-          return
-        }
-      } catch (photoErr) {
-        console.error('Error uploading new photo:', photoErr)
-        throw photoErr
+    // If a new photo is provided
+    if (photo) {
+      if (!hotelId) {
+        throw new Error('hotelId is required to upload a photo')
       }
+
+      const url = await uploadPhotoDataUrl(hotelId, jobId, photo)
+
+      await updateDoc(jobRef, {
+        ...rest,
+        hasPhoto: true,
+        photoUrl: url,
+        updated_at: serverTimestamp(),
+      })
+
+      console.log('Job updated with new photo:', url)
+      return
     }
+
+    // No photo update → normal update
+    await updateDoc(jobRef, {
+      ...rest,
+      updated_at: serverTimestamp(),
+    })
+
+    console.log('Job updated successfully')
+  } catch (error) {
+    console.error('Error updating job:', error)
+    throw error
+  }
+}
 
     // If no photo update, just update other fields
     await updateDoc(jobRef, {
