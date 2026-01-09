@@ -15,6 +15,8 @@ import {
 } from 'firebase/firestore'
 import { ref, uploadString, getDownloadURL } from 'firebase/storage'
 
+import { getAuth } from "firebase/auth";
+console.log("auth currentUser:", getAuth().currentUser);
 // ---- REALTIME SUBSCRIPTION ----
 
 export const subscribeToJobs = (hotelId, callback) => {
@@ -72,8 +74,7 @@ const uploadPhotoDataUrl = async (hotelId, jobId, photoDataUrl) => {
   const path = `jobPhotos/${hotelId}/${jobId}-${Date.now()}.jpg`
   const storageRef = ref(storage, path)
 
-import { getAuth } from "firebase/auth";
-console.log("auth currentUser:", getAuth().currentUser);
+
   
   await uploadString(storageRef, photoDataUrl, 'data_url')
   return await getDownloadURL(storageRef)
