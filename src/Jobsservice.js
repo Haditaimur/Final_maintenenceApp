@@ -158,16 +158,6 @@ export const createJobInDb = async (jobData) => {
     throw error
   }
 }
-
-// Update an existing job (with photo support)
-export const updateJobInDb = async (jobId, updates) => {
-  try {
-    const { photo, ...rest } = updates || {}
-
-    // Get current job to check if it has an old photo
-    const jobRef = doc(db, 'jobs', jobId)
-
-    // If a new photo is provided
 // Update an existing job (with photo support)
 export const updateJobInDb = async (jobId, updates, hotelId) => {
   try {
