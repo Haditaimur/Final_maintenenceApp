@@ -20,37 +20,47 @@ import { ref, uploadString, getDownloadURL, deleteObject } from 'firebase/storag
 // Subscribe to real-time updates for all jobs in a hotel
 export const subscribeToJobs = (hotelId, callback) => {
   const jobsRef = collection(db, 'jobs')
-
   const q = query(jobsRef, where('hotelId', '==', hotelId))
 
   const unsubscribe = onSnapshot(
     q,
     (snapshot) => {
       const jobs = []
+
       snapshot.forEach((snap) => {
         const data = snap.data()
+
+        const createdAt =
+          data.created_at?.toDate?.()?.toISOString?.() ||
+          (typeof data.created_at === 'string' ? data.created_at : null)
+
+        const updatedAt =
+          data.updated_at?.toDate?.()?.toISOString?.() ||
+          (typeof data.updated_at === 'string' ? data.updated_at : null)
+
+        // ✅ Normalize photo so UI can always use job.photo
+        const photo = data.photoUrl || data.photo || null
+
         jobs.push({
           id: snap.id,
           ...data,
-          // Convert Firestore timestamps to ISO strings if they exist
-          created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at,
-          updated_at: data.updated_at?.toDate?.()?.toISOString() || data.updated_at,
+          photo, // <-- UI reads this
+          created_at: createdAt,
+          updated_at: updatedAt,
         })
       })
 
-      // Sort by created_at manually (most recent first)
       jobs.sort((a, b) => {
         const dateA = new Date(a.created_at || 0).getTime()
         const dateB = new Date(b.created_at || 0).getTime()
         return dateB - dateA
       })
 
-      console.log('Fetched jobs from Firebase:', jobs.length)
       callback(jobs)
     },
     (error) => {
       console.error('Error fetching jobs:', error)
-      callback([]) // prevent UI from hanging
+      callback([])
     },
   )
 
