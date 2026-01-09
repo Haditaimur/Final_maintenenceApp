@@ -10,7 +10,7 @@ const firebaseConfig = {
   projectId: "hotelkeep-hotelmaintenanceapp",
 
   // ✅ FIX: use the default Firebase Storage bucket format
-  storageBucket: "hotelkeep-hotelmaintenanceapp.appspot.com",
+  storageBucket: "hotelkeep-hotelmaintenanceapp.firebasestorage.app",
 
   messagingSenderId: "391774453754",
   appId: "1:391774453754:web:1dc905aaa3e315ecccae43",
