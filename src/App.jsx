@@ -183,6 +183,8 @@ function HotelMaintenanceApp() {
   const [selectedJob, setSelectedJob] = useState(null)
   const [selectedFloor, setSelectedFloor] = useState(null)
   const [selectedRoom, setSelectedRoom] = useState(null)
+  const [completedSortOrder, setCompletedSortOrder] = useState('recent')
+const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [isEditing, setIsEditing] = useState(false)
   const [enlargedPhoto, setEnlargedPhoto] = useState(null)
   const [managerCode, setManagerCode] = useState(() =>
@@ -264,30 +266,37 @@ function HotelMaintenanceApp() {
   }
 
   const goToDashboard = () => {
-    setCurrentView('dashboard')
-    setSelectedCategory(null)
-    setSelectedJob(null)
-    setSelectedFloor(null)
-    setSelectedRoom(null)
-    setIsSelectionMode(false)
-    setSelectedJobs([])
-  }
+  setCurrentView('dashboard')
+  setSelectedCategory(null)
+  setSelectedJob(null)
+  setSelectedFloor(null)
+  setSelectedRoom(null)
+  setIsSelectionMode(false)
+  setSelectedJobs([])
+  setCompletedSortOrder('recent')
+  setCompletedRoomFilter('all')
+}
 
   const viewCategory = (category) => {
-    try {
-      setSelectedCategory(category)
-      setIsSelectionMode(false)
-      setSelectedJobs([])
-      if (category === 'Urgent') {
-        setCurrentView('urgent-list')
-      } else {
-        setCurrentView('floor-list')
-      }
-    } catch (err) {
-      console.error('Error in viewCategory:', err)
-      goToDashboard()
+  try {
+    setSelectedCategory(category)
+    setIsSelectionMode(false)
+    setSelectedJobs([])
+
+    if (category === 'Urgent') {
+      setCurrentView('urgent-list')
+    } else if (category === 'Done') {
+      setCompletedSortOrder('recent')
+      setCompletedRoomFilter('all')
+      setCurrentView('completed-jobs')
+    } else {
+      setCurrentView('floor-list')
     }
+  } catch (err) {
+    console.error('Error in viewCategory:', err)
+    goToDashboard()
   }
+}
 
   const viewFloorRooms = (floor) => {
     setSelectedFloor(floor)
@@ -529,6 +538,20 @@ const updateJobData = async (jobId, updates) => {
         />
       )}
 
+      {currentView === 'completed-jobs' && (
+        <CompletedJobsList
+          jobs={jobs}
+          rooms={rooms}
+          sortOrder={completedSortOrder}
+          selectedRoomFilter={completedRoomFilter}
+          onChangeSortOrder={setCompletedSortOrder}
+          onChangeRoomFilter={setCompletedRoomFilter}
+          onBack={goToDashboard}
+          onViewJob={viewJobDetail}
+          goToDashboard={goToDashboard}
+        />
+      )}
+
       {currentView === 'floor-list' && (
         <FloorList
           category={selectedCategory}
@@ -578,6 +601,8 @@ const updateJobData = async (jobId, updates) => {
           onBack={() => {
             if (selectedCategory === 'Urgent') {
               setCurrentView('urgent-list')
+            } else if (selectedCategory === 'Done') {
+              setCurrentView('completed-jobs')
             } else {
               setCurrentView('job-list')
             }
@@ -2105,6 +2130,132 @@ function EditJobForm({ job, rooms, onBack, onSubmit, goToDashboard, isUpdating }
             {isUpdating ? "Updating..." : "Update Job"}
           </button>
         </form>
+      </div>
+    </>
+  )
+}
+
+function CompletedJobsList({
+  jobs,
+  rooms,
+  sortOrder,
+  selectedRoomFilter,
+  onChangeSortOrder,
+  onChangeRoomFilter,
+  onBack,
+  onViewJob,
+  goToDashboard,
+}) {
+  const completedJobs = jobs
+    .filter((job) => job.status === 'Done')
+    .filter((job) => {
+      if (selectedRoomFilter === 'all') return true
+      return String(job.room_id) === String(selectedRoomFilter)
+    })
+    .map((job) => ({
+      ...job,
+      room: rooms.find((r) => r.id === job.room_id) || null,
+    }))
+    .sort((a, b) => {
+      const aTime = new Date(a.updated_at || a.created_at || 0).getTime()
+      const bTime = new Date(b.updated_at || b.created_at || 0).getTime()
+
+      return sortOrder === 'oldest' ? aTime - bTime : bTime - aTime
+    })
+
+  const roomOptions = rooms
+    .filter((room) => jobs.some((job) => job.status === 'Done' && job.room_id === room.id))
+    .sort((a, b) =>
+      String(a.room_number).localeCompare(String(b.room_number), undefined, {
+        numeric: true,
+      }),
+    )
+
+  return (
+    <>
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+        <h1 className="app-title" onClick={goToDashboard}>
+          HotelKeep
+        </h1>
+        <div />
+      </div>
+
+      <div className="job-list fade-in">
+        <div className="form-group">
+          <label className="form-label">Sort by time</label>
+          <select
+            className="form-select"
+            value={sortOrder}
+            onChange={(e) => onChangeSortOrder(e.target.value)}
+          >
+            <option value="recent">Most recent first</option>
+            <option value="oldest">Oldest first</option>
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label className="form-label">Filter by room</label>
+          <select
+            className="form-select"
+            value={selectedRoomFilter}
+            onChange={(e) => onChangeRoomFilter(e.target.value)}
+          >
+            <option value="all">All rooms</option>
+            {roomOptions.map((room) => (
+              <option key={room.id} value={room.id}>
+                Room {room.room_number}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {completedJobs.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">✅</div>
+            <div className="empty-title">No completed jobs found</div>
+            <div className="empty-message">
+              There are no completed jobs for the selected filters.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {completedJobs.map((job) => {
+              const photoSrc = job.photoUrl || job.photo
+
+              return (
+                <div
+                  key={job.id}
+                  className="job-card"
+                  onClick={() => onViewJob(job)}
+                >
+                  <div className="job-header">
+                    <div className="job-title">{job.title}</div>
+                    <span className="job-status-badge done">Done</span>
+                  </div>
+
+                  <div className="detail-description">{job.description}</div>
+
+                  <div className="job-meta">
+                    <span>
+                      {job.room ? `Room ${job.room.room_number}` : 'No room'}
+                    </span>
+                    <span>
+                      {job.updated_at
+                        ? new Date(job.updated_at).toLocaleString()
+                        : 'No time'}
+                    </span>
+                    {photoSrc && (
+                      <span className="job-photo-indicator">📷 Photo</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
     </>
   )
