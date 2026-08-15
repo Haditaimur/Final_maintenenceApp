@@ -5,16 +5,29 @@ import { getStorage } from "firebase/storage";
 import { getAuth, signInAnonymously } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB5WBBBPwYnpRMSGO-b35BJwlt0nGvhukw",
-  authDomain: "hotelkeep-hotelmaintenanceapp.firebaseapp.com",
-  projectId: "hotelkeep-hotelmaintenanceapp",
+  apiKey:
+    import.meta.env.VITE_FIREBASE_API_KEY ||
+    "AIzaSyB5WBBBWPwYnpRMSG0-b35BJw1t0nGvhukw",
 
-  // ✅ FIX: correct default Firebase Storage bucket
-  storageBucket: "hotelkeep-hotelmaintenanceapp.firebasestorage.app",
+  authDomain:
+    import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
+    "hotelkeep-hotelmaintenanceapp.firebaseapp.com",
 
-  messagingSenderId: "391774453754",
-  appId: "1:391774453754:web:1dc905aaa3e315ecccae43",
-  measurementId: "G-CD7CE6BWK8",
+  projectId:
+    import.meta.env.VITE_FIREBASE_PROJECT_ID ||
+    "hotelkeep-hotelmaintenanceapp",
+
+  storageBucket:
+    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
+    "hotelkeep-hotelmaintenanceapp.firebasestorage.app",
+
+  messagingSenderId:
+    import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ||
+    "391774453754",
+
+  appId:
+    import.meta.env.VITE_FIREBASE_APP_ID ||
+    "1:391774453754:web:1dc905aaa3e315ecccae43",
 };
 
 const app = initializeApp(firebaseConfig);
