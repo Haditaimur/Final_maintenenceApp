@@ -804,8 +804,8 @@ const upcomingScheduledJobs = activeScheduledJobs.filter((job) => {
 
 const dashboardScheduledJobs = [
   ...overdueScheduledJobs,
-  ...upcomingScheduledJobs.slice(0, 1),
-]
+  ...upcomingScheduledJobs,
+].slice(0, 1)
 
   return (
     <>
@@ -966,14 +966,6 @@ const dashboardScheduledJobs = [
           )
         })}
       </div>
-     {activeScheduledJobs.length > 1 && (
-          <button
-            className="view-all-scheduled-btn"
-            onClick={onViewAllScheduledJobs}
-          >
-            View All Scheduled Jobs ({activeScheduledJobs.length})
-          </button>
-        )}
 
     </>
     )}
