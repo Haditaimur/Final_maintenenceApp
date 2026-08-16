@@ -203,6 +203,11 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedRecurringJob, setSelectedRecurringJob] = useState(null)
+  const editRecurringJob = (job) => {
+  setSelectedRecurringJob(job)
+  setCurrentView('edit-recurring-job')
+}
 
   useEffect(() => {
     console.log('🎉 HotelKeep v2.0 - Bulk Delete Enabled')
@@ -564,6 +569,7 @@ const updateJobData = async (jobId, updates) => {
             recurringJobs={recurringJobs}
             rooms={rooms}
             onBack={goToDashboard}
+            onEdit={editRecurringJob}
             onAdd={addNewRecurringJob}
             onUpdate={updateRecurringJob}
             onDelete={deleteRecurringJob}
@@ -960,17 +966,14 @@ const dashboardScheduledJobs = [
           )
         })}
       </div>
-      {activeScheduledJobs.length > dashboardScheduledJobs.length && (
-
-        <div className="scheduled-more-note">
-
-          {activeScheduledJobs.length - dashboardScheduledJobs.length}{' '}
-
-          more scheduled job(s)
-
-        </div>
-
-      )}
+     {activeScheduledJobs.length > 1 && (
+          <button
+            className="view-all-scheduled-btn"
+            onClick={onViewAllScheduledJobs}
+          >
+            View All Scheduled Jobs ({activeScheduledJobs.length})
+          </button>
+        )}
 
     </>
     )}
@@ -2524,6 +2527,7 @@ function RecurringJobsList({
   recurringJobs,
   rooms,
   onBack,
+  onEdit,
   onAdd,
   onUpdate,
   onDelete,
@@ -2696,6 +2700,13 @@ function RecurringJobsList({
                     >
                       {job.active ? '⏸ Pause' : '▶ Resume'}
                     </button>
+
+                    <button
+                  className="btn-secondary"
+                  onClick={() => onEdit(job)}
+                >
+                  ✏️ Edit
+                  </button>
 
                     <button
                       className="btn-danger"
