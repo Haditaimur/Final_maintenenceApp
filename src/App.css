@@ -1615,3 +1615,43 @@ html {
   background: linear-gradient(to bottom, #ffffff, #f8f9fa);
   padding-top: 16px;
 }
+
+.upcoming-scheduled-section {
+  margin-bottom: 32px;
+}
+
+.upcoming-scheduled-header {
+  margin-bottom: 18px;
+}
+
+.upcoming-scheduled-header h2 {
+  margin: 0;
+}
+
+.upcoming-scheduled-header p {
+  margin: 6px 0 0;
+}
+
+.scheduled-jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scheduled-job-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.scheduled-job-card .detail-description {
+  margin: 16px 0;
+}
+
+.scheduled-job-card .job-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+}
