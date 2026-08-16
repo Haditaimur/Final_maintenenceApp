@@ -1617,11 +1617,16 @@ html {
 }
 
 .upcoming-scheduled-section {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 24px;
   margin-bottom: 32px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
 }
 
 .upcoming-scheduled-header {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
 .upcoming-scheduled-header h2 {
@@ -1635,23 +1640,23 @@ html {
 .scheduled-jobs-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .scheduled-job-card {
-  background: #ffffff;
+  background: #f8fafc;
   border: 1px solid #e5e7eb;
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: none;
 }
 
 .scheduled-job-card .detail-description {
-  margin: 16px 0;
+  margin: 12px 0;
 }
 
 .scheduled-job-card .job-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 18px;
+  gap: 10px 16px;
 }
