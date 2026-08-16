@@ -2566,7 +2566,7 @@ function RecurringJobsList({
           <div>
             <h2 style={{ margin: 0 }}>Recurring Jobs</h2>
             <p style={{ marginTop: '0.4rem', color: '#64748b' }}>
-              Manage automatically scheduled maintenance
+              Manage recurring maintenance schedules
             </p>
           </div>
 
@@ -2588,7 +2588,7 @@ function RecurringJobsList({
             </div>
 
             <div className="empty-message">
-              Add maintenance tasks that should repeat automatically.
+              Add maintenance tasks with recurring due dates.
             </div>
           </div>
         ) : (
