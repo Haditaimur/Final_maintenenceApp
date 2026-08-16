@@ -8,27 +8,27 @@ import { getAuth, signInAnonymously } from "firebase/auth";
 const firebaseConfig = {
   apiKey:
     import.meta.env.VITE_FIREBASE_API_KEY ||
-    "AIzaSyB5WBBBWPwYnpRMSG0-b35BJw1t0nGvhukw",
+    "AIzaSyD0uV2hH1GR4YIJX9LWj9Lf9HVHQICIIUs",
 
   authDomain:
     import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ||
-    "hotelkeep-hotelmaintenanceapp.firebaseapp.com",
+    "athena-maintenance-staging.firebaseapp.com",
 
   projectId:
     import.meta.env.VITE_FIREBASE_PROJECT_ID ||
-    "hotelkeep-hotelmaintenanceapp",
+    "athena-maintenance-staging",
 
   storageBucket:
     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ||
-    "hotelkeep-hotelmaintenanceapp.firebasestorage.app",
+    "athena-maintenance-staging.firebasestorage.app",
 
   messagingSenderId:
     import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ||
-    "391774453754",
+    "254993135475",
 
   appId:
     import.meta.env.VITE_FIREBASE_APP_ID ||
-    "1:391774453754:web:1dc905aaa3e315ecccae43",
+    "1:254993135475:web:0493817dd6d90c4351f706",
 };
 
 const app = initializeApp(firebaseConfig);
