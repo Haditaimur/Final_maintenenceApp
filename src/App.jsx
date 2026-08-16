@@ -527,14 +527,25 @@ const updateJobData = async (jobId, updates) => {
 
       {currentView === 'dashboard' && (
         <Dashboard
-          role={userRole}
-          jobs={jobs}
-          onViewCategory={viewCategory}
-          onAddJob={addNewJob}
-          onLogout={logout}
-          onChangeCode={changeManagerCode}
-          showUserMenu={showUserMenu}
-          setShowUserMenu={setShowUserMenu}
+            role={userRole}
+
+              jobs={jobs}
+            
+              recurringJobs={recurringJobs}
+            
+              onViewCategory={viewCategory}
+            
+              onViewRecurringJobs={() => setCurrentView('recurringJobs')}
+            
+              onAddJob={addNewJob}
+            
+              onLogout={logout}
+            
+              onChangeCode={changeManagerCode}
+            
+              showUserMenu={showUserMenu}
+            
+              setShowUserMenu={setShowUserMenu}
         />
       )}
 
@@ -689,12 +700,23 @@ function RoleSelector({ onSelectRole }) {
 
 function Dashboard({
   role,
+
   jobs,
+
+  recurringJobs,
+
   onViewCategory,
+
+  onViewRecurringJobs,
+
   onAddJob,
+
   onLogout,
+
   onChangeCode,
+
   showUserMenu,
+
   setShowUserMenu,
 }) {
   const urgentCount = jobs.filter((j) => j.status === 'Urgent').length
@@ -802,7 +824,7 @@ function Dashboard({
           {role === 'manager' && (
   <div
     className="category-card recurring"
-    onClick={() => setCurrentView('recurringJobs')}
+    onClick={onViewRecurringJobs}
   >
     <div className="category-header">
       <div className="category-title">
@@ -812,7 +834,7 @@ function Dashboard({
     </div>
 
     <div className="category-count">
-      {recurringJobs.filter((job) => job.active).length}
+      {(recurringJobs || []).filter((job) => job.active).length}
     </div>
 
     <div className="category-subtitle">
