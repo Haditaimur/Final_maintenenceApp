@@ -767,6 +767,15 @@ function Dashboard({
   ).length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
 
+  const upcomingScheduledJobs = (recurringJobs || [])
+  .filter((job) => job.active)
+  .sort((a, b) => {
+    const aDate = new Date(a.nextRunAt || 0).getTime()
+    const bDate = new Date(b.nextRunAt || 0).getTime()
+
+    return aDate - bDate
+  })
+
   return (
     <>
       <div className="app-header">
@@ -816,6 +825,116 @@ function Dashboard({
       </div>
 
       <div className="dashboard fade-in">
+        {role === 'handyman' && (
+  <div className="upcoming-scheduled-section">
+    <div className="upcoming-scheduled-header">
+      <div>
+        <h2>📅 Upcoming Scheduled Jobs</h2>
+        <p>Planned recurring maintenance tasks</p>
+      </div>
+    </div>
+
+    {upcomingScheduledJobs.length === 0 ? (
+      <div className="empty-state">
+        <div className="empty-icon">📅</div>
+        <div className="empty-title">
+          No Scheduled Jobs
+        </div>
+        <div className="empty-message">
+          There are no upcoming scheduled maintenance tasks.
+        </div>
+      </div>
+    ) : (
+      <div className="scheduled-jobs-list">
+        {upcomingScheduledJobs.map((job) => {
+          const nextDate = job.nextRunAt
+            ? new Date(job.nextRunAt)
+            : null
+
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+
+          const dueDate = nextDate
+            ? new Date(nextDate)
+            : null
+
+          if (dueDate) {
+            dueDate.setHours(0, 0, 0, 0)
+          }
+
+          const isDue =
+            dueDate &&
+            dueDate.getTime() === today.getTime()
+
+          const isOverdue =
+            dueDate &&
+            dueDate.getTime() < today.getTime()
+
+          return (
+            <div
+              key={job.id}
+              className="scheduled-job-card"
+            >
+              <div className="job-header">
+                <div className="job-title">
+                  {job.title}
+                </div>
+
+                <span
+                  className={`job-status-badge ${
+                    isOverdue
+                      ? 'urgent'
+                      : isDue
+                      ? 'todo'
+                      : 'done'
+                  }`}
+                >
+                  {isOverdue
+                    ? 'Overdue'
+                    : isDue
+                    ? 'Due Today'
+                    : 'Upcoming'}
+                </span>
+              </div>
+
+              <div className="detail-description">
+                {job.description}
+              </div>
+
+              <div className="job-meta">
+                <span>
+                  📅 Due:{' '}
+                  {nextDate
+                    ? nextDate.toLocaleDateString()
+                    : 'Not set'}
+                </span>
+
+                <span>
+                  🔁 Every {job.frequencyInterval}{' '}
+                  {job.frequencyUnit}
+                  {Number(job.frequencyInterval) > 1
+                    ? 's'
+                    : ''}
+                </span>
+
+                {job.jobType === 'room' &&
+                  job.room_number && (
+                    <span>
+                      🛏 Room {job.room_number}
+                    </span>
+                  )}
+
+                {job.jobType === 'other' && (
+                  <span>🔧 Other Job</span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    )}
+  </div>
+)}
         <div className="dashboard-grid">
           <div
             className="category-card urgent"
