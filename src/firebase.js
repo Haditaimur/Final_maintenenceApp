@@ -34,10 +34,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // ✅ ADD: Anonymous auth so Storage rules can allow uploads
-const auth = getAuth(app);
-signInAnonymously(auth).catch((err) => {
-  console.error("Anonymous auth failed:", err);
-});
+export const auth = getAuth(app);
+
+export const authReady = auth.currentUser
+  ? Promise.resolve(auth.currentUser)
+  : signInAnonymously(auth).then((result) => result.user);
 
 export const db = getFirestore(app);
 export const storage = getStorage(app);
