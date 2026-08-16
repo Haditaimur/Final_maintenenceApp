@@ -829,7 +829,7 @@ function Dashboard({
   <div className="upcoming-scheduled-section">
     <div className="upcoming-scheduled-header">
       <div>
-        <h2>📅 Upcoming Scheduled Jobs</h2>
+        <h2>🗓️ Upcoming Scheduled Jobs</h2>
         <p>Planned recurring maintenance tasks</p>
       </div>
     </div>
