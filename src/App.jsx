@@ -686,7 +686,6 @@ const updateJobData = async (jobId, updates) => {
 
       {currentView === 'add-recurring-job' && userRole === 'manager' && (
         <AddRecurringJobForm
-          rooms={rooms}
           onBack={goToRecurringJobs}
           onSubmit={async (data) => {
             try {
@@ -767,7 +766,7 @@ function Dashboard({
   ).length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
 
-  const upcomingScheduledJobs = (recurringJobs || [])
+const activeScheduledJobs = (recurringJobs || [])
   .filter((job) => job.active)
   .sort((a, b) => {
     const aDate = new Date(a.nextRunAt || 0).getTime()
@@ -775,6 +774,32 @@ function Dashboard({
 
     return aDate - bDate
   })
+
+const today = new Date()
+today.setHours(0, 0, 0, 0)
+
+const overdueScheduledJobs = activeScheduledJobs.filter((job) => {
+  if (!job.nextRunAt) return false
+
+  const dueDate = new Date(job.nextRunAt)
+  dueDate.setHours(0, 0, 0, 0)
+
+  return dueDate < today
+})
+
+const upcomingScheduledJobs = activeScheduledJobs.filter((job) => {
+  if (!job.nextRunAt) return false
+
+  const dueDate = new Date(job.nextRunAt)
+  dueDate.setHours(0, 0, 0, 0)
+
+  return dueDate >= today
+})
+
+const dashboardScheduledJobs = [
+  ...overdueScheduledJobs,
+  ...upcomingScheduledJobs.slice(0, 3),
+]
 
   return (
     <>
@@ -834,7 +859,7 @@ function Dashboard({
       </div>
     </div>
 
-    {upcomingScheduledJobs.length === 0 ? (
+   {dashboardScheduledJobs.length === 0 ? (
       <div className="empty-state">
         <div className="empty-icon">📅</div>
         <div className="empty-title">
@@ -845,8 +870,16 @@ function Dashboard({
         </div>
       </div>
     ) : (
+    <>
       <div className="scheduled-jobs-list">
-        {upcomingScheduledJobs.map((job) => {
+       {dashboardScheduledJobs.map((job) => {
+        const locationLabel =
+
+    job.location ||
+
+    (job.room_number ? `Room ${job.room_number}` : null) ||
+
+    (job.jobType === 'other' ? 'Other Job' : null)
           const nextDate = job.nextRunAt
             ? new Date(job.nextRunAt)
             : null
@@ -903,7 +936,7 @@ function Dashboard({
 
               <div className="job-meta">
                 <span>
-                  📅 Due:{' '}
+                  🗓️ Due:{' '}
                   {nextDate
                     ? nextDate.toLocaleDateString()
                     : 'Not set'}
@@ -917,21 +950,29 @@ function Dashboard({
                     : ''}
                 </span>
 
-                {job.jobType === 'room' &&
-                  job.room_number && (
-                    <span>
-                      🛏 Room {job.room_number}
-                    </span>
-                  )}
-
-                {job.jobType === 'other' && (
-                  <span>🔧 Other Job</span>
-                )}
+                {locationLabel && (
+                <span>
+                  📍 {locationLabel}
+                </span>
+              )}
               </div>
             </div>
           )
         })}
       </div>
+      {activeScheduledJobs.length > dashboardScheduledJobs.length && (
+
+        <div className="scheduled-more-note">
+
+          {activeScheduledJobs.length - dashboardScheduledJobs.length}{' '}
+
+          more scheduled job(s)
+
+        </div>
+
+      )}
+
+    </>
     )}
   </div>
 )}
@@ -2596,6 +2637,12 @@ function RecurringJobsList({
             {recurringJobs.map((job) => {
               const room = getRoom(job.room_id)
 
+            const locationLabel =
+              job.location ||
+              (room ? `Room ${room.room_number}` : null) ||
+              (job.room_number ? `Room ${job.room_number}` : null) ||
+              (job.jobType === 'other' ? 'Other Job' : null)
+
               return (
                 <div
                   key={job.id}
@@ -2625,17 +2672,13 @@ function RecurringJobsList({
                     </span>
 
                     <span>
-                      📅 Next: {formatNextRun(job.nextRunAt)}
+                      🗓️ Next: {formatNextRun(job.nextRunAt)}
                     </span>
 
-                    {room && (
+                    {locationLabel && (
                       <span>
-                        🛏 Room {room.room_number}
+                        📍 {locationLabel}
                       </span>
-                    )}
-
-                    {!room && job.jobType === 'other' && (
-                      <span>🔧 Other Job</span>
                     )}
                   </div>
 
@@ -2672,39 +2715,28 @@ function RecurringJobsList({
 }
 
 function AddRecurringJobForm({
-  rooms,
   onBack,
   onSubmit,
 }) {
   const today = new Date().toISOString().split('T')[0]
 
   const [formData, setFormData] = useState({
-    jobType: 'room',
-    room_id: '',
-    room_number: '',
-    priority: 'To Do',
     title: '',
-    description: '',
-    frequencyUnit: 'month',
-    frequencyInterval: 1,
-    startDate: today,
-    nextRunAt: today,
-    active: true,
+
+  description: '',
+
+  location: '',
+
+  frequencyUnit: 'month',
+
+  frequencyInterval: 1,
+
+  startDate: today,
+
+  nextRunAt: today,
+
+  active: true,
   })
-
-  const handleRoomChange = (value) => {
-    const matchingRoom = rooms.find(
-      (room) =>
-        room.room_number.toLowerCase() ===
-        value.toLowerCase().trim()
-    )
-
-    setFormData((prev) => ({
-      ...prev,
-      room_number: value,
-      room_id: matchingRoom ? matchingRoom.id : '',
-    }))
-  }
 
   const handleScheduleChange = (value) => {
     const schedules = {
@@ -2787,34 +2819,11 @@ function AddRecurringJobForm({
       return
     }
 
-    if (formData.jobType === 'room') {
-      const matchingRoom = rooms.find(
-        (room) =>
-          room.room_number.toLowerCase() ===
-          formData.room_number.toLowerCase().trim()
-      )
-
-      if (!matchingRoom) {
-        window.alert('Please enter a valid room number.')
-        return
+   const finalData = {
+        ...formData,
+        location: formData.location.trim(),
+        nextRunAt: formData.startDate,
       }
-    }
-
-    const finalData = {
-      ...formData,
-
-      room_id:
-        formData.jobType === 'room'
-          ? formData.room_id
-          : null,
-
-      room_number:
-        formData.jobType === 'room'
-          ? formData.room_number
-          : null,
-
-      nextRunAt: formData.startDate,
-    }
 
     onSubmit(finalData)
   }
@@ -2841,81 +2850,6 @@ function AddRecurringJobForm({
         <h2>Add Recurring Job</h2>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">
-              Job Type *
-            </label>
-
-            <select
-              className="form-select"
-              value={formData.jobType}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  jobType: e.target.value,
-                  room_id:
-                    e.target.value === 'other'
-                      ? ''
-                      : prev.room_id,
-                  room_number:
-                    e.target.value === 'other'
-                      ? ''
-                      : prev.room_number,
-                }))
-              }
-            >
-              <option value="room">
-                Room-based Job
-              </option>
-
-              <option value="other">
-                Other (Non-room task)
-              </option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">
-              Priority *
-            </label>
-
-            <select
-              className="form-select"
-              value={formData.priority}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  priority: e.target.value,
-                }))
-              }
-            >
-              <option value="To Do">
-                To Do
-              </option>
-
-              <option value="Urgent">
-                Urgent
-              </option>
-            </select>
-          </div>
-
-          {formData.jobType === 'room' && (
-            <div className="form-group">
-              <label className="form-label">
-                Room Number *
-              </label>
-
-              <input
-                type="text"
-                className="form-input"
-                value={formData.room_number}
-                onChange={(e) =>
-                  handleRoomChange(e.target.value)
-                }
-                placeholder="e.g. 5, 21, 2b"
-              />
-            </div>
-          )}
 
           <div className="form-group">
             <label className="form-label">
@@ -2953,6 +2887,25 @@ function AddRecurringJobForm({
               placeholder="Describe the maintenance task..."
             />
           </div>
+
+          <div className="form-group">
+              <label className="form-label">
+                Location / Room (Optional)
+              </label>
+            
+              <input
+                type="text"
+                className="form-input"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    location: e.target.value,
+                  }))
+                }
+                placeholder="e.g. Room 6, Basement, Kitchen, All Rooms"
+              />
+            </div>
 
           <div className="form-group">
             <label className="form-label">
