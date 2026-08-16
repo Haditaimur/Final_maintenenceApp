@@ -8,6 +8,12 @@ import {
   deleteJobInDb,
   deleteMultipleJobsInDb,
 } from './Jobsservice'
+import {
+  subscribeToRecurringJobs,
+  createRecurringJob,
+  updateRecurringJob,
+  deleteRecurringJob,
+} from './RecurringJobsService'
 
 // Data
 const initialRooms = [
@@ -171,6 +177,7 @@ if (currentVersion !== APP_VERSION) {
 
 // Main App Component
 function HotelMaintenanceApp() {
+  const [recurringJobs, setRecurringJobs] = useState([])
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
   const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
@@ -217,6 +224,14 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
 
     return () => unsubscribe()
   }, [hotelId])
+
+  useEffect(() => {
+  const unsubscribe = subscribeToRecurringJobs(hotelId, (items) => {
+    setRecurringJobs(items)
+  })
+
+  return () => unsubscribe()
+}, [hotelId])
 
   const selectRole = (role) => {
     if (role === 'manager') {
@@ -784,6 +799,27 @@ function Dashboard({
             <div className="category-count">{doneCount}</div>
             <div className="category-subtitle">Completed tasks</div>
           </div>
+          {role === 'manager' && (
+  <div
+    className="category-card recurring"
+    onClick={() => setCurrentView('recurringJobs')}
+  >
+    <div className="category-header">
+      <div className="category-title">
+        <div className="category-icon">🔁</div>
+        Recurring Jobs
+      </div>
+    </div>
+
+    <div className="category-count">
+      {recurringJobs.filter((job) => job.active).length}
+    </div>
+
+    <div className="category-subtitle">
+      Scheduled recurring maintenance
+    </div>
+  </div>
+)}
         </div>
       </div>
 
