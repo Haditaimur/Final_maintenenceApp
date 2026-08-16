@@ -1660,3 +1660,10 @@ html {
   flex-wrap: wrap;
   gap: 10px 16px;
 }
+
+.scheduled-more-note {
+  margin-top: 14px;
+  text-align: center;
+  color: #64748b;
+  font-size: 0.95rem;
+}
