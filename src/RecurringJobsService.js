@@ -1,4 +1,4 @@
-import { db } from './firebase'
+import { db, authReady } from './firebase'
 
 import {
   collection,
@@ -15,53 +15,67 @@ import {
 const COLLECTION_NAME = 'recurringJobs'
 
 export const subscribeToRecurringJobs = (hotelId = 'athena', callback) => {
-  const recurringRef = collection(db, COLLECTION_NAME)
+  let unsubscribe = () => {}
 
-  const q = query(
-    recurringRef,
-    where('hotelId', '==', hotelId)
-  )
+  authReady
+    .then(() => {
+      const recurringRef = collection(db, COLLECTION_NAME)
 
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const recurringJobs = []
+      const q = query(
+        recurringRef,
+        where('hotelId', '==', hotelId)
+      )
 
-      snapshot.forEach((snap) => {
-        const data = snap.data()
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const recurringJobs = []
 
-        recurringJobs.push({
-          id: snap.id,
-          ...data,
-          nextRunAt:
-            data.nextRunAt?.toDate?.()?.toISOString?.() ||
-            data.nextRunAt ||
-            null,
-          created_at:
-            data.created_at?.toDate?.()?.toISOString?.() ||
-            data.created_at ||
-            null,
-          updated_at:
-            data.updated_at?.toDate?.()?.toISOString?.() ||
-            data.updated_at ||
-            null,
-        })
-      })
+          snapshot.forEach((snap) => {
+            const data = snap.data()
 
-      recurringJobs.sort((a, b) => {
-        return (
-          new Date(a.nextRunAt || 0).getTime() -
-          new Date(b.nextRunAt || 0).getTime()
-        )
-      })
+            recurringJobs.push({
+              id: snap.id,
+              ...data,
+              nextRunAt:
+                data.nextRunAt?.toDate?.()?.toISOString?.() ||
+                data.nextRunAt ||
+                null,
+              created_at:
+                data.created_at?.toDate?.()?.toISOString?.() ||
+                data.created_at ||
+                null,
+              updated_at:
+                data.updated_at?.toDate?.()?.toISOString?.() ||
+                data.updated_at ||
+                null,
+            })
+          })
 
-      callback(recurringJobs)
-    },
-    (error) => {
-      console.error('Error fetching recurring jobs:', error)
+          recurringJobs.sort((a, b) => {
+            return (
+              new Date(a.nextRunAt || 0).getTime() -
+              new Date(b.nextRunAt || 0).getTime()
+            )
+          })
+
+          callback(recurringJobs)
+        },
+        (error) => {
+          console.error('Error fetching recurring jobs:', error)
+          callback([])
+        }
+      )
+    })
+    .catch((error) => {
+      console.error(
+        'Authentication failed before recurring jobs subscription:',
+        error
+      )
       callback([])
-    }
-  )
+    })
+
+  return () => unsubscribe()
 }
 
 export const createRecurringJob = async (data) => {
