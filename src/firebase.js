@@ -1,4 +1,5 @@
 // src/firebase.js
+// staging environment test
 import { initializeApp } from "firebase/app";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
