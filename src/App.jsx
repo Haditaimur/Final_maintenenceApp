@@ -338,6 +338,14 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
     setCurrentView('add-job')
   }
 
+  const addNewRecurringJob = () => {
+  setCurrentView('add-recurring-job')
+}
+
+const goToRecurringJobs = () => {
+  setCurrentView('recurringJobs')
+}
+
   // Firebase-based createJob with timestamps and original_status
   const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
@@ -535,7 +543,7 @@ const updateJobData = async (jobId, updates) => {
             
               onViewCategory={viewCategory}
             
-              onViewRecurringJobs={() => setCurrentView('recurringJobs')}
+              onViewRecurringJobs={goToRecurringJobs}
             
               onAddJob={addNewJob}
             
@@ -548,6 +556,17 @@ const updateJobData = async (jobId, updates) => {
               setShowUserMenu={setShowUserMenu}
         />
       )}
+
+      {currentView === 'recurringJobs' && userRole === 'manager' && (
+          <RecurringJobsList
+            recurringJobs={recurringJobs}
+            rooms={rooms}
+            onBack={goToDashboard}
+            onAdd={addNewRecurringJob}
+            onUpdate={updateRecurringJob}
+            onDelete={deleteRecurringJob}
+          />
+        )}
 
       {currentView === 'urgent-list' && (
         <UrgentJobsList
@@ -2308,6 +2327,198 @@ function CompletedJobsList({
                     {photoSrc && (
                       <span className="job-photo-indicator">📷 Photo</span>
                     )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+function RecurringJobsList({
+  recurringJobs,
+  rooms,
+  onBack,
+  onAdd,
+  onUpdate,
+  onDelete,
+}) {
+  const getRoom = (roomId) => {
+    return rooms.find((room) => room.id === roomId)
+  }
+
+  const formatFrequency = (job) => {
+    const interval = Number(job.frequencyInterval || 1)
+    const unit = job.frequencyUnit || 'month'
+
+    const unitLabel =
+      interval === 1
+        ? unit
+        : `${unit}s`
+
+    return `Every ${interval} ${unitLabel}`
+  }
+
+  const formatNextRun = (value) => {
+    if (!value) return 'Not scheduled'
+
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+      return 'Invalid date'
+    }
+
+    return date.toLocaleDateString()
+  }
+
+  const handleToggleActive = async (job) => {
+    try {
+      await onUpdate(job.id, {
+        active: !job.active,
+      })
+    } catch (error) {
+      console.error('Could not update recurring job:', error)
+      window.alert('Could not update recurring job.')
+    }
+  }
+
+  const handleDelete = async (job) => {
+    const confirmed = window.confirm(
+      `Delete recurring job "${job.title}"?`
+    )
+
+    if (!confirmed) return
+
+    try {
+      await onDelete(job.id)
+    } catch (error) {
+      console.error('Could not delete recurring job:', error)
+      window.alert('Could not delete recurring job.')
+    }
+  }
+
+  return (
+    <>
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+
+        <h1 className="app-title" onClick={onBack}>
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-list fade-in">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0 }}>Recurring Jobs</h2>
+            <p style={{ marginTop: '0.4rem', color: '#64748b' }}>
+              Manage automatically scheduled maintenance
+            </p>
+          </div>
+
+          <button
+            className="form-submit"
+            onClick={onAdd}
+            style={{ width: 'auto' }}
+          >
+            + Add Recurring Job
+          </button>
+        </div>
+
+        {recurringJobs.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔁</div>
+
+            <div className="empty-title">
+              No Recurring Jobs
+            </div>
+
+            <div className="empty-message">
+              Add maintenance tasks that should repeat automatically.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {recurringJobs.map((job) => {
+              const room = getRoom(job.room_id)
+
+              return (
+                <div
+                  key={job.id}
+                  className="job-card"
+                >
+                  <div className="job-header">
+                    <div className="job-title">
+                      {job.title}
+                    </div>
+
+                    <span
+                      className={`job-status-badge ${
+                        job.active ? 'todo' : 'done'
+                      }`}
+                    >
+                      {job.active ? 'Active' : 'Paused'}
+                    </span>
+                  </div>
+
+                  <div className="detail-description">
+                    {job.description}
+                  </div>
+
+                  <div className="job-meta">
+                    <span>
+                      🔁 {formatFrequency(job)}
+                    </span>
+
+                    <span>
+                      📅 Next: {formatNextRun(job.nextRunAt)}
+                    </span>
+
+                    {room && (
+                      <span>
+                        🛏 Room {room.room_number}
+                      </span>
+                    )}
+
+                    {!room && job.jobType === 'other' && (
+                      <span>🔧 Other Job</span>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      marginTop: '1rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleToggleActive(job)}
+                    >
+                      {job.active ? '⏸ Pause' : '▶ Resume'}
+                    </button>
+
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDelete(job)}
+                    >
+                      🗑 Delete
+                    </button>
                   </div>
                 </div>
               )
