@@ -798,7 +798,7 @@ const upcomingScheduledJobs = activeScheduledJobs.filter((job) => {
 
 const dashboardScheduledJobs = [
   ...overdueScheduledJobs,
-  ...upcomingScheduledJobs.slice(0, 3),
+  ...upcomingScheduledJobs.slice(0, 1),
 ]
 
   return (
