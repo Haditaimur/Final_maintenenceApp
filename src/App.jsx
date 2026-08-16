@@ -346,6 +346,8 @@ const goToRecurringJobs = () => {
   setCurrentView('recurringJobs')
 }
 
+  
+
   // Firebase-based createJob with timestamps and original_status
   const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
@@ -679,6 +681,26 @@ const updateJobData = async (jobId, updates) => {
           onSubmit={updateJobData}
           goToDashboard={goToDashboard}
           isUpdating={isUpdating}
+        />
+      )}
+
+      {currentView === 'add-recurring-job' && userRole === 'manager' && (
+        <AddRecurringJobForm
+          rooms={rooms}
+          onBack={goToRecurringJobs}
+          onSubmit={async (data) => {
+            try {
+              await createRecurringJob({
+                ...data,
+                hotelId,
+              })
+      
+              setCurrentView('recurringJobs')
+            } catch (error) {
+              console.error('Could not create recurring job:', error)
+              window.alert('Could not create recurring job.')
+            }
+          }}
         />
       )}
     </div>
@@ -2525,6 +2547,355 @@ function RecurringJobsList({
             })}
           </div>
         )}
+      </div>
+    </>
+  )
+}
+
+function AddRecurringJobForm({
+  rooms,
+  onBack,
+  onSubmit,
+}) {
+  const today = new Date().toISOString().split('T')[0]
+
+  const [formData, setFormData] = useState({
+    jobType: 'room',
+    room_id: '',
+    room_number: '',
+    priority: 'To Do',
+    title: '',
+    description: '',
+    frequencyUnit: 'month',
+    frequencyInterval: 1,
+    startDate: today,
+    nextRunAt: today,
+    active: true,
+  })
+
+  const handleRoomChange = (value) => {
+    const matchingRoom = rooms.find(
+      (room) =>
+        room.room_number.toLowerCase() ===
+        value.toLowerCase().trim()
+    )
+
+    setFormData((prev) => ({
+      ...prev,
+      room_number: value,
+      room_id: matchingRoom ? matchingRoom.id : '',
+    }))
+  }
+
+  const handleScheduleChange = (value) => {
+    const schedules = {
+      weekly: {
+        frequencyUnit: 'week',
+        frequencyInterval: 1,
+      },
+      monthly: {
+        frequencyUnit: 'month',
+        frequencyInterval: 1,
+      },
+      quarterly: {
+        frequencyUnit: 'month',
+        frequencyInterval: 3,
+      },
+      sixMonths: {
+        frequencyUnit: 'month',
+        frequencyInterval: 6,
+      },
+      yearly: {
+        frequencyUnit: 'month',
+        frequencyInterval: 12,
+      },
+    }
+
+    const selected = schedules[value]
+
+    setFormData((prev) => ({
+      ...prev,
+      frequencyUnit: selected.frequencyUnit,
+      frequencyInterval: selected.frequencyInterval,
+    }))
+  }
+
+  const getScheduleValue = () => {
+    if (
+      formData.frequencyUnit === 'week' &&
+      formData.frequencyInterval === 1
+    ) {
+      return 'weekly'
+    }
+
+    if (
+      formData.frequencyUnit === 'month' &&
+      formData.frequencyInterval === 1
+    ) {
+      return 'monthly'
+    }
+
+    if (formData.frequencyInterval === 3) {
+      return 'quarterly'
+    }
+
+    if (formData.frequencyInterval === 6) {
+      return 'sixMonths'
+    }
+
+    if (formData.frequencyInterval === 12) {
+      return 'yearly'
+    }
+
+    return 'monthly'
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+
+    if (!formData.title.trim()) {
+      window.alert('Please enter a job title.')
+      return
+    }
+
+    if (!formData.description.trim()) {
+      window.alert('Please enter a description.')
+      return
+    }
+
+    if (!formData.startDate) {
+      window.alert('Please select the first due date.')
+      return
+    }
+
+    if (formData.jobType === 'room') {
+      const matchingRoom = rooms.find(
+        (room) =>
+          room.room_number.toLowerCase() ===
+          formData.room_number.toLowerCase().trim()
+      )
+
+      if (!matchingRoom) {
+        window.alert('Please enter a valid room number.')
+        return
+      }
+    }
+
+    const finalData = {
+      ...formData,
+
+      room_id:
+        formData.jobType === 'room'
+          ? formData.room_id
+          : null,
+
+      room_number:
+        formData.jobType === 'room'
+          ? formData.room_number
+          : null,
+
+      nextRunAt: formData.startDate,
+    }
+
+    onSubmit(finalData)
+  }
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Cancel
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={onBack}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="form-container fade-in">
+        <h2>Add Recurring Job</h2>
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label className="form-label">
+              Job Type *
+            </label>
+
+            <select
+              className="form-select"
+              value={formData.jobType}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  jobType: e.target.value,
+                  room_id:
+                    e.target.value === 'other'
+                      ? ''
+                      : prev.room_id,
+                  room_number:
+                    e.target.value === 'other'
+                      ? ''
+                      : prev.room_number,
+                }))
+              }
+            >
+              <option value="room">
+                Room-based Job
+              </option>
+
+              <option value="other">
+                Other (Non-room task)
+              </option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Priority *
+            </label>
+
+            <select
+              className="form-select"
+              value={formData.priority}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  priority: e.target.value,
+                }))
+              }
+            >
+              <option value="To Do">
+                To Do
+              </option>
+
+              <option value="Urgent">
+                Urgent
+              </option>
+            </select>
+          </div>
+
+          {formData.jobType === 'room' && (
+            <div className="form-group">
+              <label className="form-label">
+                Room Number *
+              </label>
+
+              <input
+                type="text"
+                className="form-input"
+                value={formData.room_number}
+                onChange={(e) =>
+                  handleRoomChange(e.target.value)
+                }
+                placeholder="e.g. 5, 21, 2b"
+              />
+            </div>
+          )}
+
+          <div className="form-group">
+            <label className="form-label">
+              Title *
+            </label>
+
+            <input
+              type="text"
+              className="form-input"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  title: e.target.value,
+                }))
+              }
+              placeholder="e.g. Test fire alarm"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Description *
+            </label>
+
+            <textarea
+              className="form-textarea"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              placeholder="Describe the maintenance task..."
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Repeat *
+            </label>
+
+            <select
+              className="form-select"
+              value={getScheduleValue()}
+              onChange={(e) =>
+                handleScheduleChange(e.target.value)
+              }
+            >
+              <option value="weekly">
+                Every week
+              </option>
+
+              <option value="monthly">
+                Every month
+              </option>
+
+              <option value="quarterly">
+                Every 3 months
+              </option>
+
+              <option value="sixMonths">
+                Every 6 months
+              </option>
+
+              <option value="yearly">
+                Every 12 months
+              </option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              First Due Date *
+            </label>
+
+            <input
+              type="date"
+              className="form-input"
+              min={today}
+              value={formData.startDate}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  startDate: e.target.value,
+                  nextRunAt: e.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="form-submit"
+          >
+            Create Recurring Job
+          </button>
+        </form>
       </div>
     </>
   )
