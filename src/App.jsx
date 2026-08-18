@@ -3738,6 +3738,8 @@ function ScheduledJobDetail({
   onBack,
   goToDashboard,
 }) {
+  const [actionType, setActionType] = useState('')
+  const [note, setNote] = useState('')
   const locationLabel =
     job.location ||
     (job.room_number ? `Room ${job.room_number}` : null) ||
@@ -3842,6 +3844,118 @@ function ScheduledJobDetail({
           </div>
         </div>
       </div>
+
+      <div className="detail-actions">
+
+    <button
+
+      className={`action-btn ${
+
+        actionType === 'completed' ? 'primary' : 'secondary'
+
+      }`}
+
+      onClick={() => setActionType('completed')}
+
+    >
+
+      ✓ Completed
+
+    </button>
+
+    <button
+
+      className={`action-btn ${
+
+        actionType === 'problem' ? 'danger' : 'secondary'
+
+      }`}
+
+      onClick={() => setActionType('problem')}
+
+    >
+
+      ⚠ Problem Found
+
+    </button>
+
+  </div>
+
+  {actionType && (
+
+    <div className="detail-card" style={{ marginTop: '1rem' }}>
+
+      <div className="form-group">
+
+        <label className="form-label">
+
+          {actionType === 'problem'
+
+            ? 'Describe the problem *'
+
+            : 'Completion note (Optional)'}
+
+        </label>
+
+        <textarea
+
+          className="form-textarea"
+
+          value={note}
+
+          onChange={(e) => setNote(e.target.value)}
+
+          placeholder={
+
+            actionType === 'problem'
+
+              ? 'Describe what is wrong or why the task could not be completed...'
+
+              : 'e.g. Checked all bulbs, replaced two faulty bulbs...'
+
+          }
+
+        />
+
+      </div>
+
+      <button
+
+        className="form-submit"
+
+        onClick={() => {
+
+          if (actionType === 'problem' && !note.trim()) {
+
+            window.alert('Please describe the problem.')
+
+            return
+
+          }
+
+          window.alert(
+
+            actionType === 'completed'
+
+              ? 'Completion action ready for saving.'
+
+              : 'Problem report ready for saving.'
+
+          )
+
+        }}
+
+      >
+
+        {actionType === 'completed'
+
+          ? 'Submit Completion'
+
+          : 'Submit Problem Report'}
+
+      </button>
+
+    </div>
     </>
   )
 }
