@@ -2701,6 +2701,47 @@ function RecurringJobsList({
               (job.room_number ? `Room ${job.room_number}` : null) ||
               (job.jobType === 'other' ? 'Other Job' : null)
 
+            const nextDate = job.nextRunAt
+                ? new Date(job.nextRunAt)
+                : null
+              
+              const today = new Date()
+              today.setHours(0, 0, 0, 0)
+              
+              const dueDate = nextDate
+                ? new Date(nextDate)
+                : null
+              
+              if (dueDate) {
+                dueDate.setHours(0, 0, 0, 0)
+              }
+              
+              const isDue =
+                job.active &&
+                dueDate &&
+                dueDate.getTime() === today.getTime()
+              
+              const isOverdue =
+                job.active &&
+                dueDate &&
+                dueDate.getTime() < today.getTime()
+              
+              const scheduleStatus = !job.active
+                ? 'Paused'
+                : isOverdue
+                ? 'Overdue'
+                : isDue
+                ? 'Due Today'
+                : 'Upcoming'
+              
+              const scheduleStatusClass = !job.active
+                ? 'done'
+                : isOverdue
+                ? 'urgent'
+                : isDue
+                ? 'todo'
+                : 'done'
+
               return (
                 <div
                   key={job.id}
@@ -2713,13 +2754,29 @@ function RecurringJobsList({
                       {job.title}
                     </div>
 
-                    <span
-                      className={`job-status-badge ${
-                        job.active ? 'todo' : 'done'
-                      }`}
-                    >
-                      {job.active ? 'Active' : 'Paused'}
-                    </span>
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span
+                          className={`job-status-badge ${
+                            job.active ? 'todo' : 'done'
+                          }`}
+                        >
+                          {job.active ? 'Active' : 'Paused'}
+                        </span>
+                      
+                        {job.active && (
+                          <span
+                            className={`job-status-badge ${scheduleStatusClass}`}
+                          >
+                            {scheduleStatus}
+                          </span>
+                        )}
+                      </div>
                   </div>
 
                   <div className="detail-description">
