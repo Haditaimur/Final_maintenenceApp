@@ -602,6 +602,7 @@ const updateJobData = async (jobId, updates) => {
               <ScheduledJobDetail
                 job={selectedScheduledJob}
                 onBack={goToHandymanScheduledJobs}
+                onUpdate={updateRecurringJob}
                 goToDashboard={goToDashboard}
               />
             )}
@@ -3736,10 +3737,86 @@ function HandymanScheduledJobsList({
 function ScheduledJobDetail({
   job,
   onBack,
+  onUpdate,
   goToDashboard,
 }) {
   const [actionType, setActionType] = useState('')
   const [note, setNote] = useState('')
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+const calculateNextDueDate = (currentDate, interval, unit) => {
+  const date = new Date(currentDate)
+
+  if (unit === 'week') {
+    date.setDate(date.getDate() + Number(interval))
+  } else if (unit === 'month') {
+    date.setMonth(date.getMonth() + Number(interval))
+  } else if (unit === 'year') {
+    date.setFullYear(date.getFullYear() + Number(interval))
+  }
+
+  return date.toISOString().split('T')[0]
+}
+
+const handleScheduledJobSubmit = async () => {
+  if (actionType === 'problem' && !note.trim()) {
+    window.alert('Please describe the problem.')
+    return
+  }
+
+  setIsSubmitting(true)
+
+  try {
+    const now = new Date().toISOString()
+
+    if (actionType === 'completed') {
+      const nextRunAt = calculateNextDueDate(
+        job.nextRunAt,
+        job.frequencyInterval,
+        job.frequencyUnit
+      )
+
+      await onUpdate(job.id, {
+        lastResult: 'completed',
+        lastNote: note.trim(),
+        lastActionAt: now,
+        lastCompletedAt: now,
+        nextRunAt,
+      })
+
+      window.alert(
+        `Task completed. Next due date: ${new Date(
+          nextRunAt
+        ).toLocaleDateString()}`
+      )
+
+      setActionType(null)
+      setNote('')
+      onBack()
+    }
+
+    if (actionType === 'problem') {
+      await onUpdate(job.id, {
+        lastResult: 'problem',
+        lastNote: note.trim(),
+        lastActionAt: now,
+        lastProblemAt: now,
+      })
+
+      window.alert('Problem report saved.')
+
+      setActionType(null)
+      setNote('')
+      onBack()
+    }
+  } catch (error) {
+    console.error('Could not save scheduled job action:', error)
+    window.alert('Could not save. Please try again.')
+  } finally {
+    setIsSubmitting(false)
+  }
+}
   const locationLabel =
     job.location ||
     (job.room_number ? `Room ${job.room_number}` : null) ||
@@ -3893,29 +3970,18 @@ function ScheduledJobDetail({
       </div>
 
       <button
-        className="form-submit"
-        onClick={() => {
-          if (
-            actionType === 'problem' &&
-            !note.trim()
-          ) {
-            window.alert(
-              'Please describe the problem.'
-            )
-            return
-          }
-
-          window.alert(
-            actionType === 'completed'
-              ? 'Completion action ready for saving.'
-              : 'Problem report ready for saving.'
-          )
-        }}
-      >
-        {actionType === 'completed'
-          ? 'Submit Completion'
-          : 'Submit Problem Report'}
-      </button>
+  className={`form-submit ${
+    isSubmitting ? 'loading' : ''
+  }`}
+  onClick={handleScheduledJobSubmit}
+  disabled={isSubmitting}
+>
+  {isSubmitting
+    ? 'Saving...'
+    : actionType === 'completed'
+    ? 'Submit Completion'
+    : 'Submit Problem Report'}
+</button>
     </div>
   )}
 </div>
