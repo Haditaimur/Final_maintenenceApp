@@ -825,6 +825,20 @@ function Dashboard({
   ).length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
 
+  const recurringJobUpdates = (recurringJobs || [])
+  .filter((job) => job.lastResult && job.lastActionAt)
+  .sort((a, b) => {
+    return (
+      new Date(b.lastActionAt).getTime() -
+      new Date(a.lastActionAt).getTime()
+    )
+  })
+
+const latestRecurringUpdate =
+  recurringJobUpdates.length > 0
+    ? recurringJobUpdates[0]
+    : null
+
 const activeScheduledJobs = (recurringJobs || [])
   .filter((job) => job.active)
   .sort((a, b) => {
@@ -909,6 +923,38 @@ const dashboardScheduledJobs = [
       </div>
 
       <div className="dashboard fade-in">
+        {role === 'manager' &&
+  latestRecurringUpdate && (
+    <div className="manager-scheduled-alert">
+      <div className="manager-scheduled-alert-title">
+        {latestRecurringUpdate.lastResult ===
+        'completed'
+          ? '✅ Scheduled Task Completed'
+          : '⚠️ Problem Reported'}
+      </div>
+
+      <div className="manager-scheduled-alert-job">
+        {latestRecurringUpdate.title}
+      </div>
+
+      {latestRecurringUpdate.lastNote && (
+        <div className="manager-scheduled-alert-note">
+          📝 {latestRecurringUpdate.lastNote}
+        </div>
+      )}
+
+      {latestRecurringUpdate.lastResult ===
+        'completed' &&
+        latestRecurringUpdate.nextRunAt && (
+          <div className="manager-scheduled-alert-date">
+            🗓️ Next due:{' '}
+            {new Date(
+              latestRecurringUpdate.nextRunAt
+            ).toLocaleDateString()}
+          </div>
+        )}
+    </div>
+  )}
         {role === 'handyman' && (
   <div className="upcoming-scheduled-section">
     <div className="upcoming-scheduled-header">
@@ -1015,6 +1061,40 @@ const dashboardScheduledJobs = [
                 </span>
               )}
               </div>
+              {job.lastResult && (
+  <div className="scheduled-result-box">
+    <div>
+      <strong>
+        {job.lastResult === 'completed'
+          ? '✅ Last Task Completed'
+          : '⚠️ Problem Reported'}
+      </strong>
+    </div>
+
+    {job.lastActionAt && (
+      <div>
+        🕒{' '}
+        {new Date(job.lastActionAt).toLocaleString()}
+      </div>
+    )}
+
+    {job.lastNote && (
+      <div>
+        📝 Handyman note: {job.lastNote}
+      </div>
+    )}
+
+    {job.lastResult === 'completed' &&
+      job.nextRunAt && (
+        <div>
+          🗓️ New next due date:{' '}
+          {new Date(
+            job.nextRunAt
+          ).toLocaleDateString()}
+        </div>
+      )}
+  </div>
+)}
             </div>
           )
         })}
