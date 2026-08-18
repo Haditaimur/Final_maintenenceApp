@@ -3806,156 +3806,119 @@ function ScheduledJobDetail({
         </h1>
       </div>
 
-      <div className="job-detail fade-in">
-        <div className="detail-card">
-          <div className="detail-header">
-            <div className="detail-title">
-              {job.title}
-            </div>
-
-            <span
-              className={`job-status-badge ${statusClass}`}
-            >
-              {statusLabel}
-            </span>
-          </div>
-
-          <div className="detail-description">
-            {job.description}
-          </div>
-
-          <div className="detail-meta">
-            {locationLabel && (
-              <div>
-                📍 Location: {locationLabel}
-              </div>
-            )}
-
-            <div>
-              🗓️ Due:{' '}
-              {nextDate
-                ? nextDate.toLocaleDateString()
-                : 'Not set'}
-            </div>
-
-            <div>
-              🔁 Repeat: {frequencyLabel}
-            </div>
-          </div>
-        </div>
+<div className="job-detail fade-in">
+  <div className="detail-card">
+    <div className="detail-header">
+      <div className="detail-title">
+        {job.title}
       </div>
 
-      <div className="detail-actions">
+      <span
+        className={`job-status-badge ${statusClass}`}
+      >
+        {statusLabel}
+      </span>
+    </div>
 
+    <div className="detail-description">
+      {job.description}
+    </div>
+
+    <div className="detail-meta">
+      {locationLabel && (
+        <div>
+          📍 Location: {locationLabel}
+        </div>
+      )}
+
+      <div>
+        🗓️ Due:{' '}
+        {nextDate
+          ? nextDate.toLocaleDateString()
+          : 'Not set'}
+      </div>
+
+      <div>
+        🔁 Repeat: {frequencyLabel}
+      </div>
+    </div>
+  </div>
+
+  <div className="detail-actions">
     <button
-
       className={`action-btn ${
-
-        actionType === 'completed' ? 'primary' : 'secondary'
-
+        actionType === 'completed'
+          ? 'primary'
+          : 'secondary'
       }`}
-
       onClick={() => setActionType('completed')}
-
     >
-
       ✓ Completed
-
     </button>
 
     <button
-
       className={`action-btn ${
-
-        actionType === 'problem' ? 'danger' : 'secondary'
-
+        actionType === 'problem'
+          ? 'danger'
+          : 'secondary'
       }`}
-
       onClick={() => setActionType('problem')}
-
     >
-
       ⚠ Problem Found
-
     </button>
-
   </div>
 
   {actionType && (
-
-    <div className="detail-card" style={{ marginTop: '1rem' }}>
-
+    <div
+      className="detail-card"
+      style={{ marginTop: '1rem' }}
+    >
       <div className="form-group">
-
         <label className="form-label">
-
           {actionType === 'problem'
-
             ? 'Describe the problem *'
-
             : 'Completion note (Optional)'}
-
         </label>
 
         <textarea
-
           className="form-textarea"
-
           value={note}
-
           onChange={(e) => setNote(e.target.value)}
-
           placeholder={
-
             actionType === 'problem'
-
               ? 'Describe what is wrong or why the task could not be completed...'
-
               : 'e.g. Checked all bulbs, replaced two faulty bulbs...'
-
           }
-
         />
-
       </div>
 
       <button
-
         className="form-submit"
-
         onClick={() => {
-
-          if (actionType === 'problem' && !note.trim()) {
-
-            window.alert('Please describe the problem.')
-
+          if (
+            actionType === 'problem' &&
+            !note.trim()
+          ) {
+            window.alert(
+              'Please describe the problem.'
+            )
             return
-
           }
 
           window.alert(
-
             actionType === 'completed'
-
               ? 'Completion action ready for saving.'
-
               : 'Problem report ready for saving.'
-
           )
-
         }}
-
       >
-
         {actionType === 'completed'
-
           ? 'Submit Completion'
-
           : 'Submit Problem Report'}
-
       </button>
-
     </div>
+  )}
+</div>
     </>
   )
 }
