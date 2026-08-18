@@ -204,6 +204,7 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [selectedRecurringJob, setSelectedRecurringJob] = useState(null)
+  const [selectedScheduledJob, setSelectedScheduledJob] = useState(null)
   const editRecurringJob = (job) => {
   setSelectedRecurringJob(job)
   setCurrentView('edit-recurring-job')
@@ -353,6 +354,11 @@ const goToRecurringJobs = () => {
 
   const goToHandymanScheduledJobs = () => {
   setCurrentView('handyman-scheduled-jobs')
+}
+
+  const viewScheduledJobDetail = (job) => {
+  setSelectedScheduledJob(job)
+  setCurrentView('scheduled-job-detail')
 }
   
 
@@ -586,8 +592,19 @@ const updateJobData = async (jobId, updates) => {
             <HandymanScheduledJobsList
               recurringJobs={recurringJobs}
               onBack={goToDashboard}
+              onViewJob={viewScheduledJobDetail}
             />
           )}
+
+      {currentView === 'scheduled-job-detail' &&
+            userRole === 'handyman' &&
+            selectedScheduledJob && (
+              <ScheduledJobDetail
+                job={selectedScheduledJob}
+                onBack={goToHandymanScheduledJobs}
+                goToDashboard={goToDashboard}
+              />
+            )}
 
       {currentView === 'urgent-list' && (
         <UrgentJobsList
@@ -2528,6 +2545,7 @@ function CompletedJobsList({
                   key={job.id}
                   className="job-card"
                   onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
@@ -2687,6 +2705,8 @@ function RecurringJobsList({
                 <div
                   key={job.id}
                   className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
@@ -3499,6 +3519,7 @@ function EditRecurringJobForm({
 function HandymanScheduledJobsList({
   recurringJobs,
   onBack,
+  onViewJob,
 }) {
   const activeJobs = (recurringJobs || [])
     .filter((job) => job.active)
@@ -3594,6 +3615,8 @@ function HandymanScheduledJobsList({
                 <div
                   key={job.id}
                   className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
@@ -3648,6 +3671,119 @@ function HandymanScheduledJobsList({
             })}
           </div>
         )}
+      </div>
+    </>
+  )
+}
+
+function ScheduledJobDetail({
+  job,
+  onBack,
+  goToDashboard,
+}) {
+  const locationLabel =
+    job.location ||
+    (job.room_number ? `Room ${job.room_number}` : null) ||
+    (job.jobType === 'other' ? 'Other Job' : null)
+
+  const nextDate = job.nextRunAt
+    ? new Date(job.nextRunAt)
+    : null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const dueDate = nextDate
+    ? new Date(nextDate)
+    : null
+
+  if (dueDate) {
+    dueDate.setHours(0, 0, 0, 0)
+  }
+
+  const isDue =
+    dueDate &&
+    dueDate.getTime() === today.getTime()
+
+  const isOverdue =
+    dueDate &&
+    dueDate.getTime() < today.getTime()
+
+  const statusLabel = isOverdue
+    ? 'Overdue'
+    : isDue
+    ? 'Due Today'
+    : 'Upcoming'
+
+  const statusClass = isOverdue
+    ? 'urgent'
+    : isDue
+    ? 'todo'
+    : 'done'
+
+  const interval = Number(job.frequencyInterval || 1)
+  const unit = job.frequencyUnit || 'month'
+
+  const frequencyLabel =
+    interval === 1
+      ? `Every ${unit}`
+      : `Every ${interval} ${unit}s`
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={goToDashboard}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-detail fade-in">
+        <div className="detail-card">
+          <div className="detail-header">
+            <div className="detail-title">
+              {job.title}
+            </div>
+
+            <span
+              className={`job-status-badge ${statusClass}`}
+            >
+              {statusLabel}
+            </span>
+          </div>
+
+          <div className="detail-description">
+            {job.description}
+          </div>
+
+          <div className="detail-meta">
+            {locationLabel && (
+              <div>
+                📍 Location: {locationLabel}
+              </div>
+            )}
+
+            <div>
+              🗓️ Due:{' '}
+              {nextDate
+                ? nextDate.toLocaleDateString()
+                : 'Not set'}
+            </div>
+
+            <div>
+              🔁 Repeat: {frequencyLabel}
+            </div>
+          </div>
+        </div>
       </div>
     </>
   )
