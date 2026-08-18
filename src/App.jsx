@@ -708,6 +708,26 @@ const updateJobData = async (jobId, updates) => {
           }}
         />
       )}
+
+      {currentView === 'edit-recurring-job' &&
+        userRole === 'manager' &&
+        selectedRecurringJob && (
+          <EditRecurringJobForm
+            job={selectedRecurringJob}
+            onBack={goToRecurringJobs}
+            onSubmit={async (jobId, updates) => {
+              try {
+                await updateRecurringJob(jobId, updates)
+      
+                setSelectedRecurringJob(null)
+                setCurrentView('recurringJobs')
+              } catch (error) {
+                console.error('Could not update recurring job:', error)
+                window.alert('Could not update recurring job.')
+              }
+            }}
+          />
+        )}
     </div>
   )
 }
@@ -2974,6 +2994,482 @@ function AddRecurringJobForm({
       </div>
     </>
   )
+}
+
+function EditRecurringJobForm({
+
+  job,
+
+  onBack,
+
+  onSubmit,
+
+}) {
+
+  const [formData, setFormData] = useState({
+
+    title: job.title || '',
+
+    description: job.description || '',
+
+    location: job.location || '',
+
+    frequencyUnit: job.frequencyUnit || 'month',
+
+    frequencyInterval: Number(job.frequencyInterval || 1),
+
+    startDate: job.startDate || job.nextRunAt || '',
+
+    nextRunAt: job.nextRunAt || job.startDate || '',
+
+    active: job.active !== false,
+
+  })
+
+  const handleScheduleChange = (value) => {
+
+    const schedules = {
+
+      weekly: {
+
+        frequencyUnit: 'week',
+
+        frequencyInterval: 1,
+
+      },
+
+      monthly: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 1,
+
+      },
+
+      quarterly: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 3,
+
+      },
+
+      sixMonths: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 6,
+
+      },
+
+      yearly: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 12,
+
+      },
+
+    }
+
+    const selected = schedules[value]
+
+    setFormData((prev) => ({
+
+      ...prev,
+
+      frequencyUnit: selected.frequencyUnit,
+
+      frequencyInterval: selected.frequencyInterval,
+
+    }))
+
+  }
+
+  const getScheduleValue = () => {
+
+    if (
+
+      formData.frequencyUnit === 'week' &&
+
+      formData.frequencyInterval === 1
+
+    ) {
+
+      return 'weekly'
+
+    }
+
+    if (
+
+      formData.frequencyUnit === 'month' &&
+
+      formData.frequencyInterval === 1
+
+    ) {
+
+      return 'monthly'
+
+    }
+
+    if (formData.frequencyInterval === 3) {
+
+      return 'quarterly'
+
+    }
+
+    if (formData.frequencyInterval === 6) {
+
+      return 'sixMonths'
+
+    }
+
+    if (formData.frequencyInterval === 12) {
+
+      return 'yearly'
+
+    }
+
+    return 'monthly'
+
+  }
+
+  const handleSubmit = (e) => {
+
+    e.preventDefault()
+
+    if (!formData.title.trim()) {
+
+      window.alert('Please enter a job title.')
+
+      return
+
+    }
+
+    if (!formData.description.trim()) {
+
+      window.alert('Please enter a description.')
+
+      return
+
+    }
+
+    if (!formData.nextRunAt) {
+
+      window.alert('Please select the next due date.')
+
+      return
+
+    }
+
+    onSubmit(job.id, {
+
+      title: formData.title.trim(),
+
+      description: formData.description.trim(),
+
+      location: formData.location.trim(),
+
+      frequencyUnit: formData.frequencyUnit,
+
+      frequencyInterval: formData.frequencyInterval,
+
+      startDate: formData.startDate,
+
+      nextRunAt: formData.nextRunAt,
+
+      active: formData.active,
+
+    })
+
+  }
+
+  return (
+
+    <>
+
+      <div className="app-header">
+
+        <button
+
+          className="back-button"
+
+          onClick={onBack}
+
+        >
+
+          ← Cancel
+
+        </button>
+
+        <h1
+
+          className="app-title"
+
+          onClick={onBack}
+
+        >
+
+          HotelKeep
+
+        </h1>
+
+      </div>
+
+      <div className="form-container fade-in">
+
+        <h2>Edit Recurring Job</h2>
+
+        <form onSubmit={handleSubmit}>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Title *
+
+            </label>
+
+            <input
+
+              type="text"
+
+              className="form-input"
+
+              value={formData.title}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  title: e.target.value,
+
+                }))
+
+              }
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Description *
+
+            </label>
+
+            <textarea
+
+              className="form-textarea"
+
+              value={formData.description}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  description: e.target.value,
+
+                }))
+
+              }
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Location / Room
+
+            </label>
+
+            <input
+
+              type="text"
+
+              className="form-input"
+
+              value={formData.location}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  location: e.target.value,
+
+                }))
+
+              }
+
+              placeholder="e.g. Room 6, Basement, Kitchen"
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Repeat *
+
+            </label>
+
+            <select
+
+              className="form-select"
+
+              value={getScheduleValue()}
+
+              onChange={(e) =>
+
+                handleScheduleChange(e.target.value)
+
+              }
+
+            >
+
+              <option value="weekly">
+
+                Every week
+
+              </option>
+
+              <option value="monthly">
+
+                Every month
+
+              </option>
+
+              <option value="quarterly">
+
+                Every 3 months
+
+              </option>
+
+              <option value="sixMonths">
+
+                Every 6 months
+
+              </option>
+
+              <option value="yearly">
+
+                Every 12 months
+
+              </option>
+
+            </select>
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Next Due Date *
+
+            </label>
+
+            <input
+
+              type="date"
+
+              className="form-input"
+
+              value={formData.nextRunAt}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  nextRunAt: e.target.value,
+
+                }))
+
+              }
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Status
+
+            </label>
+
+            <select
+
+              className="form-select"
+
+              value={formData.active ? 'active' : 'paused'}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  active: e.target.value === 'active',
+
+                }))
+
+              }
+
+            >
+
+              <option value="active">
+
+                Active
+
+              </option>
+
+              <option value="paused">
+
+                Paused
+
+              </option>
+
+            </select>
+
+          </div>
+
+          <button
+
+            type="submit"
+
+            className="form-submit"
+
+          >
+
+            Save Changes
+
+          </button>
+
+        </form>
+
+      </div>
+
+    </>
+
+  )
+
 }
 
 export default HotelMaintenanceApp
