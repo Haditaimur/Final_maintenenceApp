@@ -351,6 +351,9 @@ const goToRecurringJobs = () => {
   setCurrentView('recurringJobs')
 }
 
+  const goToHandymanScheduledJobs = () => {
+  setCurrentView('handyman-scheduled-jobs')
+}
   
 
   // Firebase-based createJob with timestamps and original_status
@@ -551,6 +554,8 @@ const updateJobData = async (jobId, updates) => {
               onViewCategory={viewCategory}
             
               onViewRecurringJobs={goToRecurringJobs}
+
+              onViewAllScheduledJobs={goToHandymanScheduledJobs}
             
               onAddJob={addNewJob}
             
@@ -575,6 +580,14 @@ const updateJobData = async (jobId, updates) => {
             onDelete={deleteRecurringJob}
           />
         )}
+
+      {currentView === 'handyman-scheduled-jobs' &&
+          userRole === 'handyman' && (
+            <HandymanScheduledJobsList
+              recurringJobs={recurringJobs}
+              onBack={goToDashboard}
+            />
+          )}
 
       {currentView === 'urgent-list' && (
         <UrgentJobsList
@@ -775,6 +788,8 @@ function Dashboard({
 
   onViewRecurringJobs,
 
+  onViewAllScheduledJobs,
+  
   onAddJob,
 
   onLogout,
@@ -986,6 +1001,15 @@ const dashboardScheduledJobs = [
           )
         })}
       </div>
+
+      {activeScheduledJobs.length > 1 && (
+  <button
+    className="view-all-scheduled-btn"
+    onClick={onViewAllScheduledJobs}
+  >
+    View All Scheduled Jobs ({activeScheduledJobs.length})
+  </button>
+)}
 
     </>
     )}
@@ -3470,6 +3494,163 @@ function EditRecurringJobForm({
 
   )
 
+}
+
+function HandymanScheduledJobsList({
+  recurringJobs,
+  onBack,
+}) {
+  const activeJobs = (recurringJobs || [])
+    .filter((job) => job.active)
+    .sort((a, b) => {
+      const aDate = new Date(a.nextRunAt || 0).getTime()
+      const bDate = new Date(b.nextRunAt || 0).getTime()
+
+      return aDate - bDate
+    })
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={onBack}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-list fade-in">
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h2 style={{ margin: 0 }}>
+            🗓️ Scheduled Jobs
+          </h2>
+
+          <p
+            style={{
+              marginTop: '0.4rem',
+              color: '#64748b',
+            }}
+          >
+            All active recurring maintenance tasks
+          </p>
+        </div>
+
+        {activeJobs.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🗓️</div>
+
+            <div className="empty-title">
+              No Scheduled Jobs
+            </div>
+
+            <div className="empty-message">
+              There are no active scheduled maintenance tasks.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {activeJobs.map((job) => {
+              const locationLabel =
+                job.location ||
+                (job.room_number
+                  ? `Room ${job.room_number}`
+                  : null) ||
+                (job.jobType === 'other'
+                  ? 'Other Job'
+                  : null)
+
+              const nextDate = job.nextRunAt
+                ? new Date(job.nextRunAt)
+                : null
+
+              const dueDate = nextDate
+                ? new Date(nextDate)
+                : null
+
+              if (dueDate) {
+                dueDate.setHours(0, 0, 0, 0)
+              }
+
+              const isDue =
+                dueDate &&
+                dueDate.getTime() === today.getTime()
+
+              const isOverdue =
+                dueDate &&
+                dueDate.getTime() < today.getTime()
+
+              return (
+                <div
+                  key={job.id}
+                  className="job-card"
+                >
+                  <div className="job-header">
+                    <div className="job-title">
+                      {job.title}
+                    </div>
+
+                    <span
+                      className={`job-status-badge ${
+                        isOverdue
+                          ? 'urgent'
+                          : isDue
+                          ? 'todo'
+                          : 'done'
+                      }`}
+                    >
+                      {isOverdue
+                        ? 'Overdue'
+                        : isDue
+                        ? 'Due Today'
+                        : 'Upcoming'}
+                    </span>
+                  </div>
+
+                  <div className="detail-description">
+                    {job.description}
+                  </div>
+
+                  <div className="job-meta">
+                    <span>
+                      🗓️ Due:{' '}
+                      {nextDate
+                        ? nextDate.toLocaleDateString()
+                        : 'Not set'}
+                    </span>
+
+                    <span>
+                      🔁 Every {job.frequencyInterval}{' '}
+                      {job.frequencyUnit}
+                      {Number(job.frequencyInterval) > 1
+                        ? 's'
+                        : ''}
+                    </span>
+
+                    {locationLabel && (
+                      <span>
+                        📍 {locationLabel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
 }
 
 export default HotelMaintenanceApp
