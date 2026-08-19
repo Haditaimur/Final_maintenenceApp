@@ -19,6 +19,7 @@ import {
   subscribeToNotifications,
   markNotificationAsRead,
 } from './NotificationsService'
+import { authReady } from './firebase'
 
 // Data
 const initialRooms = [
@@ -249,15 +250,40 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
 }, [hotelId])
 
   useEffect(() => {
-      const unsubscribe = subscribeToNotifications(
+  let unsubscribe = null
+  let cancelled = false
+
+  const startNotificationsListener = async () => {
+    try {
+      await authReady
+
+      if (cancelled) return
+
+      unsubscribe = subscribeToNotifications(
         hotelId,
         (items) => {
+          console.log('🔔 Notifications received:', items)
           setNotifications(items)
         }
       )
-    
-      return () => unsubscribe()
-    }, [hotelId])
+    } catch (error) {
+      console.error(
+        'Notification listener could not start:',
+        error
+      )
+    }
+  }
+
+  startNotificationsListener()
+
+  return () => {
+    cancelled = true
+
+    if (unsubscribe) {
+      unsubscribe()
+    }
+  }
+}, [hotelId])
 
   const selectRole = (role) => {
     if (role === 'manager') {
