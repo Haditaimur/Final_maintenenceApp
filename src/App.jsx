@@ -4176,6 +4176,39 @@ function NotificationsList({
   notifications,
   onBack,
 }) {
+  const handleNotificationClick = async (notification) => {
+    try {
+      if (!notification.read) {
+        await markNotificationAsRead(notification.id)
+      }
+    } catch (error) {
+      console.error('Could not mark notification as read:', error)
+      window.alert('Could not update notification.')
+    }
+  }
+
+  const formatNotificationTime = (createdAt) => {
+    if (!createdAt) return ''
+
+    try {
+      // Firestore Timestamp
+      if (createdAt.toDate) {
+        return createdAt.toDate().toLocaleString()
+      }
+
+      // Normal date/string fallback
+      const date = new Date(createdAt)
+
+      if (Number.isNaN(date.getTime())) {
+        return ''
+      }
+
+      return date.toLocaleString()
+    } catch {
+      return ''
+    }
+  }
+
   return (
     <>
       <div className="app-header">
@@ -4212,7 +4245,9 @@ function NotificationsList({
 
         {(notifications || []).length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🔔</div>
+            <div className="empty-icon">
+              🔔
+            </div>
 
             <div className="empty-title">
               No Notifications
@@ -4224,25 +4259,69 @@ function NotificationsList({
           </div>
         ) : (
           <div className="job-grid">
-            {notifications.map((notification) => (
-              <div
-                key={notification.id}
-                className="job-card"
-              >
-                <div className="job-title">
-                  {notification.title}
-                </div>
+            {notifications.map((notification) => {
+              const notificationTime =
+                formatNotificationTime(
+                  notification.created_at
+                )
 
-                <div className="detail-description">
-                  {notification.message}
+              return (
+                <div
+                  key={notification.id}
+                  className="job-card"
+                  onClick={() =>
+                    handleNotificationClick(notification)
+                  }
+                  style={{
+                    cursor: 'pointer',
+                    opacity: notification.read
+                      ? 0.7
+                      : 1,
+                    borderLeft: notification.read
+                      ? '4px solid #cbd5e1'
+                      : '4px solid #6366f1',
+                  }}
+                >
+                  <div className="job-header">
+                    <div className="job-title">
+                      {notification.type ===
+                      'scheduled_completed'
+                        ? '✅ '
+                        : notification.type ===
+                          'scheduled_problem'
+                        ? '⚠️ '
+                        : '🔔 '}
+
+                      {notification.title}
+                    </div>
+
+                    {!notification.read && (
+                      <span className="job-status-badge todo">
+                        New
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="detail-description">
+                    {notification.message}
+                  </div>
+
+                  {notificationTime && (
+                    <div className="job-meta">
+                      <span>
+                        🕒 {notificationTime}
+                      </span>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
     </>
   )
 }
+
 
 export default HotelMaintenanceApp
