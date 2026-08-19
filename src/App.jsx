@@ -14,6 +14,10 @@ import {
   updateRecurringJob,
   deleteRecurringJob,
 } from './RecurringJobsService'
+import {
+  subscribeToNotifications,
+  markNotificationAsRead,
+} from './NotificationsService'
 
 // Data
 const initialRooms = [
@@ -178,6 +182,7 @@ if (currentVersion !== APP_VERSION) {
 // Main App Component
 function HotelMaintenanceApp() {
   const [recurringJobs, setRecurringJobs] = useState([])
+  const [notifications, setNotifications] = useState([])
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
   const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
@@ -238,6 +243,17 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
 
   return () => unsubscribe()
 }, [hotelId])
+
+  useEffect(() => {
+      const unsubscribe = subscribeToNotifications(
+        hotelId,
+        (items) => {
+          setNotifications(items)
+        }
+      )
+    
+      return () => unsubscribe()
+    }, [hotelId])
 
   const selectRole = (role) => {
     if (role === 'manager') {
