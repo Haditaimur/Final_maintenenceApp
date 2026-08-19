@@ -572,6 +572,8 @@ const updateJobData = async (jobId, updates) => {
               jobs={jobs}
             
               recurringJobs={recurringJobs}
+
+              notifications={notifications}
             
               onViewCategory={viewCategory}
             
@@ -818,6 +820,8 @@ function Dashboard({
 
   recurringJobs,
 
+  notifications,
+
   onViewCategory,
 
   onViewRecurringJobs,
@@ -840,6 +844,9 @@ function Dashboard({
       j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other',
   ).length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
+  const unreadNotificationCount = (notifications || []).filter(
+  (notification) => !notification.read
+    ).length
 
   const recurringJobUpdates = (recurringJobs || [])
   .filter((job) => job.lastResult && job.lastActionAt)
@@ -901,6 +908,23 @@ const dashboardScheduledJobs = [
             <span className={`role-badge ${role}`}>
               {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
             </span>
+            {role === 'manager' && (
+              <button
+                className="notification-button"
+                type="button"
+                title="Notifications"
+              >
+                🔔
+            
+                {unreadNotificationCount > 0 && (
+                  <span className="notification-count">
+                    {unreadNotificationCount > 99
+                      ? '99+'
+                      : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+            )}
             <div className="user-menu-container">
               <button
                 className="user-menu-button"
