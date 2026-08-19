@@ -44,14 +44,22 @@ export const subscribeToNotifications = (
     orderBy('created_at', 'desc')
   )
 
-  return onSnapshot(notificationsQuery, (snapshot) => {
+ return onSnapshot(
+  notificationsQuery,
+  (snapshot) => {
     const notifications = snapshot.docs.map((item) => ({
       id: item.id,
       ...item.data(),
     }))
 
+    console.log('Notifications received:', notifications)
+
     callback(notifications)
-  })
+  },
+  (error) => {
+    console.error('Notification listener error:', error)
+  }
+)
 }
 
 // Mark one notification as read
