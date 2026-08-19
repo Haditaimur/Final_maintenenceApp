@@ -15,6 +15,7 @@ import {
   deleteRecurringJob,
 } from './RecurringJobsService'
 import {
+  createNotification,
   subscribeToNotifications,
   markNotificationAsRead,
 } from './NotificationsService'
@@ -3925,6 +3926,14 @@ const handleScheduledJobSubmit = async () => {
         nextRunAt,
       })
 
+      await createNotification({
+        hotelId: 'athena',
+        type: 'scheduled_completed',
+        title: 'Scheduled Job Completed',
+        message: job.title,
+        relatedRecurringJobId: job.id,
+      })
+
       window.alert(
         `Task completed. Next due date: ${new Date(
           nextRunAt
@@ -3942,6 +3951,14 @@ const handleScheduledJobSubmit = async () => {
         lastNote: note.trim(),
         lastActionAt: now,
         lastProblemAt: now,
+      })
+
+      await createNotification({
+        hotelId: 'athena',
+        type: 'scheduled_problem',
+        title: 'Problem Reported',
+        message: job.title,
+        relatedRecurringJobId: job.id,
       })
 
       window.alert('Problem report saved.')
