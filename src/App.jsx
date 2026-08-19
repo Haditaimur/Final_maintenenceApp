@@ -183,6 +183,9 @@ if (currentVersion !== APP_VERSION) {
 function HotelMaintenanceApp() {
   const [recurringJobs, setRecurringJobs] = useState([])
   const [notifications, setNotifications] = useState([])
+  const goToNotifications = () => {
+  setCurrentView('notifications')
+}
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
   const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
@@ -580,6 +583,8 @@ const updateJobData = async (jobId, updates) => {
               onViewRecurringJobs={goToRecurringJobs}
 
               onViewAllScheduledJobs={goToHandymanScheduledJobs}
+
+              onViewNotifications={goToNotifications}
             
               onAddJob={addNewJob}
             
@@ -592,6 +597,18 @@ const updateJobData = async (jobId, updates) => {
               setShowUserMenu={setShowUserMenu}
         />
       )}
+
+      {currentView === 'notifications' && userRole === 'manager' && (
+
+            <NotificationsList
+          
+              notifications={notifications}
+          
+              onBack={goToDashboard}
+          
+            />
+          
+          )}
 
       {currentView === 'recurringJobs' && userRole === 'manager' && (
           <RecurringJobsList
@@ -822,6 +839,8 @@ function Dashboard({
 
   notifications,
 
+  onViewNotifications,
+
   onViewCategory,
 
   onViewRecurringJobs,
@@ -913,6 +932,7 @@ const dashboardScheduledJobs = [
                 className="notification-button"
                 type="button"
                 title="Notifications"
+                onClick={onViewNotifications}
               >
                 🔔
             
@@ -4105,6 +4125,79 @@ const handleScheduledJobSubmit = async () => {
     </div>
   )}
 </div>
+    </>
+  )
+}
+
+function NotificationsList({
+  notifications,
+  onBack,
+}) {
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={onBack}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-list fade-in">
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h2 style={{ margin: 0 }}>
+            🔔 Notifications
+          </h2>
+
+          <p
+            style={{
+              marginTop: '0.4rem',
+              color: '#64748b',
+            }}
+          >
+            Recent handyman activity
+          </p>
+        </div>
+
+        {(notifications || []).length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔔</div>
+
+            <div className="empty-title">
+              No Notifications
+            </div>
+
+            <div className="empty-message">
+              Handyman activity will appear here.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {notifications.map((notification) => (
+              <div
+                key={notification.id}
+                className="job-card"
+              >
+                <div className="job-title">
+                  {notification.title}
+                </div>
+
+                <div className="detail-description">
+                  {notification.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </>
   )
 }
