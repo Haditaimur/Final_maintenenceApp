@@ -188,6 +188,30 @@ function HotelMaintenanceApp() {
   const goToNotifications = () => {
   setCurrentView('notifications')
 }
+  const openNotification = async (notification) => {
+  try {
+    if (!notification.read) {
+      await markNotificationAsRead(notification.id)
+    }
+
+    if (notification.relatedRecurringJobId) {
+      const relatedJob = recurringJobs.find(
+        (job) => job.id === notification.relatedRecurringJobId
+      )
+
+      if (relatedJob) {
+        setSelectedRecurringJob(relatedJob)
+        setCurrentView('manager-scheduled-job-detail')
+        return
+      }
+    }
+
+    window.alert('The related job could not be found.')
+  } catch (error) {
+    console.error('Could not open notification:', error)
+    window.alert('Could not open notification.')
+  }
+}
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
   const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
@@ -632,10 +656,22 @@ const updateJobData = async (jobId, updates) => {
               notifications={notifications}
           
               onBack={goToDashboard}
+
+              onOpenNotification={openNotification}
           
             />
           
           )}
+
+      {currentView === 'manager-scheduled-job-detail' &&
+            userRole === 'manager' &&
+            selectedRecurringJob && (
+              <ManagerScheduledJobDetail
+                job={selectedRecurringJob}
+                onBack={goToNotifications}
+                goToDashboard={goToDashboard}
+              />
+            )}
 
       {currentView === 'recurringJobs' && userRole === 'manager' && (
           <RecurringJobsList
@@ -4172,20 +4208,139 @@ const handleScheduledJobSubmit = async () => {
   )
 }
 
+function ManagerScheduledJobDetail({
+  job,
+  onBack,
+  goToDashboard,
+}) {
+  const locationLabel =
+    job.location ||
+    (job.room_number
+      ? `Room ${job.room_number}`
+      : null) ||
+    (job.jobType === 'other'
+      ? 'Other Job'
+      : null)
+
+  const interval = Number(
+    job.frequencyInterval || 1
+  )
+
+  const unit = job.frequencyUnit || 'month'
+
+  const frequencyLabel =
+    interval === 1
+      ? `Every ${unit}`
+      : `Every ${interval} ${unit}s`
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={goToDashboard}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-detail fade-in">
+        <div className="detail-card">
+          <div className="detail-header">
+            <div className="detail-title">
+              {job.title}
+            </div>
+
+            {job.lastResult && (
+              <span
+                className={`job-status-badge ${
+                  job.lastResult === 'problem'
+                    ? 'urgent'
+                    : 'done'
+                }`}
+              >
+                {job.lastResult === 'problem'
+                  ? 'Problem Reported'
+                  : 'Completed'}
+              </span>
+            )}
+          </div>
+
+          <div className="detail-description">
+            {job.description}
+          </div>
+
+          <div className="detail-meta">
+            {locationLabel && (
+              <div>
+                📍 Location: {locationLabel}
+              </div>
+            )}
+
+            <div>
+              🔁 Repeat: {frequencyLabel}
+            </div>
+
+            {job.lastActionAt && (
+              <div>
+                🕒 Activity:{' '}
+                {new Date(
+                  job.lastActionAt
+                ).toLocaleString()}
+              </div>
+            )}
+
+            {job.lastNote && (
+              <div>
+                📝 Handyman note: {job.lastNote}
+              </div>
+            )}
+
+            {job.lastCompletedAt && (
+              <div>
+                ✅ Completed:{' '}
+                {new Date(
+                  job.lastCompletedAt
+                ).toLocaleString()}
+              </div>
+            )}
+
+            {job.lastProblemAt && (
+              <div>
+                ⚠️ Problem reported:{' '}
+                {new Date(
+                  job.lastProblemAt
+                ).toLocaleString()}
+              </div>
+            )}
+
+            {job.nextRunAt && (
+              <div>
+                🗓️ Next due:{' '}
+                {new Date(
+                  job.nextRunAt
+                ).toLocaleDateString()}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function NotificationsList({
   notifications,
   onBack,
+  onOpenNotification,
 }) {
-  const handleNotificationClick = async (notification) => {
-    try {
-      if (!notification.read) {
-        await markNotificationAsRead(notification.id)
-      }
-    } catch (error) {
-      console.error('Could not mark notification as read:', error)
-      window.alert('Could not update notification.')
-    }
-  }
 
   const formatNotificationTime = (createdAt) => {
     if (!createdAt) return ''
@@ -4269,8 +4424,7 @@ function NotificationsList({
                 <div
                   key={notification.id}
                   className="job-card"
-                  onClick={() =>
-                    handleNotificationClick(notification)
+                  onClick={() => onOpenNotification(notification)}
                   }
                   style={{
                     cursor: 'pointer',
