@@ -3988,12 +3988,17 @@ const handleScheduledJobSubmit = async () => {
       })
 
       await createNotification({
-        hotelId: 'athena',
-        type: 'scheduled_completed',
-        title: 'Scheduled Job Completed',
-        message: job.title,
-        relatedRecurringJobId: job.id,
-      })
+            hotelId: 'athena',
+            type: 'scheduled_completed',
+            title: 'Scheduled Job Completed',
+            message: job.title,
+            relatedRecurringJobId: job.id,
+            result: 'completed',
+            note: note.trim(),
+            actionAt: now,
+            nextRunAt,
+            location: job.location || '',
+          })
 
       window.alert(
         `Task completed. Next due date: ${new Date(
@@ -4015,12 +4020,17 @@ const handleScheduledJobSubmit = async () => {
       })
 
       await createNotification({
-        hotelId: 'athena',
-        type: 'scheduled_problem',
-        title: 'Problem Reported',
-        message: job.title,
-        relatedRecurringJobId: job.id,
-      })
+          hotelId: 'athena',
+          type: 'scheduled_problem',
+          title: 'Problem Reported',
+          message: job.title,
+          relatedRecurringJobId: job.id,
+          result: 'problem',
+          note: note.trim(),
+          actionAt: now,
+          nextRunAt: job.nextRunAt,
+          location: job.location || '',
+        })
 
       window.alert('Problem report saved.')
 
