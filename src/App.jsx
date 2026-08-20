@@ -188,7 +188,7 @@ function HotelMaintenanceApp() {
   const goToNotifications = () => {
   setCurrentView('notifications')
 }
-  const openNotification = async (notification) => {
+const openNotification = async (notification) => {
   try {
     if (!notification.read) {
       await markNotificationAsRead(notification.id)
@@ -201,6 +201,7 @@ function HotelMaintenanceApp() {
 
       if (relatedJob) {
         setSelectedRecurringJob(relatedJob)
+        setSelectedNotification(notification)
         setCurrentView('manager-scheduled-job-detail')
         return
       }
@@ -239,6 +240,7 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [isDeleting, setIsDeleting] = useState(false)
   const [selectedRecurringJob, setSelectedRecurringJob] = useState(null)
   const [selectedScheduledJob, setSelectedScheduledJob] = useState(null)
+  const [selectedNotification, setSelectedNotification] = useState(null)
   const editRecurringJob = (job) => {
   setSelectedRecurringJob(job)
   setCurrentView('edit-recurring-job')
@@ -663,15 +665,17 @@ const updateJobData = async (jobId, updates) => {
           
           )}
 
-      {currentView === 'manager-scheduled-job-detail' &&
+     {currentView === 'manager-scheduled-job-detail' &&
             userRole === 'manager' &&
-            selectedRecurringJob && (
+            selectedRecurringJob &&
+            selectedNotification && (
               <ManagerScheduledJobDetail
                 job={selectedRecurringJob}
+                notification={selectedNotification}
                 onBack={goToNotifications}
                 goToDashboard={goToDashboard}
               />
-            )}
+          )}
 
       {currentView === 'recurringJobs' && userRole === 'manager' && (
           <RecurringJobsList
@@ -4266,17 +4270,19 @@ const handleScheduledJobSubmit = async () => {
 
 function ManagerScheduledJobDetail({
   job,
+  notification,
   onBack,
   goToDashboard,
 }) {
   const locationLabel =
-    job.location ||
-    (job.room_number
-      ? `Room ${job.room_number}`
-      : null) ||
-    (job.jobType === 'other'
-      ? 'Other Job'
-      : null)
+  notification.location ||
+  job.location ||
+  (job.room_number
+    ? `Room ${job.room_number}`
+    : null) ||
+  (job.jobType === 'other'
+    ? 'Other Job'
+    : null)
 
   const interval = Number(
     job.frequencyInterval || 1
@@ -4314,15 +4320,15 @@ function ManagerScheduledJobDetail({
               {job.title}
             </div>
 
-            {job.lastResult && (
+            {notification.result && (
               <span
                 className={`job-status-badge ${
-                  job.lastResult === 'problem'
+                  notification.result === 'problem'
                     ? 'urgent'
                     : 'done'
                 }`}
               >
-                {job.lastResult === 'problem'
+                {notification.result === 'problem'
                   ? 'Problem Reported'
                   : 'Completed'}
               </span>
@@ -4344,49 +4350,41 @@ function ManagerScheduledJobDetail({
               🔁 Repeat: {frequencyLabel}
             </div>
 
-            {job.lastActionAt && (
-              <div>
-                🕒 Activity:{' '}
-                {new Date(
-                  job.lastActionAt
-                ).toLocaleString()}
-              </div>
-            )}
+{notification.actionAt && (
+  <div>
+    🕒 Activity:{' '}
+    {new Date(notification.actionAt).toLocaleString()}
+  </div>
+)}
 
-            {job.lastNote && (
-              <div>
-                📝 Handyman note: {job.lastNote}
-              </div>
-            )}
+{notification.note && (
+  <div>
+    📝 Handyman note: {notification.note}
+  </div>
+)}
 
-           {job.lastResult === 'completed' &&
-  job.lastCompletedAt && (
+{notification.result === 'completed' &&
+  notification.actionAt && (
     <div>
       ✅ Completed:{' '}
-      {new Date(
-        job.lastCompletedAt
-      ).toLocaleString()}
+      {new Date(notification.actionAt).toLocaleString()}
     </div>
   )}
 
-{job.lastResult === 'problem' &&
-  job.lastProblemAt && (
+{notification.result === 'problem' &&
+  notification.actionAt && (
     <div>
       ⚠️ Problem reported:{' '}
-      {new Date(
-        job.lastProblemAt
-      ).toLocaleString()}
+      {new Date(notification.actionAt).toLocaleString()}
     </div>
   )}
 
-            {job.nextRunAt && (
-              <div>
-                🗓️ Next due:{' '}
-                {new Date(
-                  job.nextRunAt
-                ).toLocaleDateString()}
-              </div>
-            )}
+{notification.nextRunAt && (
+  <div>
+    🗓️ Next due:{' '}
+    {new Date(notification.nextRunAt).toLocaleDateString()}
+  </div>
+)}
           </div>
         </div>
       </div>
