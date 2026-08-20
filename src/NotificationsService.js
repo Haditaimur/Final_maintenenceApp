@@ -20,14 +20,30 @@ export const createNotification = async ({
   message,
   relatedJobId = null,
   relatedRecurringJobId = null,
+
+  // Historical snapshot of what happened
+  result = null,
+  note = '',
+  actionAt = null,
+  nextRunAt = null,
+  location = '',
 }) => {
   return await addDoc(collection(db, 'notifications'), {
     hotelId,
     type,
     title,
     message,
+
     relatedJobId,
     relatedRecurringJobId,
+
+    // Save activity exactly as it was at this moment
+    result,
+    note,
+    actionAt,
+    nextRunAt,
+    location,
+
     read: false,
     created_at: serverTimestamp(),
   })
