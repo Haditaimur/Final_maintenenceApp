@@ -4422,20 +4422,19 @@ function NotificationsList({
 
               return (
                 <div
-                  key={notification.id}
-                  className="job-card"
-                  onClick={() => onOpenNotification(notification)}
-                  }
-                  style={{
-                    cursor: 'pointer',
-                    opacity: notification.read
-                      ? 0.7
-                      : 1,
-                    borderLeft: notification.read
-                      ? '4px solid #cbd5e1'
-                      : '4px solid #6366f1',
-                  }}
-                >
+                    key={notification.id}
+                    className="job-card"
+                    onClick={() => onOpenNotification(notification)}
+                    style={{
+                      cursor: 'pointer',
+                      opacity: notification.read
+                        ? 0.7
+                        : 1,
+                      borderLeft: notification.read
+                        ? '4px solid #cbd5e1'
+                        : '4px solid #6366f1',
+                    }}
+                  >
                   <div className="job-header">
                     <div className="job-title">
                       {notification.type ===
