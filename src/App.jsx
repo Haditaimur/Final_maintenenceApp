@@ -1139,6 +1139,8 @@ const dashboardScheduledJobs = [
             <div
               key={job.id}
               className="scheduled-job-card"
+              onClick={() => onViewJob(job)}
+              style={{ cursor: 'pointer' }}
             >
               <div className="job-header">
                 <div className="job-title">
@@ -2752,6 +2754,8 @@ function CompletedJobsList({
                 <div
                   key={job.id}
                   className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
@@ -2952,6 +2956,8 @@ function RecurringJobsList({
                 <div
                   key={job.id}
                   className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
@@ -3876,6 +3882,8 @@ function HandymanScheduledJobsList({
                 <div
                   key={job.id}
                   className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
