@@ -2748,8 +2748,6 @@ function CompletedJobsList({
                 <div
                   key={job.id}
                   className="job-card"
-                  onClick={() => onViewJob(job)}
-                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
@@ -2950,8 +2948,6 @@ function RecurringJobsList({
                 <div
                   key={job.id}
                   className="job-card"
-                  onClick={() => onViewJob(job)}
-                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
@@ -3876,8 +3872,6 @@ function HandymanScheduledJobsList({
                 <div
                   key={job.id}
                   className="job-card"
-                  onClick={() => onViewJob(job)}
-                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
@@ -4139,6 +4133,63 @@ const handleScheduledJobSubmit = async () => {
         🔁 Repeat: {frequencyLabel}
       </div>
     </div>
+    {role === 'manager' && job.lastResult && (
+  <div
+    className="scheduled-result-box"
+    style={{ marginTop: '1rem' }}
+  >
+    <div>
+      <strong>
+        {job.lastResult === 'completed'
+          ? '✅ Last Task Completed'
+          : '⚠️ Problem Reported'}
+      </strong>
+    </div>
+
+    {job.lastActionAt && (
+      <div>
+        🕒 Activity:{' '}
+        {new Date(job.lastActionAt).toLocaleString()}
+      </div>
+    )}
+
+    {job.lastNote && (
+      <div>
+        📝 Handyman note: {job.lastNote}
+      </div>
+    )}
+
+    {job.lastResult === 'completed' &&
+      job.lastCompletedAt && (
+        <div>
+          ✅ Completed:{' '}
+          {new Date(
+            job.lastCompletedAt
+          ).toLocaleString()}
+        </div>
+      )}
+
+    {job.lastResult === 'problem' &&
+      job.lastProblemAt && (
+        <div>
+          ⚠️ Problem reported:{' '}
+          {new Date(
+            job.lastProblemAt
+          ).toLocaleString()}
+        </div>
+      )}
+
+    {job.lastResult === 'completed' &&
+      job.nextRunAt && (
+        <div>
+          🗓️ New next due date:{' '}
+          {new Date(
+            job.nextRunAt
+          ).toLocaleDateString()}
+        </div>
+      )}
+  </div>
+)}
   </div>
 
   {role === 'handyman' && (
@@ -4308,23 +4359,25 @@ function ManagerScheduledJobDetail({
               </div>
             )}
 
-            {job.lastCompletedAt && (
-              <div>
-                ✅ Completed:{' '}
-                {new Date(
-                  job.lastCompletedAt
-                ).toLocaleString()}
-              </div>
-            )}
+           {job.lastResult === 'completed' &&
+  job.lastCompletedAt && (
+    <div>
+      ✅ Completed:{' '}
+      {new Date(
+        job.lastCompletedAt
+      ).toLocaleString()}
+    </div>
+  )}
 
-            {job.lastProblemAt && (
-              <div>
-                ⚠️ Problem reported:{' '}
-                {new Date(
-                  job.lastProblemAt
-                ).toLocaleString()}
-              </div>
-            )}
+{job.lastResult === 'problem' &&
+  job.lastProblemAt && (
+    <div>
+      ⚠️ Problem reported:{' '}
+      {new Date(
+        job.lastProblemAt
+      ).toLocaleString()}
+    </div>
+  )}
 
             {job.nextRunAt && (
               <div>
