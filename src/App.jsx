@@ -695,10 +695,10 @@ const updateJobData = async (jobId, updates) => {
           )}
 
       {currentView === 'scheduled-job-detail' &&
-            userRole === 'handyman' &&
             selectedScheduledJob && (
               <ScheduledJobDetail
                 job={selectedScheduledJob}
+                role={userRole}
                 onBack={goToHandymanScheduledJobs}
                 onUpdate={updateRecurringJob}
                 goToDashboard={goToDashboard}
@@ -3939,6 +3939,7 @@ function HandymanScheduledJobsList({
 
 function ScheduledJobDetail({
   job,
+  role,
   onBack,
   onUpdate,
   goToDashboard,
@@ -4140,6 +4141,8 @@ const handleScheduledJobSubmit = async () => {
     </div>
   </div>
 
+  {role === 'handyman' && (
+  <>
   <div className="detail-actions">
     <button
       className={`action-btn ${
@@ -4203,6 +4206,8 @@ const handleScheduledJobSubmit = async () => {
 </button>
     </div>
   )}
+      </>
+)}
 </div>
     </>
   )
