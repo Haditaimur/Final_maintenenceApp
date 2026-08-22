@@ -202,6 +202,7 @@ const openNotification = async (notification) => {
       if (relatedJob) {
         setSelectedRecurringJob(relatedJob)
         setSelectedNotification(notification)
+
         setCurrentView('manager-scheduled-job-detail')
         return
       }
