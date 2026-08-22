@@ -745,6 +745,7 @@ if (userRole === 'handyman') {
               <ManagerScheduledJobDetail
                 job={selectedRecurringJob}
                 notification={selectedNotification}
+                notifications={notifications}
                 onBack={goToNotifications}
                 goToDashboard={goToDashboard}
               />
@@ -2853,16 +2854,51 @@ function RecurringJobsList({
     return date.toLocaleDateString()
   }
 
-  const handleToggleActive = async (job) => {
-    try {
-      await onUpdate(job.id, {
-        active: !job.active,
-      })
-    } catch (error) {
-      console.error('Could not update recurring job:', error)
-      window.alert('Could not update recurring job.')
-    }
+const handleToggleActive = async (job) => {
+  try {
+    const newActiveState = !job.active
+    const now = new Date().toISOString()
+
+    await onUpdate(job.id, {
+      active: newActiveState,
+    })
+
+    await createNotification({
+      hotelId: 'athena',
+
+      type: newActiveState
+        ? 'scheduled_resumed'
+        : 'scheduled_paused',
+
+      title: newActiveState
+        ? 'Scheduled Job Resumed'
+        : 'Scheduled Job Paused',
+
+      message: job.title,
+
+      relatedRecurringJobId: job.id,
+
+      result: newActiveState
+        ? 'resumed'
+        : 'paused',
+
+      actionAt: now,
+
+      nextRunAt: job.nextRunAt || null,
+
+      location: job.location || '',
+    })
+  } catch (error) {
+    console.error(
+      'Could not update recurring job:',
+      error
+    )
+
+    window.alert(
+      'Could not update recurring job.'
+    )
   }
+}
 
   const handleDelete = async (job) => {
     const confirmed = window.confirm(
@@ -4318,6 +4354,7 @@ const handleScheduledJobSubmit = async () => {
 function ManagerScheduledJobDetail({
   job,
   notification,
+  notifications,
   onBack,
   goToDashboard,
 }) {
@@ -4341,6 +4378,31 @@ function ManagerScheduledJobDetail({
     interval === 1
       ? `Every ${unit}`
       : `Every ${interval} ${unit}s`
+
+  const jobHistory = (notifications || [])
+  .filter(
+    (item) =>
+      item.relatedRecurringJobId === job.id
+  )
+  .sort((a, b) => {
+    const getTime = (value) => {
+      if (!value) return 0
+
+      if (value.toDate) {
+        return value.toDate().getTime()
+      }
+
+      const date = new Date(value)
+      return Number.isNaN(date.getTime())
+        ? 0
+        : date.getTime()
+    }
+
+    return (
+      getTime(b.actionAt || b.created_at) -
+      getTime(a.actionAt || a.created_at)
+    )
+  })
 
   return (
     <>
@@ -4432,6 +4494,98 @@ function ManagerScheduledJobDetail({
                 ).toLocaleDateString()}
               </div>
             )}
+            <div
+  className="scheduled-result-box"
+  style={{ marginTop: '1.5rem' }}
+>
+  <h3 style={{ marginTop: 0 }}>
+    📋 Activity History
+  </h3>
+
+  {jobHistory.length === 0 ? (
+    <div>
+      No activity recorded yet.
+    </div>
+  ) : (
+    jobHistory.map((item) => {
+      const activityDate =
+        item.actionAt ||
+        (item.created_at?.toDate
+          ? item.created_at.toDate()
+          : item.created_at)
+
+      let activityIcon = '🔔'
+      let activityLabel = item.title || 'Activity'
+
+      if (
+        item.result === 'completed' ||
+        item.type === 'scheduled_completed'
+      ) {
+        activityIcon = '✅'
+        activityLabel = 'Completed'
+      } else if (
+        item.result === 'problem' ||
+        item.type === 'scheduled_problem'
+      ) {
+        activityIcon = '⚠️'
+        activityLabel = 'Problem Reported'
+      } else if (
+        item.result === 'paused' ||
+        item.type === 'scheduled_paused'
+      ) {
+        activityIcon = '⏸️'
+        activityLabel = 'Paused'
+      } else if (
+        item.result === 'resumed' ||
+        item.type === 'scheduled_resumed'
+      ) {
+        activityIcon = '▶️'
+        activityLabel = 'Resumed'
+      }
+
+      return (
+        <div
+          key={item.id}
+          style={{
+            padding: '0.85rem 0',
+            borderBottom: '1px solid #e2e8f0',
+          }}
+        >
+          <div>
+            <strong>
+              {activityIcon} {activityLabel}
+            </strong>
+          </div>
+
+          {activityDate && (
+            <div>
+              🕒{' '}
+              {new Date(
+                activityDate
+              ).toLocaleString()}
+            </div>
+          )}
+
+          {item.note && (
+            <div>
+              📝 {item.note}
+            </div>
+          )}
+
+          {item.nextRunAt &&
+            item.result === 'completed' && (
+              <div>
+                🗓️ Next due:{' '}
+                {new Date(
+                  item.nextRunAt
+                ).toLocaleDateString()}
+              </div>
+            )}
+        </div>
+      )
+    })
+  )}
+</div>
           </div>
         </div>
       </div>
