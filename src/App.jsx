@@ -4101,7 +4101,7 @@ const handleScheduledJobSubmit = async () => {
           result: 'problem',
           note: note.trim(),
           actionAt: now,
-          nextRunAt: job.nextRunAt,
+          nextRunAt: job.nextRunAt || null,
           location: job.location || '',
         })
 
