@@ -1051,38 +1051,6 @@ const dashboardScheduledJobs = [
       </div>
 
       <div className="dashboard fade-in">
-        {role === 'manager' &&
-  latestRecurringUpdate && (
-    <div className="manager-scheduled-alert">
-      <div className="manager-scheduled-alert-title">
-        {latestRecurringUpdate.lastResult ===
-        'completed'
-          ? '✅ Scheduled Task Completed'
-          : '⚠️ Problem Reported'}
-      </div>
-
-      <div className="manager-scheduled-alert-job">
-        {latestRecurringUpdate.title}
-      </div>
-
-      {latestRecurringUpdate.lastNote && (
-        <div className="manager-scheduled-alert-note">
-          📝 {latestRecurringUpdate.lastNote}
-        </div>
-      )}
-
-      {latestRecurringUpdate.lastResult ===
-        'completed' &&
-        latestRecurringUpdate.nextRunAt && (
-          <div className="manager-scheduled-alert-date">
-            🗓️ Next due:{' '}
-            {new Date(
-              latestRecurringUpdate.nextRunAt
-            ).toLocaleDateString()}
-          </div>
-        )}
-    </div>
-  )}
         {role === 'handyman' && (
   <div className="upcoming-scheduled-section">
     <div className="upcoming-scheduled-header">
