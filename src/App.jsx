@@ -935,20 +935,6 @@ function Dashboard({
   (notification) => !notification.read
     ).length
 
-  const recurringJobUpdates = (recurringJobs || [])
-  .filter((job) => job.lastResult && job.lastActionAt)
-  .sort((a, b) => {
-    return (
-      new Date(b.lastActionAt).getTime() -
-      new Date(a.lastActionAt).getTime()
-    )
-  })
-
-const latestRecurringUpdate =
-  recurringJobUpdates.length > 0
-    ? recurringJobUpdates[0]
-    : null
-
 const activeScheduledJobs = (recurringJobs || [])
   .filter((job) => job.active)
   .sort((a, b) => {
