@@ -4369,15 +4369,6 @@ function ManagerScheduledJobDetail({
               🔁 Repeat: {frequencyLabel}
             </div>
 
-            {notification.actionAt && (
-              <div>
-                🕒 Activity:{' '}
-                {new Date(
-                  notification.actionAt
-                ).toLocaleString()}
-              </div>
-            )}
-
             {notification.note && (
               <div>
                 📝 Handyman note:{' '}
