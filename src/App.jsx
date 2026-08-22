@@ -4294,14 +4294,14 @@ function ManagerScheduledJobDetail({
   goToDashboard,
 }) {
   const locationLabel =
-  notification.location ||
-  job.location ||
-  (job.room_number
-    ? `Room ${job.room_number}`
-    : null) ||
-  (job.jobType === 'other'
-    ? 'Other Job'
-    : null)
+    notification.location ||
+    job.location ||
+    (job.room_number
+      ? `Room ${job.room_number}`
+      : null) ||
+    (job.jobType === 'other'
+      ? 'Other Job'
+      : null)
 
   const interval = Number(
     job.frequencyInterval || 1
@@ -4369,41 +4369,50 @@ function ManagerScheduledJobDetail({
               🔁 Repeat: {frequencyLabel}
             </div>
 
-{notification.actionAt && (
-  <div>
-    🕒 Activity:{' '}
-    {new Date(notification.actionAt).toLocaleString()}
-  </div>
-)}
+            {notification.actionAt && (
+              <div>
+                🕒 Activity:{' '}
+                {new Date(
+                  notification.actionAt
+                ).toLocaleString()}
+              </div>
+            )}
 
-{notification.note && (
-  <div>
-    📝 Handyman note: {notification.note}
-  </div>
-)}
+            {notification.note && (
+              <div>
+                📝 Handyman note:{' '}
+                {notification.note}
+              </div>
+            )}
 
-{notification.result === 'completed' &&
-  notification.actionAt && (
-    <div>
-      ✅ Completed:{' '}
-      {new Date(notification.actionAt).toLocaleString()}
-    </div>
-  )}
+            {notification.result === 'completed' &&
+              notification.actionAt && (
+                <div>
+                  ✅ Completed:{' '}
+                  {new Date(
+                    notification.actionAt
+                  ).toLocaleString()}
+                </div>
+              )}
 
-{notification.result === 'problem' &&
-  notification.actionAt && (
-    <div>
-      ⚠️ Problem reported:{' '}
-      {new Date(notification.actionAt).toLocaleString()}
-    </div>
-  )}
+            {notification.result === 'problem' &&
+              notification.actionAt && (
+                <div>
+                  ⚠️ Problem reported:{' '}
+                  {new Date(
+                    notification.actionAt
+                  ).toLocaleString()}
+                </div>
+              )}
 
-{notification.nextRunAt && (
-  <div>
-    🗓️ Next due:{' '}
-    {new Date(notification.nextRunAt).toLocaleDateString()}
-  </div>
-)}
+            {notification.nextRunAt && (
+              <div>
+                🗓️ Next due:{' '}
+                {new Date(
+                  notification.nextRunAt
+                ).toLocaleDateString()}
+              </div>
+            )}
           </div>
         </div>
       </div>
