@@ -499,6 +499,59 @@ const updateJobData = async (jobId, updates) => {
     // 🔹 1) Write to Firestore
    await updateJobInDb(jobId, newUpdates, hotelId)
 
+    // 🔔 Notify manager about handyman activity
+if (userRole === 'handyman') {
+  const room = rooms.find(
+    (room) => room.id === existingJob.room_id
+  )
+
+  let notificationType = 'job_updated'
+  let notificationTitle = 'Job Updated'
+  let notificationResult = 'updated'
+
+  // Handyman marked job as completed
+  if (
+    updates.status === 'Done' &&
+    existingJob.status !== 'Done'
+  ) {
+    notificationType = 'job_completed'
+    notificationTitle = 'Job Completed'
+    notificationResult = 'completed'
+  }
+
+  // Status changed to something else
+  else if (
+    updates.status &&
+    updates.status !== existingJob.status
+  ) {
+    notificationType = 'job_status_changed'
+    notificationTitle = 'Job Status Changed'
+    notificationResult = updates.status
+  }
+
+  await createNotification({
+    hotelId,
+
+    type: notificationType,
+
+    title: notificationTitle,
+
+    message: existingJob.title,
+
+    relatedJobId: jobId,
+
+    result: notificationResult,
+
+    actionAt: newUpdates.updated_at,
+
+    location: room
+      ? `Room ${room.room_number}`
+      : existingJob.jobType === 'other'
+      ? 'Other Job'
+      : '',
+  })
+}
+
     // 🔹 2) Optimistically update local jobs list
     setJobs((prev) =>
       prev.map((job) =>
