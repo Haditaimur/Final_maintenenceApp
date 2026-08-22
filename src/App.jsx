@@ -194,15 +194,34 @@ const openNotification = async (notification) => {
       await markNotificationAsRead(notification.id)
     }
 
+    // Normal maintenance job notification
+    if (notification.relatedJobId) {
+      const relatedJob = jobs.find(
+        (job) => job.id === notification.relatedJobId
+      )
+
+      if (relatedJob) {
+        setSelectedJob(relatedJob)
+
+        // Remember that we came from Notifications
+        setSelectedCategory('Notifications')
+
+        setIsEditing(false)
+        setCurrentView('job-detail')
+        return
+      }
+    }
+
+    // Recurring/scheduled job notification
     if (notification.relatedRecurringJobId) {
       const relatedJob = recurringJobs.find(
-        (job) => job.id === notification.relatedRecurringJobId
+        (job) =>
+          job.id === notification.relatedRecurringJobId
       )
 
       if (relatedJob) {
         setSelectedRecurringJob(relatedJob)
         setSelectedNotification(notification)
-
         setCurrentView('manager-scheduled-job-detail')
         return
       }
@@ -839,7 +858,9 @@ if (userRole === 'handyman') {
           room={getRoomById(selectedJob.room_id)}
           role={userRole}
           onBack={() => {
-            if (selectedCategory === 'Urgent') {
+            if (selectedCategory === 'Notifications') {
+              setCurrentView('notifications')
+            } else if (selectedCategory === 'Urgent') {
               setCurrentView('urgent-list')
             } else if (selectedCategory === 'Done') {
               setCurrentView('completed-jobs')
