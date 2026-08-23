@@ -1104,8 +1104,7 @@ const dashboardScheduledJobs = [
     </button>
   </>
 )}
-
-<div className="user-menu-container">
+            
             <div className="user-menu-container">
               <button
                 className="user-menu-button"
