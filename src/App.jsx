@@ -1197,63 +1197,35 @@ const dashboardScheduledJobs = [
               <div className="detail-description">
                 {job.description}
               </div>
-
-              <div className="job-meta">
-                <span>
-                  🗓️ Due:{' '}
-                  {nextDate
-                    ? nextDate.toLocaleDateString()
-                    : 'Not set'}
-                </span>
-
-                <span>
-                  🔁 Every {job.frequencyInterval}{' '}
-                  {job.frequencyUnit}
-                  {Number(job.frequencyInterval) > 1
-                    ? 's'
-                    : ''}
-                </span>
-
-                {locationLabel && (
-                <span>
-                  📍 {locationLabel}
-                </span>
-              )}
-              </div>
-              {job.lastResult && (
-  <div className="scheduled-result-box">
-    <div>
+<div className="scheduled-job-meta">
+  <div>
+    🗓️
+    <span>
+      Due:{' '}
       <strong>
-        {job.lastResult === 'completed'
-          ? '✅ Last Task Completed'
-          : '⚠️ Problem Reported'}
+        {nextDate
+          ? nextDate.toLocaleDateString()
+          : 'Not set'}
       </strong>
-    </div>
-
-    {job.lastActionAt && (
-      <div>
-        🕒{' '}
-        {new Date(job.lastActionAt).toLocaleString()}
-      </div>
-    )}
-
-    {job.lastNote && (
-      <div>
-        📝 Handyman note: {job.lastNote}
-      </div>
-    )}
-
-    {job.lastResult === 'completed' &&
-      job.nextRunAt && (
-        <div>
-          🗓️ New next due date:{' '}
-          {new Date(
-            job.nextRunAt
-          ).toLocaleDateString()}
-        </div>
-      )}
+    </span>
   </div>
-)}
+
+  <div>
+    🔁
+    <span>
+      Every {job.frequencyInterval}{' '}
+      {job.frequencyUnit}
+      {Number(job.frequencyInterval) > 1 ? 's' : ''}
+    </span>
+  </div>
+
+  {locationLabel && (
+    <div>
+      📍
+      <span>{locationLabel}</span>
+    </div>
+  )}
+</div>
             </div>
           )
         })}
