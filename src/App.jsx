@@ -411,10 +411,10 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
       setCurrentView('floor-list')
     }
   } catch (err) {
-    console.error('Error in viewCategory:', err)
-    goToDashboard()
+      console.error('Error in viewCategory:', err)
+      goToDashboard()
+    }
   }
-}
 
   const viewFloorRooms = (floor) => {
     setSelectedFloor(floor)
