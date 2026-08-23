@@ -1647,12 +1647,12 @@ html {
   background: #f8fafc;
   border: 1px solid #e5e7eb;
   border-radius: 16px;
-  padding: 18px;
+  padding: 1.5rem;
   box-shadow: none;
 }
 
 .scheduled-job-card .detail-description {
-  margin: 12px 0;
+  margin: 12px 0 0.8rem;
 }
 
 .scheduled-job-card .job-meta {
@@ -1671,8 +1671,8 @@ html {
 .scheduled-job-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.7rem;
-  margin-top: 1rem;
+  margin-top: 0.6rem;
+  gap: 0.55rem;
   font-size: 0.95rem;
   color: #64748b;
 }
@@ -1689,9 +1689,9 @@ html {
 }
 
 .view-all-scheduled-btn {
-  margin-top: 1rem;
   width: 100%;
-  padding: 0.85rem 1rem;
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
   border: none;
   border-radius: 12px;
   background: #eef2ff;
