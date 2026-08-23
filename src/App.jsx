@@ -4425,145 +4425,149 @@ function ManagerScheduledJobDetail({
             {job.description}
           </div>
 
-          <div className="detail-meta">
-            {locationLabel && (
-              <div>
-                📍 Location: {locationLabel}
-              </div>
-            )}
-
-            <div>
-              🔁 Repeat: {frequencyLabel}
-            </div>
-
-            {notification.note && (
-              <div>
-                📝 Handyman note:{' '}
-                {notification.note}
-              </div>
-            )}
-
-            {notification.result === 'completed' &&
-              notification.actionAt && (
-                <div>
-                  ✅ Completed:{' '}
-                  {new Date(
-                    notification.actionAt
-                  ).toLocaleString()}
-                </div>
-              )}
-
-            {notification.result === 'problem' &&
-              notification.actionAt && (
-                <div>
-                  ⚠️ Problem reported:{' '}
-                  {new Date(
-                    notification.actionAt
-                  ).toLocaleString()}
-                </div>
-              )}
-
-            {notification.nextRunAt && (
-              <div>
-                🗓️ Next due:{' '}
-                {new Date(
-                  notification.nextRunAt
-                ).toLocaleDateString()}
-              </div>
-            )}
-            <div
-  className="scheduled-result-box"
-  style={{ marginTop: '1.5rem' }}
->
-  <h3 style={{ marginTop: 0 }}>
-    📋 Activity History
-  </h3>
-
-  {jobHistory.length === 0 ? (
+<div className="detail-meta">
+  {locationLabel && (
     <div>
-      No activity recorded yet.
+      📍 Location: {locationLabel}
     </div>
-  ) : (
-    jobHistory.map((item) => {
-      const activityDate =
-        item.actionAt ||
-        (item.created_at?.toDate
-          ? item.created_at.toDate()
-          : item.created_at)
-
-      let activityIcon = '🔔'
-      let activityLabel = item.title || 'Activity'
-
-      if (
-        item.result === 'completed' ||
-        item.type === 'scheduled_completed'
-      ) {
-        activityIcon = '✅'
-        activityLabel = 'Completed'
-      } else if (
-        item.result === 'problem' ||
-        item.type === 'scheduled_problem'
-      ) {
-        activityIcon = '⚠️'
-        activityLabel = 'Problem Reported'
-      } else if (
-        item.result === 'paused' ||
-        item.type === 'scheduled_paused'
-      ) {
-        activityIcon = '⏸️'
-        activityLabel = 'Paused'
-      } else if (
-        item.result === 'resumed' ||
-        item.type === 'scheduled_resumed'
-      ) {
-        activityIcon = '▶️'
-        activityLabel = 'Resumed'
-      }
-
-      return (
-        <div
-          key={item.id}
-          style={{
-            padding: '0.85rem 0',
-            borderBottom: '1px solid #e2e8f0',
-          }}
-        >
-          <div>
-            <strong>
-              {activityIcon} {activityLabel}
-            </strong>
-          </div>
-
-          {activityDate && (
-            <div>
-              🕒{' '}
-              {new Date(
-                activityDate
-              ).toLocaleString()}
-            </div>
-          )}
-
-          {item.note && (
-            <div>
-              📝 {item.note}
-            </div>
-          )}
-
-          {item.nextRunAt &&
-            item.result === 'completed' && (
-              <div>
-                🗓️ Next due:{' '}
-                {new Date(
-                  item.nextRunAt
-                ).toLocaleDateString()}
-              </div>
-            )}
-        </div>
-      )
-    })
   )}
+
+  <div>
+    🔁 Repeat: {frequencyLabel}
+  </div>
 </div>
-          </div>
+
+<div className="current-activity-section">
+  <h3>🔔 Current Notification</h3>
+
+  <div className="scheduled-result-box">
+    {notification.result === 'completed' && (
+      <div>
+        <strong>✅ Completed</strong>
+      </div>
+    )}
+
+    {notification.result === 'problem' && (
+      <div>
+        <strong>⚠️ Problem Reported</strong>
+      </div>
+    )}
+
+    {notification.result === 'paused' && (
+      <div>
+        <strong>⏸️ Paused</strong>
+      </div>
+    )}
+
+    {notification.result === 'resumed' && (
+      <div>
+        <strong>▶️ Resumed</strong>
+      </div>
+    )}
+
+    {notification.actionAt && (
+      <div>
+        🕒 {new Date(notification.actionAt).toLocaleString()}
+      </div>
+    )}
+
+    {notification.note && (
+      <div>
+        📝 Handyman note: {notification.note}
+      </div>
+    )}
+
+    {notification.nextRunAt &&
+      notification.result === 'completed' && (
+        <div>
+          🗓️ Next due:{' '}
+          {new Date(notification.nextRunAt).toLocaleDateString()}
+        </div>
+      )}
+  </div>
+</div>
+
+<div className="activity-history-section">
+  <h3>📋 Activity History</h3>
+
+  <div className="scheduled-result-box">
+    {jobHistory.length === 0 ? (
+      <div>No previous activity recorded.</div>
+    ) : (
+      jobHistory
+        .filter((item) => item.id !== notification.id)
+        .map((item) => {
+          const activityDate =
+            item.actionAt ||
+            (item.created_at?.toDate
+              ? item.created_at.toDate()
+              : item.created_at)
+
+          let activityIcon = '🔔'
+          let activityLabel = item.title || 'Activity'
+
+          if (
+            item.result === 'completed' ||
+            item.type === 'scheduled_completed'
+          ) {
+            activityIcon = '✅'
+            activityLabel = 'Completed'
+          } else if (
+            item.result === 'problem' ||
+            item.type === 'scheduled_problem'
+          ) {
+            activityIcon = '⚠️'
+            activityLabel = 'Problem Reported'
+          } else if (
+            item.result === 'paused' ||
+            item.type === 'scheduled_paused'
+          ) {
+            activityIcon = '⏸️'
+            activityLabel = 'Paused'
+          } else if (
+            item.result === 'resumed' ||
+            item.type === 'scheduled_resumed'
+          ) {
+            activityIcon = '▶️'
+            activityLabel = 'Resumed'
+          }
+
+          return (
+            <div
+              key={item.id}
+              className="activity-history-item"
+            >
+              <div>
+                <strong>
+                  {activityIcon} {activityLabel}
+                </strong>
+              </div>
+
+              {activityDate && (
+                <div>
+                  🕒 {new Date(activityDate).toLocaleString()}
+                </div>
+              )}
+
+              {item.note && (
+                <div>
+                  📝 {item.note}
+                </div>
+              )}
+
+              {item.nextRunAt &&
+                item.result === 'completed' && (
+                  <div>
+                    🗓️ Next due:{' '}
+                    {new Date(item.nextRunAt).toLocaleDateString()}
+                  </div>
+                )}
+            </div>
+          )
+        })
+    )}
+  </div>
+</div>
         </div>
       </div>
     </>
