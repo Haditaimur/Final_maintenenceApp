@@ -1704,3 +1704,29 @@ html {
 .view-all-scheduled-btn:hover {
   background: #e0e7ff;
 }
+
+.current-activity-section {
+  margin-top: 1.5rem;
+}
+
+.current-activity-section h3,
+.activity-history-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+  color: #334155;
+}
+
+.activity-history-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #e2e8f0;
+}
+
+.activity-history-item {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.activity-history-item:last-child {
+  border-bottom: none;
+}
