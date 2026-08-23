@@ -21,6 +21,8 @@ import {
 } from './NotificationsService'
 import { authReady } from './firebase'
 
+import { migrateJobsToAddHotelId } from './migration'
+
 // Data
 const initialRooms = [
   // Basement
@@ -261,6 +263,20 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [selectedRecurringJob, setSelectedRecurringJob] = useState(null)
   const [selectedScheduledJob, setSelectedScheduledJob] = useState(null)
   const [selectedNotification, setSelectedNotification] = useState(null)
+
+  const runJobsMigration = async () => {
+  try {
+    const result = await migrateJobsToAddHotelId()
+
+    window.alert(
+      `Migration complete.\nUpdated: ${result.updated}\nSkipped: ${result.skipped}`
+    )
+  } catch (error) {
+    console.error('Migration failed:', error)
+    window.alert('Migration failed. Check the console.')
+  }
+}
+  
   const editRecurringJob = (job) => {
   setSelectedRecurringJob(job)
   setCurrentView('edit-recurring-job')
@@ -1057,6 +1073,21 @@ const dashboardScheduledJobs = [
               {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
             </span>
             {role === 'manager' && (
+
+        <button
+
+    className="btn-secondary"
+
+    onClick={runJobsMigration}
+
+    style={{ marginBottom: '1rem' }}
+
+  >
+
+    Fix Old Jobs
+
+  </button>
+      
               <button
                 className="notification-button"
                 type="button"
