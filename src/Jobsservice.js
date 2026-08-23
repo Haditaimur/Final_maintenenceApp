@@ -1,6 +1,6 @@
 // src/Jobsservice.js
 
-import { db, storage } from './firebase'
+import { db, storage, authReady } from './firebase'
 import {
   collection,
   addDoc,
@@ -19,50 +19,60 @@ import { getAuth } from "firebase/auth";
 // ---- REALTIME SUBSCRIPTION ----
 
 export const subscribeToJobs = (hotelId, callback) => {
-  const jobsRef = collection(db, 'jobs')
-  const q = query(jobsRef, where('hotelId', '==', hotelId))
+  let unsubscribe = () => {}
 
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const jobs = []
+  authReady
+    .then(() => {
+      const jobsRef = collection(db, 'jobs')
+      const q = query(jobsRef, where('hotelId', '==', hotelId))
 
-      snapshot.forEach((snap) => {
-        const data = snap.data()
+      unsubscribe = onSnapshot(
+        q,
+        (snapshot) => {
+          const jobs = []
 
-        const createdAt =
-          data.created_at?.toDate?.()?.toISOString?.() ||
-          (typeof data.created_at === 'string' ? data.created_at : null)
+          snapshot.forEach((snap) => {
+            const data = snap.data()
 
-        const updatedAt =
-          data.updated_at?.toDate?.()?.toISOString?.() ||
-          (typeof data.updated_at === 'string' ? data.updated_at : null)
+            const createdAt =
+              data.created_at?.toDate?.()?.toISOString?.() ||
+              (typeof data.created_at === 'string' ? data.created_at : null)
 
-        // ✅ Backward compatible: UI can always use job.photo
-        const photo = data.photoUrl || data.photo || null
+            const updatedAt =
+              data.updated_at?.toDate?.()?.toISOString?.() ||
+              (typeof data.updated_at === 'string' ? data.updated_at : null)
 
-        jobs.push({
-          id: snap.id,
-          ...data,
-          photo,
-          created_at: createdAt,
-          updated_at: updatedAt,
-        })
-      })
+            const photo = data.photoUrl || data.photo || null
 
-      jobs.sort((a, b) => {
-        const aTime = new Date(a.created_at || 0).getTime()
-        const bTime = new Date(b.created_at || 0).getTime()
-        return bTime - aTime
-      })
+            jobs.push({
+              id: snap.id,
+              ...data,
+              photo,
+              created_at: createdAt,
+              updated_at: updatedAt,
+            })
+          })
 
-      callback(jobs)
-    },
-    (error) => {
-      console.error('Error fetching jobs:', error)
+          jobs.sort((a, b) => {
+            const aTime = new Date(a.created_at || 0).getTime()
+            const bTime = new Date(b.created_at || 0).getTime()
+            return bTime - aTime
+          })
+
+          callback(jobs)
+        },
+        (error) => {
+          console.error('Error fetching jobs:', error)
+          callback([])
+        }
+      )
+    })
+    .catch((error) => {
+      console.error('Authentication failed before jobs subscription:', error)
       callback([])
-    },
-  )
+    })
+
+  return () => unsubscribe()
 }
 
 // ---- INTERNAL PHOTO HELPER ----

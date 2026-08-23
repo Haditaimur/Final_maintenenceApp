@@ -8,6 +8,18 @@ import {
   deleteJobInDb,
   deleteMultipleJobsInDb,
 } from './Jobsservice'
+import {
+  subscribeToRecurringJobs,
+  createRecurringJob,
+  updateRecurringJob,
+  deleteRecurringJob,
+} from './RecurringJobsService'
+import {
+  createNotification,
+  subscribeToNotifications,
+  markNotificationAsRead,
+} from './NotificationsService'
+import { authReady } from './firebase'
 
 // Data
 const initialRooms = [
@@ -171,6 +183,56 @@ if (currentVersion !== APP_VERSION) {
 
 // Main App Component
 function HotelMaintenanceApp() {
+  const [recurringJobs, setRecurringJobs] = useState([])
+  const [notifications, setNotifications] = useState([])
+  const goToNotifications = () => {
+  setCurrentView('notifications')
+}
+const openNotification = async (notification) => {
+  try {
+    if (!notification.read) {
+      await markNotificationAsRead(notification.id)
+    }
+
+    // Normal maintenance job notification
+    if (notification.relatedJobId) {
+      const relatedJob = jobs.find(
+        (job) => job.id === notification.relatedJobId
+      )
+
+      if (relatedJob) {
+        setSelectedJob(relatedJob)
+
+        // Remember that we came from Notifications
+        setSelectedCategory('Notifications')
+
+        setIsEditing(false)
+        setCurrentView('job-detail')
+        return
+      }
+    }
+
+    // Recurring/scheduled job notification
+    if (notification.relatedRecurringJobId) {
+      const relatedJob = recurringJobs.find(
+        (job) =>
+          job.id === notification.relatedRecurringJobId
+      )
+
+      if (relatedJob) {
+        setSelectedRecurringJob(relatedJob)
+        setSelectedNotification(notification)
+        setCurrentView('manager-scheduled-job-detail')
+        return
+      }
+    }
+
+    window.alert('The related job could not be found.')
+  } catch (error) {
+    console.error('Could not open notification:', error)
+    window.alert('Could not open notification.')
+  }
+}
   const [currentView, setCurrentView] = useState('role-select')
   const [userRole, setUserRole] = useState(null)
   const [rooms, setRooms] = useState(() => storage.get('rooms', initialRooms))
@@ -196,6 +258,13 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [isCreating, setIsCreating] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [selectedRecurringJob, setSelectedRecurringJob] = useState(null)
+  const [selectedScheduledJob, setSelectedScheduledJob] = useState(null)
+  const [selectedNotification, setSelectedNotification] = useState(null)
+  const editRecurringJob = (job) => {
+  setSelectedRecurringJob(job)
+  setCurrentView('edit-recurring-job')
+}
 
   useEffect(() => {
     console.log('🎉 HotelKeep v2.0 - Bulk Delete Enabled')
@@ -217,6 +286,50 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
 
     return () => unsubscribe()
   }, [hotelId])
+
+  useEffect(() => {
+  const unsubscribe = subscribeToRecurringJobs(hotelId, (items) => {
+    setRecurringJobs(items)
+  })
+
+  return () => unsubscribe()
+}, [hotelId])
+
+  useEffect(() => {
+  let unsubscribe = null
+  let cancelled = false
+
+  const startNotificationsListener = async () => {
+    try {
+      await authReady
+
+      if (cancelled) return
+
+      unsubscribe = subscribeToNotifications(
+        hotelId,
+        (items) => {
+          console.log('🔔 Notifications received:', items)
+          setNotifications(items)
+        }
+      )
+    } catch (error) {
+      console.error(
+        'Notification listener could not start:',
+        error
+      )
+    }
+  }
+
+  startNotificationsListener()
+
+  return () => {
+    cancelled = true
+
+    if (unsubscribe) {
+      unsubscribe()
+    }
+  }
+}, [hotelId])
 
   const selectRole = (role) => {
     if (role === 'manager') {
@@ -323,6 +436,24 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
     setCurrentView('add-job')
   }
 
+  const addNewRecurringJob = () => {
+  setCurrentView('add-recurring-job')
+}
+
+const goToRecurringJobs = () => {
+  setCurrentView('recurringJobs')
+}
+
+  const goToHandymanScheduledJobs = () => {
+  setCurrentView('handyman-scheduled-jobs')
+}
+
+  const viewScheduledJobDetail = (job) => {
+  setSelectedScheduledJob(job)
+  setCurrentView('scheduled-job-detail')
+}
+  
+
   // Firebase-based createJob with timestamps and original_status
   const createJob = async (jobData) => {
     if (!jobData.title || !jobData.description) {
@@ -386,6 +517,59 @@ const updateJobData = async (jobId, updates) => {
   try {
     // 🔹 1) Write to Firestore
    await updateJobInDb(jobId, newUpdates, hotelId)
+
+    // 🔔 Notify manager about handyman activity
+if (userRole === 'handyman') {
+  const room = rooms.find(
+    (room) => room.id === existingJob.room_id
+  )
+
+  let notificationType = 'job_updated'
+  let notificationTitle = 'Job Updated'
+  let notificationResult = 'updated'
+
+  // Handyman marked job as completed
+  if (
+    updates.status === 'Done' &&
+    existingJob.status !== 'Done'
+  ) {
+    notificationType = 'job_completed'
+    notificationTitle = 'Job Completed'
+    notificationResult = 'completed'
+  }
+
+  // Status changed to something else
+  else if (
+    updates.status &&
+    updates.status !== existingJob.status
+  ) {
+    notificationType = 'job_status_changed'
+    notificationTitle = 'Job Status Changed'
+    notificationResult = updates.status
+  }
+
+  await createNotification({
+    hotelId,
+
+    type: notificationType,
+
+    title: notificationTitle,
+
+    message: existingJob.title,
+
+    relatedJobId: jobId,
+
+    result: notificationResult,
+
+    actionAt: newUpdates.updated_at,
+
+    location: room
+      ? `Room ${room.room_number}`
+      : existingJob.jobType === 'other'
+      ? 'Other Job'
+      : '',
+  })
+}
 
     // 🔹 2) Optimistically update local jobs list
     setJobs((prev) =>
@@ -512,16 +696,92 @@ const updateJobData = async (jobId, updates) => {
 
       {currentView === 'dashboard' && (
         <Dashboard
-          role={userRole}
-          jobs={jobs}
-          onViewCategory={viewCategory}
-          onAddJob={addNewJob}
-          onLogout={logout}
-          onChangeCode={changeManagerCode}
-          showUserMenu={showUserMenu}
-          setShowUserMenu={setShowUserMenu}
+            role={userRole}
+
+              jobs={jobs}
+            
+              recurringJobs={recurringJobs}
+
+              notifications={notifications}
+            
+              onViewCategory={viewCategory}
+            
+              onViewRecurringJobs={goToRecurringJobs}
+
+              onViewAllScheduledJobs={goToHandymanScheduledJobs}
+
+              onViewNotifications={goToNotifications}
+            
+              onAddJob={addNewJob}
+            
+              onLogout={logout}
+            
+              onChangeCode={changeManagerCode}
+            
+              showUserMenu={showUserMenu}
+            
+              setShowUserMenu={setShowUserMenu}
         />
       )}
+
+      {currentView === 'notifications' && userRole === 'manager' && (
+
+            <NotificationsList
+          
+              notifications={notifications}
+          
+              onBack={goToDashboard}
+
+              onOpenNotification={openNotification}
+          
+            />
+          
+          )}
+
+     {currentView === 'manager-scheduled-job-detail' &&
+            userRole === 'manager' &&
+            selectedRecurringJob &&
+            selectedNotification && (
+              <ManagerScheduledJobDetail
+                job={selectedRecurringJob}
+                notification={selectedNotification}
+                notifications={notifications}
+                onBack={goToNotifications}
+                goToDashboard={goToDashboard}
+              />
+          )}
+
+      {currentView === 'recurringJobs' && userRole === 'manager' && (
+          <RecurringJobsList
+            recurringJobs={recurringJobs}
+            rooms={rooms}
+            onBack={goToDashboard}
+            onEdit={editRecurringJob}
+            onAdd={addNewRecurringJob}
+            onUpdate={updateRecurringJob}
+            onDelete={deleteRecurringJob}
+          />
+        )}
+
+      {currentView === 'handyman-scheduled-jobs' &&
+          userRole === 'handyman' && (
+            <HandymanScheduledJobsList
+              recurringJobs={recurringJobs}
+              onBack={goToDashboard}
+              onViewJob={viewScheduledJobDetail}
+            />
+          )}
+
+      {currentView === 'scheduled-job-detail' &&
+            selectedScheduledJob && (
+              <ScheduledJobDetail
+                job={selectedScheduledJob}
+                role={userRole}
+                onBack={goToHandymanScheduledJobs}
+                onUpdate={updateRecurringJob}
+                goToDashboard={goToDashboard}
+              />
+            )}
 
       {currentView === 'urgent-list' && (
         <UrgentJobsList
@@ -599,7 +859,9 @@ const updateJobData = async (jobId, updates) => {
           room={getRoomById(selectedJob.room_id)}
           role={userRole}
           onBack={() => {
-            if (selectedCategory === 'Urgent') {
+            if (selectedCategory === 'Notifications') {
+              setCurrentView('notifications')
+            } else if (selectedCategory === 'Urgent') {
               setCurrentView('urgent-list')
             } else if (selectedCategory === 'Done') {
               setCurrentView('completed-jobs')
@@ -636,6 +898,45 @@ const updateJobData = async (jobId, updates) => {
           isUpdating={isUpdating}
         />
       )}
+
+      {currentView === 'add-recurring-job' && userRole === 'manager' && (
+        <AddRecurringJobForm
+          onBack={goToRecurringJobs}
+          onSubmit={async (data) => {
+            try {
+              await createRecurringJob({
+                ...data,
+                hotelId,
+              })
+      
+              setCurrentView('recurringJobs')
+            } catch (error) {
+              console.error('Could not create recurring job:', error)
+              window.alert('Could not create recurring job.')
+            }
+          }}
+        />
+      )}
+
+      {currentView === 'edit-recurring-job' &&
+        userRole === 'manager' &&
+        selectedRecurringJob && (
+          <EditRecurringJobForm
+            job={selectedRecurringJob}
+            onBack={goToRecurringJobs}
+            onSubmit={async (jobId, updates) => {
+              try {
+                await updateRecurringJob(jobId, updates)
+      
+                setSelectedRecurringJob(null)
+                setCurrentView('recurringJobs')
+              } catch (error) {
+                console.error('Could not update recurring job:', error)
+                window.alert('Could not update recurring job.')
+              }
+            }}
+          />
+        )}
     </div>
   )
 }
@@ -674,12 +975,29 @@ function RoleSelector({ onSelectRole }) {
 
 function Dashboard({
   role,
+
   jobs,
+
+  recurringJobs,
+
+  notifications,
+
+  onViewNotifications,
+
   onViewCategory,
+
+  onViewRecurringJobs,
+
+  onViewAllScheduledJobs,
+  
   onAddJob,
+
   onLogout,
+
   onChangeCode,
+
   showUserMenu,
+
   setShowUserMenu,
 }) {
   const urgentCount = jobs.filter((j) => j.status === 'Urgent').length
@@ -688,6 +1006,44 @@ function Dashboard({
       j.status === 'To Do' || j.status === 'Urgent' || j.status === 'Other',
   ).length
   const doneCount = jobs.filter((j) => j.status === 'Done').length
+  const unreadNotificationCount = (notifications || []).filter(
+  (notification) => !notification.read
+    ).length
+
+const activeScheduledJobs = (recurringJobs || [])
+  .filter((job) => job.active)
+  .sort((a, b) => {
+    const aDate = new Date(a.nextRunAt || 0).getTime()
+    const bDate = new Date(b.nextRunAt || 0).getTime()
+
+    return aDate - bDate
+  })
+
+const today = new Date()
+today.setHours(0, 0, 0, 0)
+
+const overdueScheduledJobs = activeScheduledJobs.filter((job) => {
+  if (!job.nextRunAt) return false
+
+  const dueDate = new Date(job.nextRunAt)
+  dueDate.setHours(0, 0, 0, 0)
+
+  return dueDate < today
+})
+
+const upcomingScheduledJobs = activeScheduledJobs.filter((job) => {
+  if (!job.nextRunAt) return false
+
+  const dueDate = new Date(job.nextRunAt)
+  dueDate.setHours(0, 0, 0, 0)
+
+  return dueDate >= today
+})
+
+const dashboardScheduledJobs = [
+  ...overdueScheduledJobs,
+  ...upcomingScheduledJobs,
+].slice(0, 1)
 
   return (
     <>
@@ -700,6 +1056,24 @@ function Dashboard({
             <span className={`role-badge ${role}`}>
               {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
             </span>
+            {role === 'manager' && (
+              <button
+                className="notification-button"
+                type="button"
+                title="Notifications"
+                onClick={onViewNotifications}
+              >
+                🔔
+            
+                {unreadNotificationCount > 0 && (
+                  <span className="notification-count">
+                    {unreadNotificationCount > 99
+                      ? '99+'
+                      : unreadNotificationCount}
+                  </span>
+                )}
+              </button>
+            )}
             <div className="user-menu-container">
               <button
                 className="user-menu-button"
@@ -738,6 +1112,138 @@ function Dashboard({
       </div>
 
       <div className="dashboard fade-in">
+        {role === 'handyman' && (
+  <div className="upcoming-scheduled-section">
+    <div className="upcoming-scheduled-header">
+      <div>
+        <h2>🗓️ Upcoming Scheduled Jobs</h2>
+        <p>Planned recurring maintenance tasks</p>
+      </div>
+    </div>
+
+   {dashboardScheduledJobs.length === 0 ? (
+      <div className="empty-state">
+        <div className="empty-icon">📅</div>
+        <div className="empty-title">
+          No Scheduled Jobs
+        </div>
+        <div className="empty-message">
+          There are no upcoming scheduled maintenance tasks.
+        </div>
+      </div>
+    ) : (
+    <>
+      <div className="scheduled-jobs-list">
+       {dashboardScheduledJobs.map((job) => {
+        const locationLabel =
+
+    job.location ||
+
+    (job.room_number ? `Room ${job.room_number}` : null) ||
+
+    (job.jobType === 'other' ? 'Other Job' : null)
+          const nextDate = job.nextRunAt
+            ? new Date(job.nextRunAt)
+            : null
+
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+
+          const dueDate = nextDate
+            ? new Date(nextDate)
+            : null
+
+          if (dueDate) {
+            dueDate.setHours(0, 0, 0, 0)
+          }
+
+          const isDue =
+            dueDate &&
+            dueDate.getTime() === today.getTime()
+
+          const isOverdue =
+            dueDate &&
+            dueDate.getTime() < today.getTime()
+
+          return (
+            <div
+              key={job.id}
+              className="scheduled-job-card"
+              onClick={() => onViewJob(job)}
+              style={{ cursor: 'pointer' }}
+            >
+              <div className="job-header">
+                <div className="job-title">
+                  {job.title}
+                </div>
+
+                <span
+                  className={`job-status-badge ${
+                    isOverdue
+                      ? 'urgent'
+                      : isDue
+                      ? 'todo'
+                      : 'done'
+                  }`}
+                >
+                  {isOverdue
+                    ? 'Overdue'
+                    : isDue
+                    ? 'Due Today'
+                    : 'Upcoming'}
+                </span>
+              </div>
+
+              <div className="detail-description">
+                {job.description}
+              </div>
+<div className="scheduled-job-meta">
+  <div>
+    🗓️
+    <span>
+      Due:{' '}
+      <strong>
+        {nextDate
+          ? nextDate.toLocaleDateString()
+          : 'Not set'}
+      </strong>
+    </span>
+  </div>
+
+  <div>
+    🔁
+    <span>
+      Every {job.frequencyInterval}{' '}
+      {job.frequencyUnit}
+      {Number(job.frequencyInterval) > 1 ? 's' : ''}
+    </span>
+  </div>
+
+  {locationLabel && (
+    <div>
+      📍
+      <span>{locationLabel}</span>
+    </div>
+  )}
+</div>
+            </div>
+          )
+        })}
+      </div>
+
+      {activeScheduledJobs.length > 1 && (
+  <button
+    className="view-all-scheduled-btn"
+    onClick={onViewAllScheduledJobs}
+  >
+    View All Scheduled Jobs ({activeScheduledJobs.length})
+  </button>
+)}
+
+    </>
+    )}
+  </div>
+)}
         <div className="dashboard-grid">
           <div
             className="category-card urgent"
@@ -784,6 +1290,27 @@ function Dashboard({
             <div className="category-count">{doneCount}</div>
             <div className="category-subtitle">Completed tasks</div>
           </div>
+          {role === 'manager' && (
+  <div
+    className="category-card recurring"
+    onClick={onViewRecurringJobs}
+  >
+    <div className="category-header">
+      <div className="category-title">
+        <div className="category-icon">🔁</div>
+        Recurring Jobs
+      </div>
+    </div>
+
+    <div className="category-count">
+      {(recurringJobs || []).filter((job) => job.active).length}
+    </div>
+
+    <div className="category-subtitle">
+      Scheduled recurring maintenance
+    </div>
+  </div>
+)}
         </div>
       </div>
 
@@ -2230,6 +2757,7 @@ function CompletedJobsList({
                   key={job.id}
                   className="job-card"
                   onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">{job.title}</div>
@@ -2260,5 +2788,1922 @@ function CompletedJobsList({
     </>
   )
 }
+
+function RecurringJobsList({
+  recurringJobs,
+  rooms,
+  onBack,
+  onEdit,
+  onAdd,
+  onUpdate,
+  onDelete,
+}) {
+  const getRoom = (roomId) => {
+    return rooms.find((room) => room.id === roomId)
+  }
+
+  const formatFrequency = (job) => {
+    const interval = Number(job.frequencyInterval || 1)
+    const unit = job.frequencyUnit || 'month'
+
+    const unitLabel =
+      interval === 1
+        ? unit
+        : `${unit}s`
+
+    return `Every ${interval} ${unitLabel}`
+  }
+
+  const formatNextRun = (value) => {
+    if (!value) return 'Not scheduled'
+
+    const date = new Date(value)
+
+    if (Number.isNaN(date.getTime())) {
+      return 'Invalid date'
+    }
+
+    return date.toLocaleDateString()
+  }
+
+const handleToggleActive = async (job) => {
+  try {
+    const newActiveState = !job.active
+    const now = new Date().toISOString()
+
+    await onUpdate(job.id, {
+      active: newActiveState,
+    })
+
+    await createNotification({
+      hotelId: 'athena',
+
+      type: newActiveState
+        ? 'scheduled_resumed'
+        : 'scheduled_paused',
+
+      title: newActiveState
+        ? 'Scheduled Job Resumed'
+        : 'Scheduled Job Paused',
+
+      message: job.title,
+
+      relatedRecurringJobId: job.id,
+
+      result: newActiveState
+        ? 'resumed'
+        : 'paused',
+
+      actionAt: now,
+
+      nextRunAt: job.nextRunAt || null,
+
+      location: job.location || '',
+    })
+  } catch (error) {
+    console.error(
+      'Could not update recurring job:',
+      error
+    )
+
+    window.alert(
+      'Could not update recurring job.'
+    )
+  }
+}
+
+  const handleDelete = async (job) => {
+    const confirmed = window.confirm(
+      `Delete recurring job "${job.title}"?`
+    )
+
+    if (!confirmed) return
+
+    try {
+      await onDelete(job.id)
+    } catch (error) {
+      console.error('Could not delete recurring job:', error)
+      window.alert('Could not delete recurring job.')
+    }
+  }
+
+  return (
+    <>
+      <div className="app-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
+        </button>
+
+        <h1 className="app-title" onClick={onBack}>
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-list fade-in">
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '1.5rem',
+            gap: '1rem',
+          }}
+        >
+          <div>
+            <h2 style={{ margin: 0 }}>Recurring Jobs</h2>
+            <p style={{ marginTop: '0.4rem', color: '#64748b' }}>
+              Manage recurring maintenance schedules
+            </p>
+          </div>
+
+          <button
+            className="form-submit"
+            onClick={onAdd}
+            style={{ width: 'auto' }}
+          >
+            + Add Recurring Job
+          </button>
+        </div>
+
+        {recurringJobs.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🔁</div>
+
+            <div className="empty-title">
+              No Recurring Jobs
+            </div>
+
+            <div className="empty-message">
+              Add maintenance tasks with recurring due dates.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {recurringJobs.map((job) => {
+              const room = getRoom(job.room_id)
+
+            const locationLabel =
+              job.location ||
+              (room ? `Room ${room.room_number}` : null) ||
+              (job.room_number ? `Room ${job.room_number}` : null) ||
+              (job.jobType === 'other' ? 'Other Job' : null)
+
+            const nextDate = job.nextRunAt
+                ? new Date(job.nextRunAt)
+                : null
+              
+              const today = new Date()
+              today.setHours(0, 0, 0, 0)
+              
+              const dueDate = nextDate
+                ? new Date(nextDate)
+                : null
+              
+              if (dueDate) {
+                dueDate.setHours(0, 0, 0, 0)
+              }
+              
+              const isDue =
+                job.active &&
+                dueDate &&
+                dueDate.getTime() === today.getTime()
+              
+              const isOverdue =
+                job.active &&
+                dueDate &&
+                dueDate.getTime() < today.getTime()
+              
+              const scheduleStatus = !job.active
+                ? 'Paused'
+                : isOverdue
+                ? 'Overdue'
+                : isDue
+                ? 'Due Today'
+                : 'Upcoming'
+              
+              const scheduleStatusClass = !job.active
+                ? 'done'
+                : isOverdue
+                ? 'urgent'
+                : isDue
+                ? 'todo'
+                : 'done'
+
+              return (
+                <div
+                  key={job.id}
+                  className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="job-header">
+                    <div className="job-title">
+                      {job.title}
+                    </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          gap: '0.5rem',
+                          flexWrap: 'wrap',
+                        }}
+                      >
+                        <span
+                          className={`job-status-badge ${
+                            job.active ? 'todo' : 'done'
+                          }`}
+                        >
+                          {job.active ? 'Active' : 'Paused'}
+                        </span>
+                      
+                        {job.active && (
+                          <span
+                            className={`job-status-badge ${scheduleStatusClass}`}
+                          >
+                            {scheduleStatus}
+                          </span>
+                        )}
+                      </div>
+                  </div>
+
+                  <div className="detail-description">
+                    {job.description}
+                  </div>
+
+                  <div className="job-meta">
+                    <span>
+                      🔁 {formatFrequency(job)}
+                    </span>
+
+                    <span>
+                      🗓️ Next: {formatNextRun(job.nextRunAt)}
+                    </span>
+
+                    {locationLabel && (
+                      <span>
+                        📍 {locationLabel}
+                      </span>
+                    )}
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.75rem',
+                      marginTop: '1rem',
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <button
+                      className="btn-secondary"
+                      onClick={() => handleToggleActive(job)}
+                    >
+                      {job.active ? '⏸ Pause' : '▶ Resume'}
+                    </button>
+
+                    <button
+                  className="btn-secondary"
+                  onClick={() => onEdit(job)}
+                >
+                  ✏️ Edit
+                  </button>
+
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDelete(job)}
+                    >
+                      🗑 Delete
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+function AddRecurringJobForm({
+  onBack,
+  onSubmit,
+}) {
+  const today = new Date().toISOString().split('T')[0]
+
+  const [formData, setFormData] = useState({
+    title: '',
+
+  description: '',
+
+  location: '',
+
+  frequencyUnit: 'month',
+
+  frequencyInterval: 1,
+
+  startDate: today,
+
+  nextRunAt: today,
+
+  active: true,
+  })
+
+  const handleScheduleChange = (value) => {
+    const schedules = {
+      weekly: {
+        frequencyUnit: 'week',
+        frequencyInterval: 1,
+      },
+      monthly: {
+        frequencyUnit: 'month',
+        frequencyInterval: 1,
+      },
+      quarterly: {
+        frequencyUnit: 'month',
+        frequencyInterval: 3,
+      },
+      sixMonths: {
+        frequencyUnit: 'month',
+        frequencyInterval: 6,
+      },
+      yearly: {
+        frequencyUnit: 'month',
+        frequencyInterval: 12,
+      },
+    }
+
+    const selected = schedules[value]
+
+    setFormData((prev) => ({
+      ...prev,
+      frequencyUnit: selected.frequencyUnit,
+      frequencyInterval: selected.frequencyInterval,
+    }))
+  }
+
+  const getScheduleValue = () => {
+    if (
+      formData.frequencyUnit === 'week' &&
+      formData.frequencyInterval === 1
+    ) {
+      return 'weekly'
+    }
+
+    if (
+      formData.frequencyUnit === 'month' &&
+      formData.frequencyInterval === 1
+    ) {
+      return 'monthly'
+    }
+
+    if (formData.frequencyInterval === 3) {
+      return 'quarterly'
+    }
+
+    if (formData.frequencyInterval === 6) {
+      return 'sixMonths'
+    }
+
+    if (formData.frequencyInterval === 12) {
+      return 'yearly'
+    }
+
+    return 'monthly'
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+
+    if (!formData.title.trim()) {
+      window.alert('Please enter a job title.')
+      return
+    }
+
+    if (!formData.description.trim()) {
+      window.alert('Please enter a description.')
+      return
+    }
+
+    if (!formData.startDate) {
+      window.alert('Please select the first due date.')
+      return
+    }
+
+   const finalData = {
+        ...formData,
+        location: formData.location.trim(),
+        nextRunAt: formData.startDate,
+      }
+
+    onSubmit(finalData)
+  }
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Cancel
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={onBack}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="form-container fade-in">
+        <h2>Add Recurring Job</h2>
+
+        <form onSubmit={handleSubmit}>
+
+          <div className="form-group">
+            <label className="form-label">
+              Title *
+            </label>
+
+            <input
+              type="text"
+              className="form-input"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  title: e.target.value,
+                }))
+              }
+              placeholder="e.g. Test fire alarm"
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Description *
+            </label>
+
+            <textarea
+              className="form-textarea"
+              value={formData.description}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  description: e.target.value,
+                }))
+              }
+              placeholder="Describe the maintenance task..."
+            />
+          </div>
+
+          <div className="form-group">
+              <label className="form-label">
+                Location / Room (Optional)
+              </label>
+            
+              <input
+                type="text"
+                className="form-input"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    location: e.target.value,
+                  }))
+                }
+                placeholder="e.g. Room 6, Basement, Kitchen, All Rooms"
+              />
+            </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              Repeat *
+            </label>
+
+            <select
+              className="form-select"
+              value={getScheduleValue()}
+              onChange={(e) =>
+                handleScheduleChange(e.target.value)
+              }
+            >
+              <option value="weekly">
+                Every week
+              </option>
+
+              <option value="monthly">
+                Every month
+              </option>
+
+              <option value="quarterly">
+                Every 3 months
+              </option>
+
+              <option value="sixMonths">
+                Every 6 months
+              </option>
+
+              <option value="yearly">
+                Every 12 months
+              </option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">
+              First Due Date *
+            </label>
+
+            <input
+              type="date"
+              className="form-input"
+              min={today}
+              value={formData.startDate}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  startDate: e.target.value,
+                  nextRunAt: e.target.value,
+                }))
+              }
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="form-submit"
+          >
+            Create Recurring Job
+          </button>
+        </form>
+      </div>
+    </>
+  )
+}
+
+function EditRecurringJobForm({
+
+  job,
+
+  onBack,
+
+  onSubmit,
+
+}) {
+
+  const [formData, setFormData] = useState({
+
+    title: job.title || '',
+
+    description: job.description || '',
+
+    location: job.location || '',
+
+    frequencyUnit: job.frequencyUnit || 'month',
+
+    frequencyInterval: Number(job.frequencyInterval || 1),
+
+    startDate: job.startDate || job.nextRunAt || '',
+
+    nextRunAt: job.nextRunAt || job.startDate || '',
+
+    active: job.active !== false,
+
+  })
+
+  const handleScheduleChange = (value) => {
+
+    const schedules = {
+
+      weekly: {
+
+        frequencyUnit: 'week',
+
+        frequencyInterval: 1,
+
+      },
+
+      monthly: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 1,
+
+      },
+
+      quarterly: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 3,
+
+      },
+
+      sixMonths: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 6,
+
+      },
+
+      yearly: {
+
+        frequencyUnit: 'month',
+
+        frequencyInterval: 12,
+
+      },
+
+    }
+
+    const selected = schedules[value]
+
+    setFormData((prev) => ({
+
+      ...prev,
+
+      frequencyUnit: selected.frequencyUnit,
+
+      frequencyInterval: selected.frequencyInterval,
+
+    }))
+
+  }
+
+  const getScheduleValue = () => {
+
+    if (
+
+      formData.frequencyUnit === 'week' &&
+
+      formData.frequencyInterval === 1
+
+    ) {
+
+      return 'weekly'
+
+    }
+
+    if (
+
+      formData.frequencyUnit === 'month' &&
+
+      formData.frequencyInterval === 1
+
+    ) {
+
+      return 'monthly'
+
+    }
+
+    if (formData.frequencyInterval === 3) {
+
+      return 'quarterly'
+
+    }
+
+    if (formData.frequencyInterval === 6) {
+
+      return 'sixMonths'
+
+    }
+
+    if (formData.frequencyInterval === 12) {
+
+      return 'yearly'
+
+    }
+
+    return 'monthly'
+
+  }
+
+  const handleSubmit = (e) => {
+
+    e.preventDefault()
+
+    if (!formData.title.trim()) {
+
+      window.alert('Please enter a job title.')
+
+      return
+
+    }
+
+    if (!formData.description.trim()) {
+
+      window.alert('Please enter a description.')
+
+      return
+
+    }
+
+    if (!formData.nextRunAt) {
+
+      window.alert('Please select the next due date.')
+
+      return
+
+    }
+
+    onSubmit(job.id, {
+
+      title: formData.title.trim(),
+
+      description: formData.description.trim(),
+
+      location: formData.location.trim(),
+
+      frequencyUnit: formData.frequencyUnit,
+
+      frequencyInterval: formData.frequencyInterval,
+
+      startDate: formData.startDate,
+
+      nextRunAt: formData.nextRunAt,
+
+      active: formData.active,
+
+    })
+
+  }
+
+  return (
+
+    <>
+
+      <div className="app-header">
+
+        <button
+
+          className="back-button"
+
+          onClick={onBack}
+
+        >
+
+          ← Cancel
+
+        </button>
+
+        <h1
+
+          className="app-title"
+
+          onClick={onBack}
+
+        >
+
+          HotelKeep
+
+        </h1>
+
+      </div>
+
+      <div className="form-container fade-in">
+
+        <h2>Edit Recurring Job</h2>
+
+        <form onSubmit={handleSubmit}>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Title *
+
+            </label>
+
+            <input
+
+              type="text"
+
+              className="form-input"
+
+              value={formData.title}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  title: e.target.value,
+
+                }))
+
+              }
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Description *
+
+            </label>
+
+            <textarea
+
+              className="form-textarea"
+
+              value={formData.description}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  description: e.target.value,
+
+                }))
+
+              }
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Location / Room
+
+            </label>
+
+            <input
+
+              type="text"
+
+              className="form-input"
+
+              value={formData.location}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  location: e.target.value,
+
+                }))
+
+              }
+
+              placeholder="e.g. Room 6, Basement, Kitchen"
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Repeat *
+
+            </label>
+
+            <select
+
+              className="form-select"
+
+              value={getScheduleValue()}
+
+              onChange={(e) =>
+
+                handleScheduleChange(e.target.value)
+
+              }
+
+            >
+
+              <option value="weekly">
+
+                Every week
+
+              </option>
+
+              <option value="monthly">
+
+                Every month
+
+              </option>
+
+              <option value="quarterly">
+
+                Every 3 months
+
+              </option>
+
+              <option value="sixMonths">
+
+                Every 6 months
+
+              </option>
+
+              <option value="yearly">
+
+                Every 12 months
+
+              </option>
+
+            </select>
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Next Due Date *
+
+            </label>
+
+            <input
+
+              type="date"
+
+              className="form-input"
+
+              value={formData.nextRunAt}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  nextRunAt: e.target.value,
+
+                }))
+
+              }
+
+            />
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">
+
+              Status
+
+            </label>
+
+            <select
+
+              className="form-select"
+
+              value={formData.active ? 'active' : 'paused'}
+
+              onChange={(e) =>
+
+                setFormData((prev) => ({
+
+                  ...prev,
+
+                  active: e.target.value === 'active',
+
+                }))
+
+              }
+
+            >
+
+              <option value="active">
+
+                Active
+
+              </option>
+
+              <option value="paused">
+
+                Paused
+
+              </option>
+
+            </select>
+
+          </div>
+
+          <button
+
+            type="submit"
+
+            className="form-submit"
+
+          >
+
+            Save Changes
+
+          </button>
+
+        </form>
+
+      </div>
+
+    </>
+
+  )
+
+}
+
+function HandymanScheduledJobsList({
+  recurringJobs,
+  onBack,
+  onViewJob,
+}) {
+  const activeJobs = (recurringJobs || [])
+    .filter((job) => job.active)
+    .sort((a, b) => {
+      const aDate = new Date(a.nextRunAt || 0).getTime()
+      const bDate = new Date(b.nextRunAt || 0).getTime()
+
+      return aDate - bDate
+    })
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={onBack}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-list fade-in">
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h2 style={{ margin: 0 }}>
+            🗓️ Scheduled Jobs
+          </h2>
+
+          <p
+            style={{
+              marginTop: '0.4rem',
+              color: '#64748b',
+            }}
+          >
+            All active recurring maintenance tasks
+          </p>
+        </div>
+
+        {activeJobs.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">🗓️</div>
+
+            <div className="empty-title">
+              No Scheduled Jobs
+            </div>
+
+            <div className="empty-message">
+              There are no active scheduled maintenance tasks.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {activeJobs.map((job) => {
+              const locationLabel =
+                job.location ||
+                (job.room_number
+                  ? `Room ${job.room_number}`
+                  : null) ||
+                (job.jobType === 'other'
+                  ? 'Other Job'
+                  : null)
+
+              const nextDate = job.nextRunAt
+                ? new Date(job.nextRunAt)
+                : null
+
+              const dueDate = nextDate
+                ? new Date(nextDate)
+                : null
+
+              if (dueDate) {
+                dueDate.setHours(0, 0, 0, 0)
+              }
+
+              const isDue =
+                dueDate &&
+                dueDate.getTime() === today.getTime()
+
+              const isOverdue =
+                dueDate &&
+                dueDate.getTime() < today.getTime()
+
+              return (
+                <div
+                  key={job.id}
+                  className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div className="job-header">
+                    <div className="job-title">
+                      {job.title}
+                    </div>
+
+                    <span
+                      className={`job-status-badge ${
+                        isOverdue
+                          ? 'urgent'
+                          : isDue
+                          ? 'todo'
+                          : 'done'
+                      }`}
+                    >
+                      {isOverdue
+                        ? 'Overdue'
+                        : isDue
+                        ? 'Due Today'
+                        : 'Upcoming'}
+                    </span>
+                  </div>
+
+                  <div className="detail-description">
+                    {job.description}
+                  </div>
+
+                  <div className="job-meta">
+                    <span>
+                      🗓️ Due:{' '}
+                      {nextDate
+                        ? nextDate.toLocaleDateString()
+                        : 'Not set'}
+                    </span>
+
+                    <span>
+                      🔁 Every {job.frequencyInterval}{' '}
+                      {job.frequencyUnit}
+                      {Number(job.frequencyInterval) > 1
+                        ? 's'
+                        : ''}
+                    </span>
+
+                    {locationLabel && (
+                      <span>
+                        📍 {locationLabel}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+function ScheduledJobDetail({
+  job,
+  role,
+  onBack,
+  onUpdate,
+  goToDashboard,
+}) {
+  const [actionType, setActionType] = useState('')
+  const [note, setNote] = useState('')
+
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+const calculateNextDueDate = (currentDate, interval, unit) => {
+  const date = new Date(currentDate)
+
+  if (unit === 'week') {
+    date.setDate(date.getDate() + Number(interval))
+  } else if (unit === 'month') {
+    date.setMonth(date.getMonth() + Number(interval))
+  } else if (unit === 'year') {
+    date.setFullYear(date.getFullYear() + Number(interval))
+  }
+
+  return date.toISOString().split('T')[0]
+}
+
+const handleScheduledJobSubmit = async () => {
+  if (actionType === 'problem' && !note.trim()) {
+    window.alert('Please describe the problem.')
+    return
+  }
+
+  setIsSubmitting(true)
+
+  try {
+    const now = new Date().toISOString()
+
+    if (actionType === 'completed') {
+      const nextRunAt = calculateNextDueDate(
+        job.nextRunAt,
+        job.frequencyInterval,
+        job.frequencyUnit
+      )
+
+      await onUpdate(job.id, {
+        lastResult: 'completed',
+        lastNote: note.trim(),
+        lastActionAt: now,
+        lastCompletedAt: now,
+        nextRunAt,
+      })
+
+      await createNotification({
+            hotelId: 'athena',
+            type: 'scheduled_completed',
+            title: 'Scheduled Job Completed',
+            message: job.title,
+            relatedRecurringJobId: job.id,
+            result: 'completed',
+            note: note.trim(),
+            actionAt: now,
+            nextRunAt,
+            location: job.location || '',
+          })
+
+      window.alert(
+        `Task completed. Next due date: ${new Date(
+          nextRunAt
+        ).toLocaleDateString()}`
+      )
+
+      setActionType(null)
+      setNote('')
+      onBack()
+    }
+
+    if (actionType === 'problem') {
+      await onUpdate(job.id, {
+        lastResult: 'problem',
+        lastNote: note.trim(),
+        lastActionAt: now,
+        lastProblemAt: now,
+      })
+
+      await createNotification({
+          hotelId: 'athena',
+          type: 'scheduled_problem',
+          title: 'Problem Reported',
+          message: job.title,
+          relatedRecurringJobId: job.id,
+          result: 'problem',
+          note: note.trim(),
+          actionAt: now,
+          nextRunAt: job.nextRunAt || null,
+          location: job.location || '',
+        })
+
+      window.alert('Problem report saved.')
+
+      setActionType(null)
+      setNote('')
+      onBack()
+    }
+  } catch (error) {
+    console.error('Could not save scheduled job action:', error)
+    window.alert('Could not save. Please try again.')
+  } finally {
+    setIsSubmitting(false)
+  }
+}
+  const locationLabel =
+    job.location ||
+    (job.room_number ? `Room ${job.room_number}` : null) ||
+    (job.jobType === 'other' ? 'Other Job' : null)
+
+  const nextDate = job.nextRunAt
+    ? new Date(job.nextRunAt)
+    : null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const dueDate = nextDate
+    ? new Date(nextDate)
+    : null
+
+  if (dueDate) {
+    dueDate.setHours(0, 0, 0, 0)
+  }
+
+  const isDue =
+    dueDate &&
+    dueDate.getTime() === today.getTime()
+
+  const isOverdue =
+    dueDate &&
+    dueDate.getTime() < today.getTime()
+
+  const statusLabel = isOverdue
+    ? 'Overdue'
+    : isDue
+    ? 'Due Today'
+    : 'Upcoming'
+
+  const statusClass = isOverdue
+    ? 'urgent'
+    : isDue
+    ? 'todo'
+    : 'done'
+
+  const interval = Number(job.frequencyInterval || 1)
+  const unit = job.frequencyUnit || 'month'
+
+  const frequencyLabel =
+    interval === 1
+      ? `Every ${unit}`
+      : `Every ${interval} ${unit}s`
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={goToDashboard}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+<div className="job-detail fade-in">
+  <div className="detail-card">
+    <div className="detail-header">
+      <div className="detail-title">
+        {job.title}
+      </div>
+
+      <span
+        className={`job-status-badge ${statusClass}`}
+      >
+        {statusLabel}
+      </span>
+    </div>
+
+    <div className="detail-description">
+      {job.description}
+    </div>
+
+    <div className="detail-meta">
+      {locationLabel && (
+        <div>
+          📍 Location: {locationLabel}
+        </div>
+      )}
+
+      <div>
+        🗓️ Due:{' '}
+        {nextDate
+          ? nextDate.toLocaleDateString()
+          : 'Not set'}
+      </div>
+
+      <div>
+        🔁 Repeat: {frequencyLabel}
+      </div>
+    </div>
+    {role === 'manager' && job.lastResult && (
+  <div
+    className="scheduled-result-box"
+    style={{ marginTop: '1rem' }}
+  >
+    <div>
+      <strong>
+        {job.lastResult === 'completed'
+          ? '✅ Last Task Completed'
+          : '⚠️ Problem Reported'}
+      </strong>
+    </div>
+
+    {job.lastActionAt && (
+      <div>
+        🕒 Activity:{' '}
+        {new Date(job.lastActionAt).toLocaleString()}
+      </div>
+    )}
+
+    {job.lastNote && (
+      <div>
+        📝 Handyman note: {job.lastNote}
+      </div>
+    )}
+
+    {job.lastResult === 'completed' &&
+      job.lastCompletedAt && (
+        <div>
+          ✅ Completed:{' '}
+          {new Date(
+            job.lastCompletedAt
+          ).toLocaleString()}
+        </div>
+      )}
+
+    {job.lastResult === 'problem' &&
+      job.lastProblemAt && (
+        <div>
+          ⚠️ Problem reported:{' '}
+          {new Date(
+            job.lastProblemAt
+          ).toLocaleString()}
+        </div>
+      )}
+
+    {job.lastResult === 'completed' &&
+      job.nextRunAt && (
+        <div>
+          🗓️ New next due date:{' '}
+          {new Date(
+            job.nextRunAt
+          ).toLocaleDateString()}
+        </div>
+      )}
+  </div>
+)}
+  </div>
+
+  {role === 'handyman' && (
+  <>
+  <div className="detail-actions">
+    <button
+      className={`action-btn ${
+        actionType === 'completed'
+          ? 'primary'
+          : 'secondary'
+      }`}
+      onClick={() => setActionType('completed')}
+    >
+      ✓ Completed
+    </button>
+
+    <button
+      className={`action-btn ${
+        actionType === 'problem'
+          ? 'danger'
+          : 'secondary'
+      }`}
+      onClick={() => setActionType('problem')}
+    >
+      ⚠ Problem Found
+    </button>
+  </div>
+
+  {actionType && (
+    <div
+      className="detail-card"
+      style={{ marginTop: '1rem' }}
+    >
+      <div className="form-group">
+        <label className="form-label">
+          {actionType === 'problem'
+            ? 'Describe the problem *'
+            : 'Completion note (Optional)'}
+        </label>
+
+        <textarea
+          className="form-textarea"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={
+            actionType === 'problem'
+              ? 'Describe what is wrong or why the task could not be completed...'
+              : 'e.g. Checked all bulbs, replaced two faulty bulbs...'
+          }
+        />
+      </div>
+
+      <button
+  className={`form-submit ${
+    isSubmitting ? 'loading' : ''
+  }`}
+  onClick={handleScheduledJobSubmit}
+  disabled={isSubmitting}
+>
+  {isSubmitting
+    ? 'Saving...'
+    : actionType === 'completed'
+    ? 'Submit Completion'
+    : 'Submit Problem Report'}
+</button>
+    </div>
+  )}
+      </>
+)}
+</div>
+    </>
+  )
+}
+
+function ManagerScheduledJobDetail({
+  job,
+  notification,
+  notifications,
+  onBack,
+  goToDashboard,
+}) {
+  const locationLabel =
+    notification.location ||
+    job.location ||
+    (job.room_number
+      ? `Room ${job.room_number}`
+      : null) ||
+    (job.jobType === 'other'
+      ? 'Other Job'
+      : null)
+
+  const interval = Number(
+    job.frequencyInterval || 1
+  )
+
+  const unit = job.frequencyUnit || 'month'
+
+  const frequencyLabel =
+    interval === 1
+      ? `Every ${unit}`
+      : `Every ${interval} ${unit}s`
+
+  const jobHistory = (notifications || [])
+  .filter(
+    (item) =>
+      item.relatedRecurringJobId === job.id
+  )
+  .sort((a, b) => {
+    const getTime = (value) => {
+      if (!value) return 0
+
+      if (value.toDate) {
+        return value.toDate().getTime()
+      }
+
+      const date = new Date(value)
+      return Number.isNaN(date.getTime())
+        ? 0
+        : date.getTime()
+    }
+
+    return (
+      getTime(b.actionAt || b.created_at) -
+      getTime(a.actionAt || a.created_at)
+    )
+  })
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={goToDashboard}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-detail fade-in">
+        <div className="detail-card">
+          <div className="detail-header">
+            <div className="detail-title">
+              {job.title}
+            </div>
+
+            {notification.result && (
+              <span
+                className={`job-status-badge ${
+                  notification.result === 'problem'
+                    ? 'urgent'
+                    : 'done'
+                }`}
+              >
+                {notification.result === 'problem'
+                  ? 'Problem Reported'
+                  : 'Completed'}
+              </span>
+            )}
+          </div>
+
+          <div className="detail-description">
+            {job.description}
+          </div>
+
+          <div className="detail-meta">
+            {locationLabel && (
+              <div>
+                📍 Location: {locationLabel}
+              </div>
+            )}
+
+            <div>
+              🔁 Repeat: {frequencyLabel}
+            </div>
+
+            {notification.note && (
+              <div>
+                📝 Handyman note:{' '}
+                {notification.note}
+              </div>
+            )}
+
+            {notification.result === 'completed' &&
+              notification.actionAt && (
+                <div>
+                  ✅ Completed:{' '}
+                  {new Date(
+                    notification.actionAt
+                  ).toLocaleString()}
+                </div>
+              )}
+
+            {notification.result === 'problem' &&
+              notification.actionAt && (
+                <div>
+                  ⚠️ Problem reported:{' '}
+                  {new Date(
+                    notification.actionAt
+                  ).toLocaleString()}
+                </div>
+              )}
+
+            {notification.nextRunAt && (
+              <div>
+                🗓️ Next due:{' '}
+                {new Date(
+                  notification.nextRunAt
+                ).toLocaleDateString()}
+              </div>
+            )}
+            <div
+  className="scheduled-result-box"
+  style={{ marginTop: '1.5rem' }}
+>
+  <h3 style={{ marginTop: 0 }}>
+    📋 Activity History
+  </h3>
+
+  {jobHistory.length === 0 ? (
+    <div>
+      No activity recorded yet.
+    </div>
+  ) : (
+    jobHistory.map((item) => {
+      const activityDate =
+        item.actionAt ||
+        (item.created_at?.toDate
+          ? item.created_at.toDate()
+          : item.created_at)
+
+      let activityIcon = '🔔'
+      let activityLabel = item.title || 'Activity'
+
+      if (
+        item.result === 'completed' ||
+        item.type === 'scheduled_completed'
+      ) {
+        activityIcon = '✅'
+        activityLabel = 'Completed'
+      } else if (
+        item.result === 'problem' ||
+        item.type === 'scheduled_problem'
+      ) {
+        activityIcon = '⚠️'
+        activityLabel = 'Problem Reported'
+      } else if (
+        item.result === 'paused' ||
+        item.type === 'scheduled_paused'
+      ) {
+        activityIcon = '⏸️'
+        activityLabel = 'Paused'
+      } else if (
+        item.result === 'resumed' ||
+        item.type === 'scheduled_resumed'
+      ) {
+        activityIcon = '▶️'
+        activityLabel = 'Resumed'
+      }
+
+      return (
+        <div
+          key={item.id}
+          style={{
+            padding: '0.85rem 0',
+            borderBottom: '1px solid #e2e8f0',
+          }}
+        >
+          <div>
+            <strong>
+              {activityIcon} {activityLabel}
+            </strong>
+          </div>
+
+          {activityDate && (
+            <div>
+              🕒{' '}
+              {new Date(
+                activityDate
+              ).toLocaleString()}
+            </div>
+          )}
+
+          {item.note && (
+            <div>
+              📝 {item.note}
+            </div>
+          )}
+
+          {item.nextRunAt &&
+            item.result === 'completed' && (
+              <div>
+                🗓️ Next due:{' '}
+                {new Date(
+                  item.nextRunAt
+                ).toLocaleDateString()}
+              </div>
+            )}
+        </div>
+      )
+    })
+  )}
+</div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+function NotificationsList({
+  notifications,
+  onBack,
+  onOpenNotification,
+}) {
+
+  const formatNotificationTime = (createdAt) => {
+    if (!createdAt) return ''
+
+    try {
+      // Firestore Timestamp
+      if (createdAt.toDate) {
+        return createdAt.toDate().toLocaleString()
+      }
+
+      // Normal date/string fallback
+      const date = new Date(createdAt)
+
+      if (Number.isNaN(date.getTime())) {
+        return ''
+      }
+
+      return date.toLocaleString()
+    } catch {
+      return ''
+    }
+  }
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={onBack}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-list fade-in">
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h2 style={{ margin: 0 }}>
+            🔔 Notifications
+          </h2>
+
+          <p
+            style={{
+              marginTop: '0.4rem',
+              color: '#64748b',
+            }}
+          >
+            Recent Job activity
+          </p>
+        </div>
+
+        {(notifications || []).length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-icon">
+              🔔
+            </div>
+
+            <div className="empty-title">
+              No Notifications
+            </div>
+
+            <div className="empty-message">
+              Handyman activity will appear here.
+            </div>
+          </div>
+        ) : (
+          <div className="job-grid">
+            {notifications.map((notification) => {
+              const notificationTime =
+                formatNotificationTime(
+                  notification.created_at
+                )
+
+              return (
+                <div
+                    key={notification.id}
+                    className="job-card"
+                    onClick={() => onOpenNotification(notification)}
+                    style={{
+                      cursor: 'pointer',
+                      opacity: notification.read
+                        ? 0.7
+                        : 1,
+                      borderLeft: notification.read
+                        ? '4px solid #cbd5e1'
+                        : '4px solid #6366f1',
+                    }}
+                  >
+                  <div className="job-header">
+                    <div className="job-title">
+                      {notification.type ===
+                      'scheduled_completed'
+                        ? '✅ '
+                        : notification.type ===
+                          'scheduled_problem'
+                        ? '⚠️ '
+                        : '🔔 '}
+
+                      {notification.title}
+                    </div>
+
+                    {!notification.read && (
+                      <span className="job-status-badge todo">
+                        New
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="detail-description">
+                    {notification.message}
+                  </div>
+
+                  {notificationTime && (
+                    <div className="job-meta">
+                      <span>
+                        🕒 {notificationTime}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
 
 export default HotelMaintenanceApp
