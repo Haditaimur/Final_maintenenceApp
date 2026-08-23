@@ -4651,7 +4651,7 @@ function NotificationsList({
               color: '#64748b',
             }}
           >
-            Recent handyman activity
+            Recent Job activity
           </p>
         </div>
 
