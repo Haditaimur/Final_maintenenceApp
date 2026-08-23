@@ -4389,6 +4389,267 @@ const handleScheduledJobSubmit = async () => {
   )
 }
 
+function ManagerScheduledJobDetail({
+  job,
+  notification,
+  notifications,
+  onBack,
+  goToDashboard,
+}) {
+  const locationLabel =
+    notification.location ||
+    job.location ||
+    (job.room_number ? `Room ${job.room_number}` : null) ||
+    (job.jobType === 'other' ? 'Other Job' : null)
+
+  const interval = Number(job.frequencyInterval || 1)
+  const unit = job.frequencyUnit || 'month'
+
+  const frequencyLabel =
+    interval === 1
+      ? `Every ${unit}`
+      : `Every ${interval} ${unit}s`
+
+  const jobHistory = (notifications || [])
+    .filter(
+      (item) => item.relatedRecurringJobId === job.id
+    )
+    .sort((a, b) => {
+      const getTime = (value) => {
+        if (!value) return 0
+
+        if (value.toDate) {
+          return value.toDate().getTime()
+        }
+
+        const date = new Date(value)
+
+        return Number.isNaN(date.getTime())
+          ? 0
+          : date.getTime()
+      }
+
+      return (
+        getTime(b.actionAt || b.created_at) -
+        getTime(a.actionAt || a.created_at)
+      )
+    })
+
+  return (
+    <>
+      <div className="app-header">
+        <button
+          className="back-button"
+          onClick={onBack}
+        >
+          ← Back
+        </button>
+
+        <h1
+          className="app-title"
+          onClick={goToDashboard}
+        >
+          HotelKeep
+        </h1>
+      </div>
+
+      <div className="job-detail fade-in">
+        <div className="detail-card">
+          <div className="detail-header">
+            <div className="detail-title">
+              {job.title}
+            </div>
+
+            {notification.result && (
+              <span
+                className={`job-status-badge ${
+                  notification.result === 'problem'
+                    ? 'urgent'
+                    : 'done'
+                }`}
+              >
+                {notification.result === 'problem'
+                  ? 'Problem Reported'
+                  : notification.result === 'paused'
+                  ? 'Paused'
+                  : notification.result === 'resumed'
+                  ? 'Resumed'
+                  : 'Completed'}
+              </span>
+            )}
+          </div>
+
+          <div className="detail-description">
+            {job.description}
+          </div>
+
+          <div className="detail-meta">
+            {locationLabel && (
+              <div>
+                📍 Location: {locationLabel}
+              </div>
+            )}
+
+            <div>
+              🔁 Repeat: {frequencyLabel}
+            </div>
+          </div>
+
+          <div>
+            <h3
+              style={{
+                margin: '1.5rem 0 0.9rem',
+                fontSize: '1.05rem',
+                fontWeight: 700,
+                color: '#334155',
+              }}
+            >
+              🔔 Current Notification
+            </h3>
+
+            {notification.result === 'completed' && (
+              <div>
+                <strong>✅ Completed</strong>
+              </div>
+            )}
+
+            {notification.result === 'problem' && (
+              <div>
+                <strong>⚠️ Problem Reported</strong>
+              </div>
+            )}
+
+            {notification.result === 'paused' && (
+              <div>
+                <strong>⏸️ Paused</strong>
+              </div>
+            )}
+
+            {notification.result === 'resumed' && (
+              <div>
+                <strong>▶️ Resumed</strong>
+              </div>
+            )}
+
+            {notification.actionAt && (
+              <div>
+                🕒 {new Date(notification.actionAt).toLocaleString()}
+              </div>
+            )}
+
+            {notification.note && (
+              <div>
+                📝 Handyman note: {notification.note}
+              </div>
+            )}
+
+            {notification.nextRunAt &&
+              notification.result === 'completed' && (
+                <div>
+                  🗓️ Next due:{' '}
+                  {new Date(
+                    notification.nextRunAt
+                  ).toLocaleDateString()}
+                </div>
+              )}
+          </div>
+
+          <div className="activity-history-section">
+            <h3>📋 Activity History</h3>
+
+            {jobHistory.filter(
+              (item) => item.id !== notification.id
+            ).length === 0 ? (
+              <div>No previous activity recorded.</div>
+            ) : (
+              jobHistory
+                .filter(
+                  (item) => item.id !== notification.id
+                )
+                .map((item) => {
+                  const activityDate =
+                    item.actionAt ||
+                    (item.created_at?.toDate
+                      ? item.created_at.toDate()
+                      : item.created_at)
+
+                  let activityIcon = '🔔'
+                  let activityLabel =
+                    item.title || 'Activity'
+
+                  if (
+                    item.result === 'completed' ||
+                    item.type === 'scheduled_completed'
+                  ) {
+                    activityIcon = '✅'
+                    activityLabel = 'Completed'
+                  } else if (
+                    item.result === 'problem' ||
+                    item.type === 'scheduled_problem'
+                  ) {
+                    activityIcon = '⚠️'
+                    activityLabel = 'Problem Reported'
+                  } else if (
+                    item.result === 'paused' ||
+                    item.type === 'scheduled_paused'
+                  ) {
+                    activityIcon = '⏸️'
+                    activityLabel = 'Paused'
+                  } else if (
+                    item.result === 'resumed' ||
+                    item.type === 'scheduled_resumed'
+                  ) {
+                    activityIcon = '▶️'
+                    activityLabel = 'Resumed'
+                  }
+
+                  return (
+                    <div
+                      key={item.id}
+                      className="activity-history-item"
+                    >
+                      <div>
+                        <strong>
+                          {activityIcon}{' '}
+                          {activityLabel}
+                        </strong>
+                      </div>
+
+                      {activityDate && (
+                        <div>
+                          🕒{' '}
+                          {new Date(
+                            activityDate
+                          ).toLocaleString()}
+                        </div>
+                      )}
+
+                      {item.note && (
+                        <div>
+                          📝 {item.note}
+                        </div>
+                      )}
+
+                      {item.nextRunAt &&
+                        item.result === 'completed' && (
+                          <div>
+                            🗓️ Next due:{' '}
+                            {new Date(
+                              item.nextRunAt
+                            ).toLocaleDateString()}
+                          </div>
+                        )}
+                    </div>
+                  )
+                })
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
 function NotificationsList({
   notifications,
   onBack,
