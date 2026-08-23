@@ -1704,29 +1704,60 @@ html {
 .view-all-scheduled-btn:hover {
   background: #e0e7ff;
 }
-
-.current-activity-section {
+.current-activity-section,
+.activity-history-section {
   margin-top: 1.5rem;
 }
 
 .current-activity-section h3,
 .activity-history-section h3 {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.9rem;
   font-size: 1.05rem;
+  font-weight: 700;
   color: #334155;
 }
 
+.current-activity-section .scheduled-result-box,
+.activity-history-section .scheduled-result-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+}
+
+.current-activity-section .scheduled-result-box > div,
+.activity-history-item > div {
+  color: #64748b;
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.current-activity-section .scheduled-result-box strong,
+.activity-history-item strong {
+  color: #334155;
+  font-weight: 700;
+}
+
 .activity-history-section {
-  margin-top: 2rem;
   padding-top: 1.5rem;
   border-top: 2px solid #e2e8f0;
 }
 
 .activity-history-item {
-  padding: 0.9rem 0;
+  padding: 1rem 0;
   border-bottom: 1px solid #e2e8f0;
+}
+
+.activity-history-item:first-child {
+  padding-top: 0;
 }
 
 .activity-history-item:last-child {
   border-bottom: none;
+  padding-bottom: 0;
+}
+
+.activity-history-item div + div,
+.current-activity-section .scheduled-result-box div + div {
+  margin-top: 0.2rem;
 }
