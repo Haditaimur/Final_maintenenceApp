@@ -21,6 +21,7 @@ import {
   subscribeToNotifications,
   markNotificationAsRead,
 } from './NotificationsService'
+
 import { authReady } from './firebase'
 
 // Data
