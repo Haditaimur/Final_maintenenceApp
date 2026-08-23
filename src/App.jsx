@@ -4315,147 +4315,76 @@ const handleScheduledJobSubmit = async () => {
   </div>
 </div>
 
-{/* CURRENT NOTIFICATION */}
-<div>
-  <h3
-    style={{
-      margin: '1.5rem 0 0.9rem',
-      fontSize: '1.05rem',
-      fontWeight: 700,
-      color: '#334155',
-    }}
-  >
-    🔔 Current Notification
-  </h3>
+  </div>
 
-  {notification.result === 'completed' && (
-    <div>
-      <strong>✅ Completed</strong>
-    </div>
-  )}
+  {role === 'handyman' && (
+    <>
+      <div className="detail-actions">
+        <button
+          className={`action-btn ${
+            actionType === 'completed'
+              ? 'primary'
+              : 'secondary'
+          }`}
+          onClick={() => setActionType('completed')}
+        >
+          ✓ Completed
+        </button>
 
-  {notification.result === 'problem' && (
-    <div>
-      <strong>⚠️ Problem Reported</strong>
-    </div>
-  )}
-
-  {notification.result === 'paused' && (
-    <div>
-      <strong>⏸️ Paused</strong>
-    </div>
-  )}
-
-  {notification.result === 'resumed' && (
-    <div>
-      <strong>▶️ Resumed</strong>
-    </div>
-  )}
-
-  {notification.actionAt && (
-    <div>
-      🕒 {new Date(notification.actionAt).toLocaleString()}
-    </div>
-  )}
-
-  {notification.note && (
-    <div>
-      📝 Handyman note: {notification.note}
-    </div>
-  )}
-
-  {notification.nextRunAt &&
-    notification.result === 'completed' && (
-      <div>
-        🗓️ Next due:{' '}
-        {new Date(notification.nextRunAt).toLocaleDateString()}
+        <button
+          className={`action-btn ${
+            actionType === 'problem'
+              ? 'danger'
+              : 'secondary'
+          }`}
+          onClick={() => setActionType('problem')}
+        >
+          ⚠ Problem Found
+        </button>
       </div>
-    )}
-</div>
 
-{/* ACTIVITY HISTORY */}
-<div className="activity-history-section">
-  <h3>📋 Activity History</h3>
+      {actionType && (
+        <div
+          className="detail-card"
+          style={{ marginTop: '1rem' }}
+        >
+          <div className="form-group">
+            <label className="form-label">
+              {actionType === 'problem'
+                ? 'Describe the problem *'
+                : 'Completion note (Optional)'}
+            </label>
 
-  {jobHistory.length === 0 ? (
-    <div>No previous activity recorded.</div>
-  ) : (
-    jobHistory
-      .filter((item) => item.id !== notification.id)
-      .map((item) => {
-        const activityDate =
-          item.actionAt ||
-          (item.created_at?.toDate
-            ? item.created_at.toDate()
-            : item.created_at)
-
-        let activityIcon = '🔔'
-        let activityLabel = item.title || 'Activity'
-
-        if (
-          item.result === 'completed' ||
-          item.type === 'scheduled_completed'
-        ) {
-          activityIcon = '✅'
-          activityLabel = 'Completed'
-        } else if (
-          item.result === 'problem' ||
-          item.type === 'scheduled_problem'
-        ) {
-          activityIcon = '⚠️'
-          activityLabel = 'Problem Reported'
-        } else if (
-          item.result === 'paused' ||
-          item.type === 'scheduled_paused'
-        ) {
-          activityIcon = '⏸️'
-          activityLabel = 'Paused'
-        } else if (
-          item.result === 'resumed' ||
-          item.type === 'scheduled_resumed'
-        ) {
-          activityIcon = '▶️'
-          activityLabel = 'Resumed'
-        }
-
-        return (
-          <div
-            key={item.id}
-            className="activity-history-item"
-          >
-            <div>
-              <strong>
-                {activityIcon} {activityLabel}
-              </strong>
-            </div>
-
-            {activityDate && (
-              <div>
-                🕒 {new Date(activityDate).toLocaleString()}
-              </div>
-            )}
-
-            {item.note && (
-              <div>
-                📝 {item.note}
-              </div>
-            )}
-
-            {item.nextRunAt &&
-              item.result === 'completed' && (
-                <div>
-                  🗓️ Next due:{' '}
-                  {new Date(item.nextRunAt).toLocaleDateString()}
-                </div>
-              )}
+            <textarea
+              className="form-textarea"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder={
+                actionType === 'problem'
+                  ? 'Describe what is wrong or why the task could not be completed...'
+                  : 'e.g. Checked all bulbs, replaced two faulty bulbs...'
+              }
+            />
           </div>
-        )
-      })
+
+          <button
+            className={`form-submit ${
+              isSubmitting ? 'loading' : ''
+            }`}
+            onClick={handleScheduledJobSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting
+              ? 'Saving...'
+              : actionType === 'completed'
+              ? 'Submit Completion'
+              : 'Submit Problem Report'}
+          </button>
+        </div>
+      )}
+    </>
   )}
 </div>
-</div>
-        </div>
-      </div>
     </>
   )
 }
