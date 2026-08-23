@@ -1704,6 +1704,7 @@ html {
 .view-all-scheduled-btn:hover {
   background: #e0e7ff;
 }
+
 .activity-history-section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
@@ -1711,34 +1712,24 @@ html {
 }
 
 .activity-history-section h3 {
-  margin: 0 0 1rem;
+  margin: 0 0 1.25rem;
   font-size: 1.05rem;
   font-weight: 700;
   color: #334155;
 }
 
-.activity-history-section .scheduled-result-box {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 1rem 1.1rem;
-}
-
 .activity-history-item {
-  padding: 1rem 0;
+  padding: 0 0 1rem;
+  margin-bottom: 1rem;
   border-bottom: 1px solid #e2e8f0;
 }
 
-.activity-history-item:first-child {
-  padding-top: 0;
-}
-
 .activity-history-item:last-child {
+  margin-bottom: 0;
   border-bottom: none;
-  padding-bottom: 0;
 }
 
-.activity-history-item > div {
+.activity-history-item div {
   color: #64748b;
   font-size: 0.98rem;
   line-height: 1.5;
@@ -1750,5 +1741,5 @@ html {
 }
 
 .activity-history-item div + div {
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
