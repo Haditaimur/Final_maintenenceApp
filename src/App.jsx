@@ -737,6 +737,8 @@ if (userRole === 'handyman') {
               showUserMenu={showUserMenu}
             
               setShowUserMenu={setShowUserMenu}
+
+          runJobsMigration={runJobsMigration}
         />
       )}
 
@@ -1015,6 +1017,8 @@ function Dashboard({
   showUserMenu,
 
   setShowUserMenu,
+
+    runJobsMigration,
 }) {
   const urgentCount = jobs.filter((j) => j.status === 'Urgent').length
   const todoCount = jobs.filter(
@@ -1073,33 +1077,35 @@ const dashboardScheduledJobs = [
               {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
             </span>
             {role === 'manager' && (
-<>
-        <button
-    className="btn-secondary"
-    onClick={runJobsMigration}
-    style={{ marginBottom: '1rem' }}
-  >
-    Fix Old Jobs
-  </button>
-      
-              <button
-                className="notification-button"
-                type="button"
-                title="Notifications"
-                onClick={onViewNotifications}
-              >
-                🔔
-            
-                {unreadNotificationCount > 0 && (
-                  <span className="notification-count">
-                    {unreadNotificationCount > 99
-                      ? '99+'
-                      : unreadNotificationCount}
-                  </span>
-                )}
-              </button>
-</>>
-            )}
+  <>
+    <button
+      className="btn-secondary"
+      type="button"
+      onClick={runJobsMigration}
+    >
+      Fix Old Jobs
+    </button>
+
+    <button
+      className="notification-button"
+      type="button"
+      title="Notifications"
+      onClick={onViewNotifications}
+    >
+      🔔
+
+      {unreadNotificationCount > 0 && (
+        <span className="notification-count">
+          {unreadNotificationCount > 99
+            ? '99+'
+            : unreadNotificationCount}
+        </span>
+      )}
+    </button>
+  </>
+)}
+
+<div className="user-menu-container">
             <div className="user-menu-container">
               <button
                 className="user-menu-button"
