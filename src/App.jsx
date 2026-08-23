@@ -712,6 +712,8 @@ if (userRole === 'handyman') {
 
               onViewAllScheduledJobs={goToHandymanScheduledJobs}
 
+              onViewScheduledJob={viewScheduledJobDetail}
+
               onViewNotifications={goToNotifications}
             
               onAddJob={addNewJob}
@@ -991,7 +993,9 @@ function Dashboard({
   onViewRecurringJobs,
 
   onViewAllScheduledJobs,
-  
+
+  onViewScheduledJob,
+
   onAddJob,
 
   onLogout,
@@ -1126,7 +1130,7 @@ const dashboardScheduledJobs = [
 
    {dashboardScheduledJobs.length === 0 ? (
       <div className="empty-state">
-        <div className="empty-icon">📅</div>
+        <div className="empty-icon">🗓️</div>
         <div className="empty-title">
           No Scheduled Jobs
         </div>
@@ -1172,7 +1176,7 @@ const dashboardScheduledJobs = [
             <div
               key={job.id}
               className="scheduled-job-card"
-              onClick={() => onViewJob(job)}
+              onClick={() => onViewScheduledJob(job)}
               style={{ cursor: 'pointer' }}
             >
               <div className="job-header">
@@ -2996,8 +3000,6 @@ const handleToggleActive = async (job) => {
                 <div
                   key={job.id}
                   className="job-card"
-                  onClick={() => onViewJob(job)}
-                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
