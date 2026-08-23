@@ -1073,19 +1073,13 @@ const dashboardScheduledJobs = [
               {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
             </span>
             {role === 'manager' && (
-
+<>
         <button
-
     className="btn-secondary"
-
     onClick={runJobsMigration}
-
     style={{ marginBottom: '1rem' }}
-
   >
-
     Fix Old Jobs
-
   </button>
       
               <button
@@ -1104,6 +1098,7 @@ const dashboardScheduledJobs = [
                   </span>
                 )}
               </button>
+</>>
             )}
             <div className="user-menu-container">
               <button
