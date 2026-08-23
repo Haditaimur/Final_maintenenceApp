@@ -2105,6 +2105,37 @@ function JobDetail({
           </div>
         </div>
 
+        <div className="detail-actions">
+          <button className="edit-button" onClick={onEditJob}>
+            ✏️ Edit Job
+          </button>
+
+          {job.status !== 'Done' && (
+            <button className="action-btn primary" onClick={handleMarkAsDone}>
+              ✓ Mark as Done
+            </button>
+          )}
+
+          {job.status === 'Done' && role === 'manager' && (
+            <button
+              className="action-btn secondary"
+              onClick={handleReopenAsOriginal}
+            >
+              ↺ Reopen as {job.original_status || 'To Do'}
+            </button>
+          )}
+
+          {role === 'manager' && (
+            <button
+              className={isDeleting ? 'action-btn danger loading' : 'action-btn danger'}
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting…' : '🗑 Delete Job'}
+            </button>
+          )}
+        </div>
+        
         {jobHistory.length > 0 && (
   <div className="activity-history-section">
     <h3>📋 Activity History</h3>
@@ -2173,37 +2204,6 @@ function JobDetail({
     })}
   </div>
 )}
-
-        <div className="detail-actions">
-          <button className="edit-button" onClick={onEditJob}>
-            ✏️ Edit Job
-          </button>
-
-          {job.status !== 'Done' && (
-            <button className="action-btn primary" onClick={handleMarkAsDone}>
-              ✓ Mark as Done
-            </button>
-          )}
-
-          {job.status === 'Done' && role === 'manager' && (
-            <button
-              className="action-btn secondary"
-              onClick={handleReopenAsOriginal}
-            >
-              ↺ Reopen as {job.original_status || 'To Do'}
-            </button>
-          )}
-
-          {role === 'manager' && (
-            <button
-              className={isDeleting ? 'action-btn danger loading' : 'action-btn danger'}
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              {isDeleting ? 'Deleting…' : '🗑 Delete Job'}
-            </button>
-          )}
-        </div>
       </div>
     </>
   )
