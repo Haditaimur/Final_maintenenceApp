@@ -4649,7 +4649,6 @@ function ManagerScheduledJobDetail({
     </>
   )
 }
-
 function NotificationsList({
   notifications,
   onBack,
