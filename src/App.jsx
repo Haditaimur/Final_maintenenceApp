@@ -4179,252 +4179,6 @@ const handleScheduledJobSubmit = async () => {
       {job.description}
     </div>
 
-    <div className="detail-meta">
-      {locationLabel && (
-        <div>
-          📍 Location: {locationLabel}
-        </div>
-      )}
-
-      <div>
-        🗓️ Due:{' '}
-        {nextDate
-          ? nextDate.toLocaleDateString()
-          : 'Not set'}
-      </div>
-
-      <div>
-        🔁 Repeat: {frequencyLabel}
-      </div>
-    </div>
-    {role === 'manager' && job.lastResult && (
-  <div
-    className="scheduled-result-box"
-    style={{ marginTop: '1rem' }}
-  >
-    <div>
-      <strong>
-        {job.lastResult === 'completed'
-          ? '✅ Last Task Completed'
-          : '⚠️ Problem Reported'}
-      </strong>
-    </div>
-
-    {job.lastActionAt && (
-      <div>
-        🕒 Activity:{' '}
-        {new Date(job.lastActionAt).toLocaleString()}
-      </div>
-    )}
-
-    {job.lastNote && (
-      <div>
-        📝 Handyman note: {job.lastNote}
-      </div>
-    )}
-
-    {job.lastResult === 'completed' &&
-      job.lastCompletedAt && (
-        <div>
-          ✅ Completed:{' '}
-          {new Date(
-            job.lastCompletedAt
-          ).toLocaleString()}
-        </div>
-      )}
-
-    {job.lastResult === 'problem' &&
-      job.lastProblemAt && (
-        <div>
-          ⚠️ Problem reported:{' '}
-          {new Date(
-            job.lastProblemAt
-          ).toLocaleString()}
-        </div>
-      )}
-
-    {job.lastResult === 'completed' &&
-      job.nextRunAt && (
-        <div>
-          🗓️ New next due date:{' '}
-          {new Date(
-            job.nextRunAt
-          ).toLocaleDateString()}
-        </div>
-      )}
-  </div>
-)}
-  </div>
-
-  {role === 'handyman' && (
-  <>
-  <div className="detail-actions">
-    <button
-      className={`action-btn ${
-        actionType === 'completed'
-          ? 'primary'
-          : 'secondary'
-      }`}
-      onClick={() => setActionType('completed')}
-    >
-      ✓ Completed
-    </button>
-
-    <button
-      className={`action-btn ${
-        actionType === 'problem'
-          ? 'danger'
-          : 'secondary'
-      }`}
-      onClick={() => setActionType('problem')}
-    >
-      ⚠ Problem Found
-    </button>
-  </div>
-
-  {actionType && (
-    <div
-      className="detail-card"
-      style={{ marginTop: '1rem' }}
-    >
-      <div className="form-group">
-        <label className="form-label">
-          {actionType === 'problem'
-            ? 'Describe the problem *'
-            : 'Completion note (Optional)'}
-        </label>
-
-        <textarea
-          className="form-textarea"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={
-            actionType === 'problem'
-              ? 'Describe what is wrong or why the task could not be completed...'
-              : 'e.g. Checked all bulbs, replaced two faulty bulbs...'
-          }
-        />
-      </div>
-
-      <button
-  className={`form-submit ${
-    isSubmitting ? 'loading' : ''
-  }`}
-  onClick={handleScheduledJobSubmit}
-  disabled={isSubmitting}
->
-  {isSubmitting
-    ? 'Saving...'
-    : actionType === 'completed'
-    ? 'Submit Completion'
-    : 'Submit Problem Report'}
-</button>
-    </div>
-  )}
-      </>
-)}
-</div>
-    </>
-  )
-}
-
-function ManagerScheduledJobDetail({
-  job,
-  notification,
-  notifications,
-  onBack,
-  goToDashboard,
-}) {
-  const locationLabel =
-    notification.location ||
-    job.location ||
-    (job.room_number
-      ? `Room ${job.room_number}`
-      : null) ||
-    (job.jobType === 'other'
-      ? 'Other Job'
-      : null)
-
-  const interval = Number(
-    job.frequencyInterval || 1
-  )
-
-  const unit = job.frequencyUnit || 'month'
-
-  const frequencyLabel =
-    interval === 1
-      ? `Every ${unit}`
-      : `Every ${interval} ${unit}s`
-
-  const jobHistory = (notifications || [])
-  .filter(
-    (item) =>
-      item.relatedRecurringJobId === job.id
-  )
-  .sort((a, b) => {
-    const getTime = (value) => {
-      if (!value) return 0
-
-      if (value.toDate) {
-        return value.toDate().getTime()
-      }
-
-      const date = new Date(value)
-      return Number.isNaN(date.getTime())
-        ? 0
-        : date.getTime()
-    }
-
-    return (
-      getTime(b.actionAt || b.created_at) -
-      getTime(a.actionAt || a.created_at)
-    )
-  })
-
-  return (
-    <>
-      <div className="app-header">
-        <button
-          className="back-button"
-          onClick={onBack}
-        >
-          ← Back
-        </button>
-
-        <h1
-          className="app-title"
-          onClick={goToDashboard}
-        >
-          HotelKeep
-        </h1>
-      </div>
-
-      <div className="job-detail fade-in">
-        <div className="detail-card">
-          <div className="detail-header">
-            <div className="detail-title">
-              {job.title}
-            </div>
-
-            {notification.result && (
-              <span
-                className={`job-status-badge ${
-                  notification.result === 'problem'
-                    ? 'urgent'
-                    : 'done'
-                }`}
-              >
-                {notification.result === 'problem'
-                  ? 'Problem Reported'
-                  : 'Completed'}
-              </span>
-            )}
-          </div>
-
-          <div className="detail-description">
-            {job.description}
-          </div>
-
 <div className="detail-meta">
   {locationLabel && (
     <div>
@@ -4437,136 +4191,144 @@ function ManagerScheduledJobDetail({
   </div>
 </div>
 
-<div className="current-activity-section">
-  <h3>🔔 Current Notification</h3>
+{/* CURRENT NOTIFICATION */}
+<div>
+  <h3
+    style={{
+      margin: '1.5rem 0 0.9rem',
+      fontSize: '1.05rem',
+      fontWeight: 700,
+      color: '#334155',
+    }}
+  >
+    🔔 Current Notification
+  </h3>
 
-  <div className="scheduled-result-box">
-    {notification.result === 'completed' && (
+  {notification.result === 'completed' && (
+    <div>
+      <strong>✅ Completed</strong>
+    </div>
+  )}
+
+  {notification.result === 'problem' && (
+    <div>
+      <strong>⚠️ Problem Reported</strong>
+    </div>
+  )}
+
+  {notification.result === 'paused' && (
+    <div>
+      <strong>⏸️ Paused</strong>
+    </div>
+  )}
+
+  {notification.result === 'resumed' && (
+    <div>
+      <strong>▶️ Resumed</strong>
+    </div>
+  )}
+
+  {notification.actionAt && (
+    <div>
+      🕒 {new Date(notification.actionAt).toLocaleString()}
+    </div>
+  )}
+
+  {notification.note && (
+    <div>
+      📝 Handyman note: {notification.note}
+    </div>
+  )}
+
+  {notification.nextRunAt &&
+    notification.result === 'completed' && (
       <div>
-        <strong>✅ Completed</strong>
+        🗓️ Next due:{' '}
+        {new Date(notification.nextRunAt).toLocaleDateString()}
       </div>
     )}
-
-    {notification.result === 'problem' && (
-      <div>
-        <strong>⚠️ Problem Reported</strong>
-      </div>
-    )}
-
-    {notification.result === 'paused' && (
-      <div>
-        <strong>⏸️ Paused</strong>
-      </div>
-    )}
-
-    {notification.result === 'resumed' && (
-      <div>
-        <strong>▶️ Resumed</strong>
-      </div>
-    )}
-
-    {notification.actionAt && (
-      <div>
-        🕒 {new Date(notification.actionAt).toLocaleString()}
-      </div>
-    )}
-
-    {notification.note && (
-      <div>
-        📝 Handyman note: {notification.note}
-      </div>
-    )}
-
-    {notification.nextRunAt &&
-      notification.result === 'completed' && (
-        <div>
-          🗓️ Next due:{' '}
-          {new Date(notification.nextRunAt).toLocaleDateString()}
-        </div>
-      )}
-  </div>
 </div>
 
+{/* ACTIVITY HISTORY */}
 <div className="activity-history-section">
   <h3>📋 Activity History</h3>
 
-  <div className="scheduled-result-box">
-    {jobHistory.length === 0 ? (
-      <div>No previous activity recorded.</div>
-    ) : (
-      jobHistory
-        .filter((item) => item.id !== notification.id)
-        .map((item) => {
-          const activityDate =
-            item.actionAt ||
-            (item.created_at?.toDate
-              ? item.created_at.toDate()
-              : item.created_at)
+  {jobHistory.length === 0 ? (
+    <div>No previous activity recorded.</div>
+  ) : (
+    jobHistory
+      .filter((item) => item.id !== notification.id)
+      .map((item) => {
+        const activityDate =
+          item.actionAt ||
+          (item.created_at?.toDate
+            ? item.created_at.toDate()
+            : item.created_at)
 
-          let activityIcon = '🔔'
-          let activityLabel = item.title || 'Activity'
+        let activityIcon = '🔔'
+        let activityLabel = item.title || 'Activity'
 
-          if (
-            item.result === 'completed' ||
-            item.type === 'scheduled_completed'
-          ) {
-            activityIcon = '✅'
-            activityLabel = 'Completed'
-          } else if (
-            item.result === 'problem' ||
-            item.type === 'scheduled_problem'
-          ) {
-            activityIcon = '⚠️'
-            activityLabel = 'Problem Reported'
-          } else if (
-            item.result === 'paused' ||
-            item.type === 'scheduled_paused'
-          ) {
-            activityIcon = '⏸️'
-            activityLabel = 'Paused'
-          } else if (
-            item.result === 'resumed' ||
-            item.type === 'scheduled_resumed'
-          ) {
-            activityIcon = '▶️'
-            activityLabel = 'Resumed'
-          }
+        if (
+          item.result === 'completed' ||
+          item.type === 'scheduled_completed'
+        ) {
+          activityIcon = '✅'
+          activityLabel = 'Completed'
+        } else if (
+          item.result === 'problem' ||
+          item.type === 'scheduled_problem'
+        ) {
+          activityIcon = '⚠️'
+          activityLabel = 'Problem Reported'
+        } else if (
+          item.result === 'paused' ||
+          item.type === 'scheduled_paused'
+        ) {
+          activityIcon = '⏸️'
+          activityLabel = 'Paused'
+        } else if (
+          item.result === 'resumed' ||
+          item.type === 'scheduled_resumed'
+        ) {
+          activityIcon = '▶️'
+          activityLabel = 'Resumed'
+        }
 
-          return (
-            <div
-              key={item.id}
-              className="activity-history-item"
-            >
-              <div>
-                <strong>
-                  {activityIcon} {activityLabel}
-                </strong>
-              </div>
-
-              {activityDate && (
-                <div>
-                  🕒 {new Date(activityDate).toLocaleString()}
-                </div>
-              )}
-
-              {item.note && (
-                <div>
-                  📝 {item.note}
-                </div>
-              )}
-
-              {item.nextRunAt &&
-                item.result === 'completed' && (
-                  <div>
-                    🗓️ Next due:{' '}
-                    {new Date(item.nextRunAt).toLocaleDateString()}
-                  </div>
-                )}
+        return (
+          <div
+            key={item.id}
+            className="activity-history-item"
+          >
+            <div>
+              <strong>
+                {activityIcon} {activityLabel}
+              </strong>
             </div>
-          )
-        })
-    )}
-  </div>
+
+            {activityDate && (
+              <div>
+                🕒 {new Date(activityDate).toLocaleString()}
+              </div>
+            )}
+
+            {item.note && (
+              <div>
+                📝 {item.note}
+              </div>
+            )}
+
+            {item.nextRunAt &&
+              item.result === 'completed' && (
+                <div>
+                  🗓️ Next due:{' '}
+                  {new Date(item.nextRunAt).toLocaleDateString()}
+                </div>
+              )}
+          </div>
+        )
+      })
+  )}
+</div>
 </div>
         </div>
       </div>
