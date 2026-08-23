@@ -21,8 +21,6 @@ import {
 } from './NotificationsService'
 import { authReady } from './firebase'
 
-import { migrateJobsToAddHotelId } from './migration'
-
 // Data
 const initialRooms = [
   // Basement
@@ -264,18 +262,6 @@ const [completedRoomFilter, setCompletedRoomFilter] = useState('all')
   const [selectedScheduledJob, setSelectedScheduledJob] = useState(null)
   const [selectedNotification, setSelectedNotification] = useState(null)
 
-  const runJobsMigration = async () => {
-  try {
-    const result = await migrateJobsToAddHotelId()
-
-    window.alert(
-      `Migration complete.\nUpdated: ${result.updated}\nSkipped: ${result.skipped}`
-    )
-  } catch (error) {
-    console.error('Migration failed:', error)
-    window.alert('Migration failed. Check the console.')
-  }
-}
   
   const editRecurringJob = (job) => {
   setSelectedRecurringJob(job)
@@ -737,8 +723,6 @@ if (userRole === 'handyman') {
               showUserMenu={showUserMenu}
             
               setShowUserMenu={setShowUserMenu}
-
-          runJobsMigration={runJobsMigration}
         />
       )}
 
@@ -1017,8 +1001,6 @@ function Dashboard({
   showUserMenu,
 
   setShowUserMenu,
-
-    runJobsMigration,
 }) {
   const urgentCount = jobs.filter((j) => j.status === 'Urgent').length
   const todoCount = jobs.filter(
@@ -1077,33 +1059,23 @@ const dashboardScheduledJobs = [
               {role === 'manager' ? '👨‍💼 Manager' : '🔧 Handyman'}
             </span>
             {role === 'manager' && (
-  <>
-    <button
-      className="btn-secondary"
-      type="button"
-      onClick={runJobsMigration}
-    >
-      Fix Old Jobs
-    </button>
-
-    <button
-      className="notification-button"
-      type="button"
-      title="Notifications"
-      onClick={onViewNotifications}
-    >
-      🔔
-
-      {unreadNotificationCount > 0 && (
-        <span className="notification-count">
-          {unreadNotificationCount > 99
-            ? '99+'
-            : unreadNotificationCount}
-        </span>
-      )}
-    </button>
-  </>
-)}
+            <button
+              className="notification-button"
+              type="button"
+              title="Notifications"
+              onClick={onViewNotifications}
+            >
+              🔔
+        
+              {unreadNotificationCount > 0 && (
+                <span className="notification-count">
+                  {unreadNotificationCount > 99
+                    ? '99+'
+                    : unreadNotificationCount}
+                </span>
+              )}
+            </button>
+        )}
             
             <div className="user-menu-container">
               <button
