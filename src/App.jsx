@@ -573,6 +573,34 @@ if (userRole === 'handyman') {
   })
 }
 
+    // Record manager reopening a completed job
+if (
+  userRole === 'manager' &&
+  existingJob.status === 'Done' &&
+  updates.status &&
+  updates.status !== 'Done'
+) {
+  const room = rooms.find(
+    (room) => room.id === existingJob.room_id
+  )
+
+  await createNotification({
+    hotelId,
+    type: 'job_reopened',
+    title: 'Job Reopened',
+    message: existingJob.title,
+    relatedJobId: jobId,
+    result: 'reopened',
+    actionAt: newUpdates.updated_at,
+
+    location: room
+      ? `Room ${room.room_number}`
+      : existingJob.jobType === 'other'
+      ? 'Other Job'
+      : '',
+  })
+}
+
     // 🔹 2) Optimistically update local jobs list
     setJobs((prev) =>
       prev.map((job) =>
@@ -878,7 +906,8 @@ if (userRole === 'handyman') {
           onEditJob={editJob}
           onEnlargePhoto={setEnlargedPhoto}
           goToDashboard={goToDashboard}
-          isDeleting={isDeleting}         
+          isDeleting={isDeleting}
+          notifications={notifications}
           />
       )}
 
@@ -1927,6 +1956,7 @@ function JobDetail({
   job,
   room,
   role,
+  notifications,
   onBack,
   onUpdateJob,
   onDeleteJob,
@@ -1970,6 +2000,31 @@ function JobDetail({
     : 'unknown'
 
   const photoSrc = job.photoUrl || job.photo
+
+  const jobHistory = (notifications || [])
+  .filter(
+    (item) => item.relatedJobId === job.id
+  )
+  .sort((a, b) => {
+    const getTime = (value) => {
+      if (!value) return 0
+
+      if (value.toDate) {
+        return value.toDate().getTime()
+      }
+
+      const date = new Date(value)
+
+      return Number.isNaN(date.getTime())
+        ? 0
+        : date.getTime()
+    }
+
+    return (
+      getTime(b.actionAt || b.created_at) -
+      getTime(a.actionAt || a.created_at)
+    )
+  })
 
   return (
     <>
@@ -2048,6 +2103,75 @@ function JobDetail({
             <div>🔄 Updated: {new Date(job.updated_at).toLocaleString()}</div>
           </div>
         </div>
+
+        {jobHistory.length > 0 && (
+  <div className="activity-history-section">
+    <h3>📋 Activity History</h3>
+
+    {jobHistory.map((item) => {
+      const activityDate =
+        item.actionAt ||
+        (item.created_at?.toDate
+          ? item.created_at.toDate()
+          : item.created_at)
+
+      let activityIcon = '🔔'
+      let activityLabel = item.title || 'Job Updated'
+
+      if (
+        item.result === 'completed' ||
+        item.type === 'job_completed'
+      ) {
+        activityIcon = '✅'
+        activityLabel = 'Completed'
+      } else if (
+        item.result === 'reopened' ||
+        item.type === 'job_reopened'
+      ) {
+        activityIcon = '↺'
+        activityLabel = 'Reopened'
+      } else if (
+        item.type === 'job_status_changed'
+      ) {
+        activityIcon = '🔄'
+        activityLabel = 'Status Changed'
+      } else if (
+        item.type === 'job_updated'
+      ) {
+        activityIcon = '✏️'
+        activityLabel = 'Job Updated'
+      }
+
+      return (
+        <div
+          key={item.id}
+          className="activity-history-item"
+        >
+          <div>
+            <strong>
+              {activityIcon} {activityLabel}
+            </strong>
+          </div>
+
+          {activityDate && (
+            <div>
+              🕒{' '}
+              {new Date(
+                activityDate
+              ).toLocaleString()}
+            </div>
+          )}
+
+          {item.location && (
+            <div>
+              📍 {item.location}
+            </div>
+          )}
+        </div>
+      )
+    })}
+  </div>
+)}
 
         <div className="detail-actions">
           <button className="edit-button" onClick={onEditJob}>
