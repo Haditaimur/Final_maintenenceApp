@@ -18,7 +18,7 @@ export async function migrateJobsToAddHotelId() {
       const data = jobDoc.data()
       
       // If job doesn't have hotelId, add it
-      if (!data.hotelId) {
+      if (data.hotelId === undefined || data.hotelId === null || data.hotelId === '') {
         await updateDoc(doc(db, 'jobs', jobDoc.id), {
           hotelId: 'athena' // Change this to match your hotel
         })
