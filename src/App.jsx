@@ -4784,13 +4784,13 @@ function ManagerScheduledJobDetail({
             <h3>📋 Activity History</h3>
 
             {jobHistory.filter(
-              (item) => item.id !== notification.id
+              (item) => !notification || item.id !== notification.id
             ).length === 0 ? (
               <div>No previous activity recorded.</div>
             ) : (
               jobHistory
                 .filter(
-                  (item) => item.id !== notification.id
+                  (item) => !notification || item.id !== notification.id
                 )
                 .map((item) => {
                   const activityDate =
