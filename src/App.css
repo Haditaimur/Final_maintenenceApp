@@ -1742,3 +1742,7 @@ html {
 .activity-history-item div + div {
   margin-top: 0.15rem;
 }
+
+.dashboard-grid .upcoming-scheduled-section {
+  grid-column: 1 / -1;
+}
