@@ -4684,7 +4684,7 @@ function ManagerScheduledJobDetail({
               {job.title}
             </div>
 
-            {notification.result && (
+            {notification?.result && (
               <span
                 className={`job-status-badge ${
                   notification.result === 'problem'
