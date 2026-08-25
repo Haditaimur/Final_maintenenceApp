@@ -812,6 +812,7 @@ if (
               <ScheduledJobDetail
                 job={selectedScheduledJob}
                 role={userRole}
+                notifications={notifications}
                 onBack={goToHandymanScheduledJobs}
                 onUpdate={updateRecurringJob}
                 goToDashboard={goToDashboard}
@@ -4117,6 +4118,7 @@ function HandymanScheduledJobsList({
 function ScheduledJobDetail({
   job,
   role,
+  notifications,
   onBack,
   onUpdate,
   goToDashboard,
@@ -4268,9 +4270,54 @@ const handleScheduledJobSubmit = async () => {
   const unit = job.frequencyUnit || 'month'
 
   const frequencyLabel =
-    interval === 1
-      ? `Every ${unit}`
-      : `Every ${interval} ${unit}s`
+
+  interval === 1
+
+    ? `Every ${unit}`
+
+    : `Every ${interval} ${unit}s`
+
+const jobHistory = (notifications || [])
+
+  .filter(
+
+    (item) =>
+
+      item.relatedRecurringJobId === job.id
+
+  )
+
+  .sort((a, b) => {
+
+    const getTime = (value) => {
+
+      if (!value) return 0
+
+      if (value.toDate) {
+
+        return value.toDate().getTime()
+
+      }
+
+      const date = new Date(value)
+
+      return Number.isNaN(date.getTime())
+
+        ? 0
+
+        : date.getTime()
+
+    }
+
+    return (
+
+      getTime(b.actionAt || b.created_at) -
+
+      getTime(a.actionAt || a.created_at)
+
+    )
+
+  })
 
   return (
     <>
@@ -4389,6 +4436,158 @@ const handleScheduledJobSubmit = async () => {
       )}
     </>
   )}
+
+  <div className="activity-history-section">
+
+    <h3>📋 Activity History</h3>
+
+    {jobHistory.length === 0 ? (
+
+      <div>No activity recorded yet.</div>
+
+    ) : (
+
+      jobHistory.map((item) => {
+
+        const activityDate =
+
+          item.actionAt ||
+
+          (item.created_at?.toDate
+
+            ? item.created_at.toDate()
+
+            : item.created_at)
+
+        let activityIcon = '🔔'
+
+        let activityLabel =
+
+          item.title || 'Activity'
+
+        if (
+
+          item.result === 'completed' ||
+
+          item.type === 'scheduled_completed'
+
+        ) {
+
+          activityIcon = '✅'
+
+          activityLabel = 'Completed'
+
+        } else if (
+
+          item.result === 'problem' ||
+
+          item.type === 'scheduled_problem'
+
+        ) {
+
+          activityIcon = '⚠️'
+
+          activityLabel = 'Problem Reported'
+
+        } else if (
+
+          item.result === 'paused' ||
+
+          item.type === 'scheduled_paused'
+
+        ) {
+
+          activityIcon = '⏸️'
+
+          activityLabel = 'Paused'
+
+        } else if (
+
+          item.result === 'resumed' ||
+
+          item.type === 'scheduled_resumed'
+
+        ) {
+
+          activityIcon = '▶️'
+
+          activityLabel = 'Resumed'
+
+        }
+
+        return (
+
+          <div
+
+            key={item.id}
+
+            className="activity-history-item"
+
+          >
+
+            <div>
+
+              <strong>
+
+                {activityIcon} {activityLabel}
+
+              </strong>
+
+            </div>
+
+            {activityDate && (
+
+              <div>
+
+                🕒{' '}
+
+                {new Date(
+
+                  activityDate
+
+                ).toLocaleString()}
+
+              </div>
+
+            )}
+
+            {item.note && (
+
+              <div>
+
+                📝 {item.note}
+
+              </div>
+
+            )}
+
+            {item.nextRunAt &&
+
+              item.result === 'completed' && (
+
+                <div>
+
+                  🗓️ Next due:{' '}
+
+                  {new Date(
+
+                    item.nextRunAt
+
+                  ).toLocaleDateString()}
+
+                </div>
+
+              )}
+
+          </div>
+
+        )
+
+      })
+
+    )}
+
+  </div>
 </div>
     </>
   )
