@@ -1151,7 +1151,41 @@ const dashboardScheduledJobs = [
       </div>
 
       <div className="dashboard fade-in">
-        {role === 'handyman' && (
+
+        <div className="dashboard-grid">
+          <div
+            className="category-card urgent"
+            onClick={() => onViewCategory('Urgent')}
+          >
+            <div className="category-header">
+              <div className="category-title">
+                <div className="category-icon">🔥</div>
+                Urgent Jobs
+              </div>
+            </div>
+            <div className="category-count">{urgentCount}</div>
+            <div className="category-subtitle">
+              Requires immediate attention
+            </div>
+          </div>
+
+          <div
+            className="category-card todo"
+            onClick={() => onViewCategory('To Do')}
+          >
+            <div className="category-header">
+              <div className="category-title">
+                <div className="category-icon">📋</div>
+                To Do Jobs
+              </div>
+            </div>
+            <div className="category-count">{todoCount}</div>
+            <div className="category-subtitle">
+              Scheduled maintenance tasks
+            </div>
+          </div>
+
+                  {role === 'handyman' && (
   <div className="upcoming-scheduled-section">
     <div className="upcoming-scheduled-header">
       <div>
@@ -1283,38 +1317,6 @@ const dashboardScheduledJobs = [
     )}
   </div>
 )}
-        <div className="dashboard-grid">
-          <div
-            className="category-card urgent"
-            onClick={() => onViewCategory('Urgent')}
-          >
-            <div className="category-header">
-              <div className="category-title">
-                <div className="category-icon">🔥</div>
-                Urgent Jobs
-              </div>
-            </div>
-            <div className="category-count">{urgentCount}</div>
-            <div className="category-subtitle">
-              Requires immediate attention
-            </div>
-          </div>
-
-          <div
-            className="category-card todo"
-            onClick={() => onViewCategory('To Do')}
-          >
-            <div className="category-header">
-              <div className="category-title">
-                <div className="category-icon">📋</div>
-                To Do Jobs
-              </div>
-            </div>
-            <div className="category-count">{todoCount}</div>
-            <div className="category-subtitle">
-              Scheduled maintenance tasks
-            </div>
-          </div>
 
           <div
             className="category-card done"
