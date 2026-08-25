@@ -457,7 +457,12 @@ const goToRecurringJobs = () => {
   setSelectedScheduledJob(job)
   setCurrentView('scheduled-job-detail')
 }
-  
+
+  const viewManagerScheduledJobDetail = (job) => {
+  setSelectedRecurringJob(job)
+  setSelectedNotification(null)
+  setCurrentView('manager-scheduled-job-detail')
+}
 
   // Firebase-based createJob with timestamps and original_status
   const createJob = async (jobData) => {
@@ -775,13 +780,16 @@ if (
 
      {currentView === 'manager-scheduled-job-detail' &&
             userRole === 'manager' &&
-            selectedRecurringJob &&
-            selectedNotification && (
+            selectedRecurringJob && (
               <ManagerScheduledJobDetail
                 job={selectedRecurringJob}
                 notification={selectedNotification}
                 notifications={notifications}
-                onBack={goToNotifications}
+                onBack={
+                  selectedNotification
+                    ? goToNotifications
+                    : goToRecurringJobs
+                }
                 goToDashboard={goToDashboard}
               />
           )}
@@ -795,6 +803,7 @@ if (
             onAdd={addNewRecurringJob}
             onUpdate={updateRecurringJob}
             onDelete={deleteRecurringJob}
+            onViewJob={viewManagerScheduledJobDetail}
           />
         )}
 
@@ -2934,6 +2943,7 @@ function RecurringJobsList({
   onAdd,
   onUpdate,
   onDelete,
+  onViewJob,
 }) {
   const getRoom = (roomId) => {
     return rooms.find((room) => room.id === roomId)
@@ -3130,6 +3140,8 @@ const handleToggleActive = async (job) => {
                 <div
                   key={job.id}
                   className="job-card"
+                  onClick={() => onViewJob(job)}
+                  style={{ cursor: 'pointer' }}
                 >
                   <div className="job-header">
                     <div className="job-title">
@@ -3190,25 +3202,33 @@ const handleToggleActive = async (job) => {
                     }}
                   >
                     <button
-                      className="btn-secondary"
-                      onClick={() => handleToggleActive(job)}
-                    >
-                      {job.active ? '⏸ Pause' : '▶ Resume'}
-                    </button>
+                  className="btn-secondary"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleToggleActive(job)
+                  }}
+                >
+                  {job.active ? '⏸ Pause' : '▶ Resume'}
+                </button>
 
                     <button
                   className="btn-secondary"
-                  onClick={() => onEdit(job)}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(job)
+                  }}
                 >
                   ✏️ Edit
-                  </button>
-
-                    <button
-                      className="btn-danger"
-                      onClick={() => handleDelete(job)}
-                    >
-                      🗑 Delete
-                    </button>
+                </button>
+                <button
+                  className="btn-danger"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDelete(job)
+                  }}
+                >
+                  🗑 Delete
+                </button>
                   </div>
                 </div>
               )
@@ -4601,7 +4621,7 @@ function ManagerScheduledJobDetail({
   goToDashboard,
 }) {
   const locationLabel =
-    notification.location ||
+    notification?.location ||
     job.location ||
     (job.room_number ? `Room ${job.room_number}` : null) ||
     (job.jobType === 'other' ? 'Other Job' : null)
@@ -4699,6 +4719,7 @@ function ManagerScheduledJobDetail({
             </div>
           </div>
 
+          {notification && (
           <div>
             <h3
               style={{
@@ -4757,6 +4778,7 @@ function ManagerScheduledJobDetail({
                 </div>
               )}
           </div>
+      )}
 
           <div className="activity-history-section">
             <h3>📋 Activity History</h3>
