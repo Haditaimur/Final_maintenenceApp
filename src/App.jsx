@@ -2951,7 +2951,7 @@ function RecurringJobsList({
 
   const formatFrequency = (job) => {
     const interval = Number(job.frequencyInterval || 1)
-    const unit = job.frequencyUnit || 'month'
+    const unit = job.frequencyUnit || 'day'
 
     const unitLabel =
       interval === 1
@@ -3253,9 +3253,8 @@ function AddRecurringJobForm({
 
   location: '',
 
-  frequencyUnit: 'month',
-
-  frequencyInterval: 1,
+frequencyUnit: 'day',
+frequencyInterval: 30,
 
   startDate: today,
 
@@ -3263,69 +3262,6 @@ function AddRecurringJobForm({
 
   active: true,
   })
-
-  const handleScheduleChange = (value) => {
-    const schedules = {
-      weekly: {
-        frequencyUnit: 'week',
-        frequencyInterval: 1,
-      },
-      monthly: {
-        frequencyUnit: 'month',
-        frequencyInterval: 1,
-      },
-      quarterly: {
-        frequencyUnit: 'month',
-        frequencyInterval: 3,
-      },
-      sixMonths: {
-        frequencyUnit: 'month',
-        frequencyInterval: 6,
-      },
-      yearly: {
-        frequencyUnit: 'month',
-        frequencyInterval: 12,
-      },
-    }
-
-    const selected = schedules[value]
-
-    setFormData((prev) => ({
-      ...prev,
-      frequencyUnit: selected.frequencyUnit,
-      frequencyInterval: selected.frequencyInterval,
-    }))
-  }
-
-  const getScheduleValue = () => {
-    if (
-      formData.frequencyUnit === 'week' &&
-      formData.frequencyInterval === 1
-    ) {
-      return 'weekly'
-    }
-
-    if (
-      formData.frequencyUnit === 'month' &&
-      formData.frequencyInterval === 1
-    ) {
-      return 'monthly'
-    }
-
-    if (formData.frequencyInterval === 3) {
-      return 'quarterly'
-    }
-
-    if (formData.frequencyInterval === 6) {
-      return 'sixMonths'
-    }
-
-    if (formData.frequencyInterval === 12) {
-      return 'yearly'
-    }
-
-    return 'monthly'
-  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -3344,6 +3280,14 @@ function AddRecurringJobForm({
       window.alert('Please select the first due date.')
       return
     }
+
+    if (
+  !formData.frequencyInterval ||
+  Number(formData.frequencyInterval) < 1
+) {
+  window.alert('Please enter a valid repeat interval in days.')
+  return
+}
 
    const finalData = {
         ...formData,
@@ -3432,40 +3376,32 @@ function AddRecurringJobForm({
                 placeholder="e.g. Room 6, Basement, Kitchen, All Rooms"
               />
             </div>
+<div className="form-group">
+  <label className="form-label">
+    Repeat Every (Days) *
+  </label>
 
-          <div className="form-group">
-            <label className="form-label">
-              Repeat *
-            </label>
+  <input
+    type="number"
+    className="form-input"
+    min="1"
+    step="1"
+    value={formData.frequencyInterval}
+    onChange={(e) =>
+      setFormData((prev) => ({
+        ...prev,
+        frequencyUnit: 'day',
+        frequencyInterval: Number(e.target.value),
+      }))
+    }
+    placeholder="e.g. 21, 30, 90, 365"
+    required
+  />
 
-            <select
-              className="form-select"
-              value={getScheduleValue()}
-              onChange={(e) =>
-                handleScheduleChange(e.target.value)
-              }
-            >
-              <option value="weekly">
-                Every week
-              </option>
-
-              <option value="monthly">
-                Every month
-              </option>
-
-              <option value="quarterly">
-                Every 3 months
-              </option>
-
-              <option value="sixMonths">
-                Every 6 months
-              </option>
-
-              <option value="yearly">
-                Every 12 months
-              </option>
-            </select>
-          </div>
+  <div className="room-input-helper">
+    Enter the number of days between each scheduled task.
+  </div>
+</div>
 
           <div className="form-group">
             <label className="form-label">
@@ -3509,6 +3445,18 @@ function EditRecurringJobForm({
 
 }) {
 
+  const getInitialDays = () => {
+  const interval = Number(job.frequencyInterval || 1)
+  const unit = job.frequencyUnit || 'day'
+
+  if (unit === 'day') return interval
+  if (unit === 'week') return interval * 7
+  if (unit === 'month') return interval * 30
+  if (unit === 'year') return interval * 365
+
+  return interval
+}
+
   const [formData, setFormData] = useState({
 
     title: job.title || '',
@@ -3517,9 +3465,9 @@ function EditRecurringJobForm({
 
     location: job.location || '',
 
-    frequencyUnit: job.frequencyUnit || 'month',
-
-    frequencyInterval: Number(job.frequencyInterval || 1),
+    frequencyUnit: 'day',
+    
+    frequencyInterval: getInitialDays(),
 
     startDate: job.startDate || job.nextRunAt || '',
 
@@ -3528,114 +3476,6 @@ function EditRecurringJobForm({
     active: job.active !== false,
 
   })
-
-  const handleScheduleChange = (value) => {
-
-    const schedules = {
-
-      weekly: {
-
-        frequencyUnit: 'week',
-
-        frequencyInterval: 1,
-
-      },
-
-      monthly: {
-
-        frequencyUnit: 'month',
-
-        frequencyInterval: 1,
-
-      },
-
-      quarterly: {
-
-        frequencyUnit: 'month',
-
-        frequencyInterval: 3,
-
-      },
-
-      sixMonths: {
-
-        frequencyUnit: 'month',
-
-        frequencyInterval: 6,
-
-      },
-
-      yearly: {
-
-        frequencyUnit: 'month',
-
-        frequencyInterval: 12,
-
-      },
-
-    }
-
-    const selected = schedules[value]
-
-    setFormData((prev) => ({
-
-      ...prev,
-
-      frequencyUnit: selected.frequencyUnit,
-
-      frequencyInterval: selected.frequencyInterval,
-
-    }))
-
-  }
-
-  const getScheduleValue = () => {
-
-    if (
-
-      formData.frequencyUnit === 'week' &&
-
-      formData.frequencyInterval === 1
-
-    ) {
-
-      return 'weekly'
-
-    }
-
-    if (
-
-      formData.frequencyUnit === 'month' &&
-
-      formData.frequencyInterval === 1
-
-    ) {
-
-      return 'monthly'
-
-    }
-
-    if (formData.frequencyInterval === 3) {
-
-      return 'quarterly'
-
-    }
-
-    if (formData.frequencyInterval === 6) {
-
-      return 'sixMonths'
-
-    }
-
-    if (formData.frequencyInterval === 12) {
-
-      return 'yearly'
-
-    }
-
-    return 'monthly'
-
-  }
 
   const handleSubmit = (e) => {
 
@@ -3664,6 +3504,14 @@ function EditRecurringJobForm({
       return
 
     }
+
+    if (
+  !formData.frequencyInterval ||
+  Number(formData.frequencyInterval) < 1
+) {
+  window.alert('Please enter a valid repeat interval in days.')
+  return
+}
 
     onSubmit(job.id, {
 
@@ -3820,62 +3668,32 @@ function EditRecurringJobForm({
             />
 
           </div>
+<div className="form-group">
+  <label className="form-label">
+    Repeat Every (Days) *
+  </label>
 
-          <div className="form-group">
+  <input
+    type="number"
+    className="form-input"
+    min="1"
+    step="1"
+    value={formData.frequencyInterval}
+    onChange={(e) =>
+      setFormData((prev) => ({
+        ...prev,
+        frequencyUnit: 'day',
+        frequencyInterval: Number(e.target.value),
+      }))
+    }
+    placeholder="e.g. 21, 30, 90, 365"
+    required
+  />
 
-            <label className="form-label">
-
-              Repeat *
-
-            </label>
-
-            <select
-
-              className="form-select"
-
-              value={getScheduleValue()}
-
-              onChange={(e) =>
-
-                handleScheduleChange(e.target.value)
-
-              }
-
-            >
-
-              <option value="weekly">
-
-                Every week
-
-              </option>
-
-              <option value="monthly">
-
-                Every month
-
-              </option>
-
-              <option value="quarterly">
-
-                Every 3 months
-
-              </option>
-
-              <option value="sixMonths">
-
-                Every 6 months
-
-              </option>
-
-              <option value="yearly">
-
-                Every 12 months
-
-              </option>
-
-            </select>
-
-          </div>
+  <div className="room-input-helper">
+    Number of days between each scheduled task.
+  </div>
+</div>
 
           <div className="form-group">
 
@@ -4151,8 +3969,10 @@ function ScheduledJobDetail({
 const calculateNextDueDate = (currentDate, interval, unit) => {
   const date = new Date(currentDate)
 
-  if (unit === 'week') {
+  if (unit === 'day') {
     date.setDate(date.getDate() + Number(interval))
+  } else if (unit === 'week') {
+    date.setDate(date.getDate() + Number(interval) * 7)
   } else if (unit === 'month') {
     date.setMonth(date.getMonth() + Number(interval))
   } else if (unit === 'year') {
@@ -4287,7 +4107,7 @@ const handleScheduledJobSubmit = async () => {
     : 'done'
 
   const interval = Number(job.frequencyInterval || 1)
-  const unit = job.frequencyUnit || 'month'
+  const unit = job.frequencyUnit || 'day'
 
   const frequencyLabel =
 
@@ -4627,7 +4447,7 @@ function ManagerScheduledJobDetail({
     (job.jobType === 'other' ? 'Other Job' : null)
 
   const interval = Number(job.frequencyInterval || 1)
-  const unit = job.frequencyUnit || 'month'
+  const unit = job.frequencyUnit || 'day'
 
   const frequencyLabel =
     interval === 1
